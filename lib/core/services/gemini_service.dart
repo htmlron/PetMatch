@@ -27,6 +27,11 @@ class GeminiService {
       userHousehold: userHousehold,
     );
 
+    // Quick guard: ensure API key exists
+    if (apiKey.isEmpty) {
+      return 'AI not configured. Please set GEMINI_API_KEY in your environment to enable explanations.';
+    }
+
     try {
       final content = [Content.text(prompt)];
       final response = await _model.generateContent(content);

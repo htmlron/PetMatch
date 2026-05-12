@@ -143,6 +143,17 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
       state = state.copyWith(
         favoriteIds: state.favoriteIds.where((id) => id != petId).toSet(),
       );
+      // Remove from local favoritePets list so UI updates immediately
+      state = state.copyWith(
+        favoritePets: state.favoritePets.where((p) => p.id != petId).toList(),
+      );
+
+      // Refresh matches so the pet can reappear in matching view
+      try {
+        await ref.read(matchProvider.notifier).fetchMatchedPets();
+      } catch (e) {
+        print('⚠️ Warning: failed to refresh matches after removing favorite: $e');
+      }
 
       NotifierHelper.showSuccessToast(context, 'Removed from favorites!');
     } catch (e) {

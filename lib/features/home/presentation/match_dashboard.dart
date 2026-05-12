@@ -327,7 +327,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
 
       // Fetch dogs from different sizes and include their images
       final response = await supabase
-          .from('pet')
+          .from('pets')
           .select('*, pets_images(*)')
           .eq('species', 'Dog')
           .neq('size', preferredSize)
@@ -432,7 +432,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
 
   Widget _buildSizeMismatchCard(Pet dog) {
     return GestureDetector(
-      onTap: () => _showPetDetailsFromList(0, []),
+      onTap: () => showPetDetailsModal(context, _sizeMismatchedDogs ?? [], _sizeMismatchedDogs?.indexOf(dog) ?? 0),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),

@@ -47,12 +47,6 @@ dependency_overrides:
 flutter:
   uses-material-design: true
 
-# Configuration for flutter_launcher_icons
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/petmatch_logo.png"
-
   assets:
     - .env
 
