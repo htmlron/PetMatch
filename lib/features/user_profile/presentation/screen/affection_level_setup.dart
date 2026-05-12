@@ -134,7 +134,7 @@ class _AffectionLevelSetupScreenState
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  _currentLevel['label'],
+                  '${_affectionLevel.round()}',
                   style: GoogleFonts.newsreader(
                     fontSize: getResponsiveValue(
                       context,
@@ -472,6 +472,7 @@ class _AffectionLevelSetupScreenState
               min: 1,
               max: 5,
               divisions: 4,
+              label: _affectionLevel.round().toString(),
               onChanged: (value) {
                 setState(() {
                   _affectionLevel = value;
@@ -490,14 +491,14 @@ class _AffectionLevelSetupScreenState
     if (onboardingComplete) {
       ref.read(userProfileProvider.notifier).updateUserProfile(
             level: _affectionLevel.round(),
-            label: _currentLevel['label'],
+            label: _affectionLevel.round().toString(),
             column: 'personality_traits',
             key: 'snuggly_preference',
           );
       Navigator.of(context).pop();
     } else {
       ref.read(userProfileProvider.notifier).setAffectionLevel(
-          context, _affectionLevel.round(), _currentLevel['label']);
+          context, _affectionLevel.round(), _affectionLevel.round().toString());
     }
   }
 }

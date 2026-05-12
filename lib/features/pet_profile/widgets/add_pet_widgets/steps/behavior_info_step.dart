@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/features/pet_profile/widgets/build_field_label.dart';
-import 'package:petmatch/widgets/style/themed_textfield.dart';
 
 class BehaviorInfoStep extends ConsumerStatefulWidget {
   final TextEditingController behavioralNotesController;

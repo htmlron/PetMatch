@@ -97,7 +97,7 @@ class MatchExplanationCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.auto_awesome,
                       size: 18,
                       color: Colors.deepOrange,

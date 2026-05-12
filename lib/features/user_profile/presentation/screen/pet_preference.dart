@@ -200,7 +200,7 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
                       children: [
                         Icon(Icons.arrow_back,
                             size: 16, color: Colors.grey[400]),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'SWIPE TO CHANGE PET',
                           style: TextStyle(
@@ -209,7 +209,7 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Icon(Icons.arrow_forward,
                             size: 16, color: Colors.grey[400]),
                       ],
@@ -261,7 +261,7 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
                               color:
                                   _currentPetOption['color'].withOpacity(0.25),
                               blurRadius: 12,
-                              offset: Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),

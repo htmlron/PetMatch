@@ -297,7 +297,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
                       children: [
                         Icon(Icons.arrow_back,
                             size: 16, color: Colors.grey[400]),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'SWIPE TO CHANGE SIZE',
                           style: TextStyle(
@@ -306,7 +306,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Icon(Icons.arrow_forward,
                             size: 16, color: Colors.grey[400]),
                       ],
@@ -358,7 +358,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
                               color:
                                   _currentSizeOption['color'].withOpacity(0.25),
                               blurRadius: 12,
-                              offset: Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),

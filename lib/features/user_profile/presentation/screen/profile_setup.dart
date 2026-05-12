@@ -243,7 +243,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         ),
       ),
       child: DropdownButtonFormField<String>(
-        value: _selectedGender ?? 'Prefer not to say',
+        initialValue: _selectedGender ?? 'Prefer not to say',
         decoration: InputDecoration(
           prefixIcon: Icon(
             Icons.wc,

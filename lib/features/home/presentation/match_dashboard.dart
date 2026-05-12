@@ -1,18 +1,18 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
+import 'package:petmatch/core/services/gemini_service.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
 import 'package:petmatch/features/home/widgets/ai_loader.dart';
-import 'package:petmatch/features/home/widgets/pet_details_modal.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
-import 'package:petmatch/admin/features/pet_management_page.dart';
-import 'package:petmatch/core/config/supabase_config.dart';
-import 'package:petmatch/core/services/gemini_service.dart';
+import 'package:petmatch/features/home/widgets/pet_details_modal.dart';
+import 'package:petmatch/features/home/widgets/swipe_card.dart';
 
 class MatchDashboard extends ConsumerStatefulWidget {
   const MatchDashboard({super.key});
@@ -21,25 +21,48 @@ class MatchDashboard extends ConsumerStatefulWidget {
   ConsumerState<MatchDashboard> createState() => _MatchDashboardState();
 }
 
-class _MatchDashboardState extends ConsumerState<MatchDashboard>
-    with TickerProviderStateMixin {
-  bool _isListView = false; // Toggle between card and list view
+class _MatchDashboardState extends ConsumerState<MatchDashboard> {
+  int _currentCardIndex = 0;
+  bool _showListView = false;
 
   @override
   void initState() {
     super.initState();
-    // Fetch matched pets
     Future.microtask(() => ref.read(matchProvider.notifier).fetchMatchedPets());
   }
 
-  void _showPetDetailsFromList(int index) {
-    final petMatches = ref.read(matchProvider).matches;
-    final matchedPets = petMatches.map((m) => m.pet).toList();
-    showPetDetailsModal(
-      context,
-      matchedPets,
-      index,
-    );
+  void _handleSwipeLeft() {
+    setState(() {
+      _currentCardIndex++;
+    });
+  }
+
+  void _handleSwipeRight() {
+    setState(() {
+      _currentCardIndex++;
+    });
+  }
+
+  void _showPetDetailsFromList(int index, List<PetMatch> petMatches) {
+    try {
+      if (petMatches.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No pet data available')),
+        );
+        return;
+      }
+
+      final matchedPets = petMatches.map((m) => m.pet).toList();
+      final validIndex = index.clamp(0, matchedPets.length - 1);
+
+      showPetDetailsModal(context, matchedPets, validIndex);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   Future<void> showAppleIntelligenceLoader(BuildContext context) async {
@@ -47,6 +70,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
       context: context,
       isDismissible: false,
       enableDrag: false,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AppleIntelligenceLoader(),
     );
@@ -80,13 +104,13 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
         userHousehold: userHousehold,
       );
 
-      // Close loading dialog
       if (mounted) Navigator.pop(context);
 
       if (mounted) {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
+          useSafeArea: true,
           backgroundColor: Colors.transparent,
           builder: (context) => _AppleIntelligenceModal(
             petMatch: petMatch,
@@ -99,7 +123,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to generate explanation: ${e.toString()}'),
+            content: Text('Failed to generate explanation: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -112,6 +136,10 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
     final matchState = ref.watch(matchProvider);
     final petMatches = matchState.matches;
     final isLoading = matchState.isLoading;
+    final errorMessage = matchState.errorMessage;
+
+    // If currently loading but have no matches yet, show loading
+    final shouldShowLoading = isLoading && petMatches.isEmpty;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -119,7 +147,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -131,50 +159,34 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                       color: Colors.black87,
                     ),
                   ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          _isListView ? Icons.view_agenda : Icons.view_carousel,
-                          color: Colors.deepOrange,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isListView = !_isListView;
-                          });
-                        },
-                        tooltip: _isListView
-                            ? 'Switch to Card View'
-                            : 'Switch to List View',
-                      ),
-                      // IconButton(
-                      //   icon: const Icon(
-                      //     Icons.settings,
-                      //     color: Colors.deepOrange,
-                      //   ),
-                      //   onPressed: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (context) => const PetManagementPage(),
-                      //       ),
-                      //     );
-                      //   },
-                      //   tooltip: 'Manage Pets',
-                      // ),
-                    ],
+                  IconButton(
+                    icon: Icon(
+                      _showListView ? Icons.view_carousel : Icons.view_list,
+                      color: Colors.deepOrange,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showListView = !_showListView;
+                        _currentCardIndex = 0;
+                      });
+                    },
+                    tooltip: _showListView
+                        ? 'Switch to Swipe View'
+                        : 'Switch to List View',
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: isLoading
+              child: shouldShowLoading
                   ? _buildLoadingState()
-                  : petMatches.isEmpty
-                      ? _buildEmptyState()
-                      : _isListView
-                          ? _buildListView(petMatches)
-                          : _buildCardView(petMatches),
+                  : errorMessage != null
+                      ? _buildErrorState(errorMessage)
+                      : petMatches.isEmpty
+                          ? _buildEmptyState()
+                          : _showListView
+                              ? _buildListView(petMatches)
+                              : _buildSwipeView(petMatches),
             ),
           ],
         ),
@@ -183,14 +195,150 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
     );
   }
 
+  Widget _buildSwipeView(List<PetMatch> petMatches) {
+    // Safety check: ensure we have matches and valid index
+    if (petMatches.isEmpty || _currentCardIndex >= petMatches.length) {
+      return _buildEmptyState();
+    }
+
+    // Reset index if it goes out of bounds
+    if (_currentCardIndex < 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _currentCardIndex = 0;
+        });
+      });
+      return _buildLoadingState();
+    }
+
+    return Stack(
+      children: [
+        if (_currentCardIndex + 1 < petMatches.length)
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Opacity(
+              opacity: 0.3,
+              child: Transform.translate(
+                offset: const Offset(0, 16),
+                child: SwipeCard(
+                  petMatch: petMatches[_currentCardIndex + 1],
+                  onSwipeLeft: () {},
+                  onSwipeRight: () {},
+                  onTap: () {},
+                ),
+              ),
+            ),
+          ),
+        SwipeCard(
+          petMatch: petMatches[_currentCardIndex],
+          onSwipeLeft: _handleSwipeLeft,
+          onSwipeRight: _handleSwipeRight,
+          onTap: () => _showPetDetailsFromList(_currentCardIndex, petMatches),
+          onInfoTap: () => _showMatchExplanation(petMatches[_currentCardIndex]),
+        ),
+        Positioned(
+          bottom: MediaQuery.of(context).size.width > 500 ? 20 : 12,
+          left: 0,
+          right: 0,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width > 500 ? 40 : 20,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    FloatingActionButton(
+                      heroTag: 'skip_btn',
+                      onPressed: _handleSwipeLeft,
+                      backgroundColor: Colors.red.withOpacity(0.9),
+                      mini: MediaQuery.of(context).size.width <= 500,
+                      child: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: MediaQuery.of(context).size.width > 500 ? 28 : 20,
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.width > 500 ? 6 : 4),
+                    Text(
+                      'SKIP',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    FloatingActionButton(
+                      heroTag: 'like_btn',
+                      onPressed: _handleSwipeRight,
+                      backgroundColor: Colors.green.withOpacity(0.9),
+                      mini: MediaQuery.of(context).size.width <= 500,
+                      child: Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: MediaQuery.of(context).size.width > 500 ? 28 : 20,
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.width > 500 ? 6 : 4),
+                    Text(
+                      'LIKE',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_currentCardIndex == 0)
+          Positioned(
+            top: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Swipe left to skip | Swipe right to like',
+                  style: GoogleFonts.poppins(
+                    fontSize: MediaQuery.of(context).size.width > 500 ? 13 : 11,
+                    color: Colors.white70,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildLoadingState() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final animationSize = (screenWidth * 0.72).clamp(180.0, 300.0);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 300,
-            height: 300,
+            width: animationSize,
+            height: animationSize,
             child: Lottie.asset(
               'assets/lottie/Dog walking.json',
               repeat: true,
@@ -202,6 +350,67 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
             style: GoogleFonts.poppins(
               fontSize: 16,
               color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 30),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: LinearProgressIndicator(
+              minHeight: 4,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation(Colors.deepOrange[300]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String errorMessage) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 100,
+            color: Colors.red[300],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Oops! Something went wrong',
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Text(
+              errorMessage,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 30),
+          ElevatedButton.icon(
+            onPressed: () {
+              ref.read(matchProvider.notifier).fetchMatchedPets();
+            },
+            icon: const Icon(Icons.refresh),
+            label: Text(
+              'Try Again',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
             ),
           ),
         ],
@@ -241,36 +450,13 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
     );
   }
 
-  // Card View with peeking side cards
-  Widget _buildCardView(List<PetMatch> petMatches) {
-    return PageView.builder(
-      itemCount: petMatches.length,
-      controller: PageController(viewportFraction: 0.85),
-      itemBuilder: (context, index) {
-        return AnimatedBuilder(
-          animation: PageController(viewportFraction: 0.85),
-          builder: (context, child) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-              child: GestureDetector(
-                onTap: () => _showPetDetailsFromList(index),
-                child: _buildPetCard(petMatches[index], isInteractive: true),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // List View with horizontal cards
   Widget _buildListView(List<PetMatch> petMatches) {
     return ListView.builder(
       itemCount: petMatches.length,
       padding: const EdgeInsets.all(16),
       itemBuilder: (context, index) {
         return GestureDetector(
-          onTap: () => _showPetDetailsFromList(index),
+          onTap: () => _showPetDetailsFromList(index, petMatches),
           child: _buildHorizontalCard(petMatches[index]),
         );
       },
@@ -279,9 +465,17 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
 
   Widget _buildHorizontalCard(PetMatch petMatch) {
     final pet = petMatch.pet;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardHeight = screenWidth <= 360
+        ? 152.0
+        : screenWidth <= 420
+            ? 164.0
+            : 170.0;
+    final imageWidth = (cardHeight * 0.82).clamp(118.0, 140.0);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      height: 140,
+      height: cardHeight,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -295,39 +489,33 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
       ),
       child: Row(
         children: [
-          // Pet Image
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               bottomLeft: Radius.circular(20),
             ),
             child: SizedBox(
-              width: 140,
-              height: 140,
+              width: imageWidth,
+              height: cardHeight,
               child: pet.thumbnailUrl != null
                   ? CachedNetworkImage(
                       imageUrl: pet.thumbnailUrl!,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[200],
-                        child:
-                            Icon(Icons.pets, size: 40, color: Colors.grey[400]),
+                        child: Icon(Icons.pets, size: 40, color: Colors.grey[400]),
                       ),
                     )
                   : Container(
                       color: Colors.grey[200],
-                      child:
-                          Icon(Icons.pets, size: 40, color: Colors.grey[400]),
+                      child: Icon(Icons.pets, size: 40, color: Colors.grey[400]),
                     ),
             ),
           ),
-          // Pet Info
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -348,24 +536,16 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: petMatch.matchColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: petMatch.matchColor,
-                            width: 1.5,
-                          ),
+                          border: Border.all(color: petMatch.matchColor, width: 1.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              petMatch.matchIcon,
-                              color: petMatch.matchColor,
-                              size: 14,
-                            ),
+                            Icon(petMatch.matchIcon, color: petMatch.matchColor, size: 14),
                             const SizedBox(width: 4),
                             Text(
                               '${petMatch.totalMatchPercent.toInt()}%',
@@ -380,24 +560,49 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                       ),
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () => _showMatchExplanation(petMatch),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        foregroundColor: Colors.deepOrange,
+                      ),
+                      icon: const Icon(Icons.lightbulb_outline, size: 16),
+                      label: Text(
+                        'Why this match?',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.cake_outlined,
-                          size: 14, color: Colors.grey[600]),
+                      Icon(Icons.cake_outlined, size: 14, color: Colors.grey[600]),
                       const SizedBox(width: 4),
-                      Text(
-                        '${pet.age ?? '?'} ${pet.ageUnit ?? 'years'}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: Colors.grey[600],
+                      Expanded(
+                        child: Text(
+                          '${pet.age ?? '?'} ${pet.ageUnit ?? 'years'}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (pet.breed != null) ...[
                         const SizedBox(width: 12),
                         Icon(Icons.pets, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
-                        Expanded(
+                        Flexible(
                           child: Text(
                             pet.breed!,
                             style: GoogleFonts.poppins(
@@ -405,6 +610,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                               color: Colors.grey[600],
                             ),
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -412,7 +618,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                   ),
                   const SizedBox(height: 8),
                   if (pet.description != null)
-                    Expanded(
+                    Flexible(
                       child: Text(
                         pet.description!,
                         style: GoogleFonts.poppins(
@@ -425,7 +631,9 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                       ),
                     ),
                   const SizedBox(height: 6),
-                  Row(
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
                     children: [
                       if (pet.goodWithChildren == true)
                         _buildSmallTraitBadge('👶', Colors.blue),
@@ -461,286 +669,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
       ),
     );
   }
-
-  Widget _buildPetCard(PetMatch petMatch, {required bool isInteractive}) {
-    final pet = petMatch.pet;
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
-      height: MediaQuery.of(context).size.height * 0.65,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
-        child: Stack(
-          children: [
-            // Pet Image
-            Positioned.fill(
-              child: pet.thumbnailUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: pet.thumbnailUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.pets, size: 80, color: Colors.grey[400]),
-                            const SizedBox(height: 10),
-                            Text(
-                              'No image available',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.pets, size: 80, color: Colors.grey[400]),
-                          const SizedBox(height: 10),
-                          Text(
-                            'No image available',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ),
-            ),
-
-            // Gradient overlay
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.8),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
-                ),
-              ),
-            ),
-
-            Positioned(
-              top: 20,
-              right: 20,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: petMatch.matchColor.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      petMatch.matchIcon,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${petMatch.totalMatchPercent.toInt()}%',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            Positioned(
-              top: 20,
-              left: 20,
-              child: GestureDetector(
-                onTap: () => _showMatchExplanation(petMatch),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.lightbulb_outline,
-                        color: Colors.deepOrange,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Why?',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.deepOrange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Pet Info
-            Positioned(
-              left: 20,
-              right: 20,
-              bottom: 20,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Pet Name
-                  Text(
-                    pet.name,
-                    style: GoogleFonts.poppins(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _buildInfoChip(
-                        '${pet.age ?? '?'} ${pet.ageUnit ?? 'years'}',
-                        Icons.cake_outlined,
-                      ),
-                      if (pet.breed != null)
-                        _buildInfoChip(pet.breed!, Icons.pets),
-                      if (pet.size != null)
-                        _buildInfoChip(pet.size!, Icons.straighten),
-                      if (pet.availablity != null)
-                        _buildInfoChip(pet.availablity!, Icons.event_available),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (pet.description != null)
-                    Text(
-                      pet.description!,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        height: 1.4,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  const SizedBox(height: 12),
-                  // Trait badges with Wrap to prevent overflow
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      if (pet.goodWithChildren == true)
-                        _buildTraitBadge('👶 Kids', Colors.blue),
-                      if (pet.goodWithDogs == true)
-                        _buildTraitBadge('🐕 Dogs', Colors.orange),
-                      if (pet.goodWithCats == true)
-                        _buildTraitBadge('🐱 Cats', Colors.purple),
-                      if (pet.energyLevel != null && pet.energyLevel! >= 7)
-                        _buildTraitBadge('⚡ High Energy', Colors.green),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTraitBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 }
 
-// Apple Intelligence Style Modal
 class _AppleIntelligenceModal extends StatefulWidget {
   final PetMatch petMatch;
   final String explanation;
@@ -751,8 +681,7 @@ class _AppleIntelligenceModal extends StatefulWidget {
   });
 
   @override
-  State<_AppleIntelligenceModal> createState() =>
-      _AppleIntelligenceModalState();
+  State<_AppleIntelligenceModal> createState() => _AppleIntelligenceModalState();
 }
 
 class _AppleIntelligenceModalState extends State<_AppleIntelligenceModal>
@@ -791,15 +720,16 @@ class _AppleIntelligenceModalState extends State<_AppleIntelligenceModal>
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth <= 500;
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          constraints: BoxConstraints(
-            maxHeight: screenHeight * 0.9,
-          ),
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.9),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -810,49 +740,42 @@ class _AppleIntelligenceModalState extends State<_AppleIntelligenceModal>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Rainbow gradient header + drag handle
-              Column(
-                children: [
-                  const SizedBox(height: 12),
-                  // Drag handle
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              // Scrollable content
+              const SizedBox(height: 12),
               Flexible(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.fromLTRB(
+                      isSmallScreen ? 16 : 24,
+                      isSmallScreen ? 16 : 24,
+                      isSmallScreen ? 16 : 24,
+                      (isSmallScreen ? 16 : 24) + bottomInset,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF4D96FF),
-                                    Color(0xFFB388FF),
-                                  ],
-                                ),
+                                color: Colors.deepOrange[50],
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(
-                                Icons.auto_awesome,
-                                color: Colors.white,
-                                size: 24,
+                              child: Icon(
+                                Icons.lightbulb,
+                                color: Colors.deepOrange,
+                                size: 20,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -861,168 +784,36 @@ class _AppleIntelligenceModalState extends State<_AppleIntelligenceModal>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'AI Match Insights',
+                                    'Why ${widget.petMatch.pet.name}?',
                                     style: GoogleFonts.poppins(
-                                      fontSize: 20,
+                                      fontSize: isSmallScreen ? 16 : 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                  const SizedBox(height: 4),
                                   Text(
-                                    'for ${widget.petMatch.pet.name}',
+                                    '${widget.petMatch.totalMatchPercent.toInt()}% Match',
                                     style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                      color: widget.petMatch.matchColor,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.close),
-                              color: Colors.grey[400],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-
-                        // Match Score Card
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                widget.petMatch.matchColor.withOpacity(0.1),
-                                widget.petMatch.matchColor.withOpacity(0.05),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color:
-                                  widget.petMatch.matchColor.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                widget.petMatch.matchIcon,
-                                color: widget.petMatch.matchColor,
-                                size: 32,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.petMatch.matchLabel,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: widget.petMatch.matchColor,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${widget.petMatch.totalMatchPercent.toInt()}% compatibility',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Score Breakdown
-                        _buildScoreBar(
-                          'Lifestyle Match',
-                          widget.petMatch.lifestyleScore,
-                          const Color(0xFF4D96FF),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildScoreBar(
-                          'Personality Fit',
-                          widget.petMatch.personalityScore,
-                          const Color(0xFFB388FF),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildScoreBar(
-                          'Household Compatibility',
-                          widget.petMatch.householdScore,
-                          const Color(0xFF6BCF7F),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildScoreBar(
-                          'Health & Care',
-                          widget.petMatch.healthScore,
-                          const Color(0xFFFFD93D),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // AI Explanation
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey[200]!),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFF4D96FF),
-                                          Color(0xFFB388FF),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.psychology_outlined,
-                                          color: Colors.white,
-                                          size: 14,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'AI Analysis',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                widget.explanation,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.black87,
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
+                        SizedBox(height: isSmallScreen ? 16 : 24),
+                        Text(
+                          widget.explanation,
+                          style: GoogleFonts.poppins(
+                            fontSize: isSmallScreen ? 13 : 15,
+                            color: Colors.grey[700],
+                            height: 1.6,
                           ),
                         ),
                       ],
@@ -1034,45 +825,6 @@ class _AppleIntelligenceModalState extends State<_AppleIntelligenceModal>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildScoreBar(String label, double score, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            Text(
-              '${score.toInt()}%',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: score / 100,
-            backgroundColor: color.withOpacity(0.1),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 8,
-          ),
-        ),
-      ],
     );
   }
 }

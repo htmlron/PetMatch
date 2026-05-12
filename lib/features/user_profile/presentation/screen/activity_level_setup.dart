@@ -179,7 +179,7 @@ class _ActivityLevelSetupScreenState
               Column(
                 children: [
                   Text(
-                    _currentLevel['label'],
+                    '${_activityLevel.round()}',
                     style: GoogleFonts.newsreader(
                       fontSize: getResponsiveValue(
                         context,
@@ -474,6 +474,7 @@ class _ActivityLevelSetupScreenState
               min: 1,
               max: 5,
               divisions: 4,
+              label: _activityLevel.round().toString(),
               onChanged: (value) {
                 setState(() {
                   _activityLevel = value;
@@ -492,14 +493,14 @@ class _ActivityLevelSetupScreenState
     if (onboardingComplete) {
       ref.read(userProfileProvider.notifier).updateUserProfile(
             level: _activityLevel.round(),
-            label: _currentLevel['label'],
+            label: _activityLevel.round().toString(),
             column: 'personality_traits',
             key: 'activity_level',
           );
       Navigator.of(context).pop();
     } else {
       ref.read(userProfileProvider.notifier).setActivityLevel(
-          context, _activityLevel.round(), _currentLevel['label']);
+          context, _activityLevel.round(), _activityLevel.round().toString());
     }
   }
 }

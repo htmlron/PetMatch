@@ -41,7 +41,7 @@ class ActivityLevelExample extends ConsumerStatefulWidget {
 }
 
 class _ActivityLevelExampleState extends ConsumerState<ActivityLevelExample> {
-  double _activityLevel = 3.0;
+  final double _activityLevel = 3.0;
 
   void _saveActivityLevel() {
     // ✅ Save activity level with label
@@ -77,7 +77,7 @@ class AffectionLevelExample extends ConsumerStatefulWidget {
 }
 
 class _AffectionLevelExampleState extends ConsumerState<AffectionLevelExample> {
-  double _affectionLevel = 3.0;
+  final double _affectionLevel = 3.0;
 
   void _saveAffectionLevel() {
     // ✅ Save affection level with label
@@ -113,7 +113,7 @@ class PatienceLevelExample extends ConsumerStatefulWidget {
 }
 
 class _PatienceLevelExampleState extends ConsumerState<PatienceLevelExample> {
-  double _patienceLevel = 3.0;
+  final double _patienceLevel = 3.0;
 
   void _savePatienceLevel() {
     // ✅ Save patience level with label

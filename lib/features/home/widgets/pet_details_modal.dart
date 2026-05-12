@@ -29,8 +29,14 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
+    // Ensure initialIndex is within bounds
+    _currentIndex = widget.initialIndex.clamp(0, widget.pets.length - 1);
+    try {
+      _pageController = PageController(initialPage: _currentIndex);
+    } catch (e) {
+      print('Error initializing PageController: $e');
+      _pageController = PageController(initialPage: 0);
+    }
     for (int i = 0; i < widget.pets.length; i++) {
       _imagePageControllers[i] = PageController();
       _currentImageIndices[i] = 0;
@@ -48,6 +54,29 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
 
   @override
   Widget build(BuildContext context) {
+    // Guard against empty pet list
+    if (widget.pets.isEmpty) {
+      return Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.pets, size: 80, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'No pet data available',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return DraggableScrollableSheet(
       initialChildSize: 0.9,
       minChildSize: 0.5,
@@ -84,51 +113,57 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
 
   Widget _buildPetDetails(
       Pet pet, int petIndex, ScrollController scrollController) {
-    final imageUrls = pet.fullImageUrls;
-    print('Image Url: $imageUrls');
+    try {
+      final imageUrls = pet.fullImageUrls ?? [];
+      print('Image Url: $imageUrls');
 
-    final imagePageController = _imagePageControllers[petIndex]!;
-    final currentImageIndex = _currentImageIndices[petIndex] ?? 0;
+      // Ensure imagePageController exists for this pet
+      if (!_imagePageControllers.containsKey(petIndex)) {
+        _imagePageControllers[petIndex] = PageController();
+      }
+      
+      final imagePageController = _imagePageControllers[petIndex]!;
+      final currentImageIndex = _currentImageIndices[petIndex] ?? 0;
 
-    // Use the provided scrollController so the DraggableScrollableSheet
-    // can control scrolling. ListView provides a proper scrollable
-    // child that works with the sheet's controller.
-    final screenHeight = MediaQuery.of(context).size.height;
-    return ListView(
-      controller: scrollController,
-      padding: EdgeInsets.zero,
-      children: [
-        // Pet Images Carousel (or placeholder if no images)
-        Stack(
-          children: [
-            SizedBox(
-              // Make the image area responsive: cap to 45% of screen
-              // height but keep the previous 450px as a maximum.
-              height: screenHeight * 0.45 > 450 ? 450 : screenHeight * 0.45,
-              child: imageUrls.isEmpty
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(25)),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.pets,
-                                size: 100, color: Colors.grey[400]),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No images available',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
+      // Use the provided scrollController so the DraggableScrollableSheet
+      // can control scrolling. ListView provides a proper scrollable
+      // child that works with the sheet's controller.
+      final screenHeight = MediaQuery.of(context).size.height;
+      return ListView(
+        controller: scrollController,
+        padding: EdgeInsets.zero,
+        children: [
+          // Pet Images Carousel (or placeholder if no images)
+          Stack(
+            children: [
+              SizedBox(
+                // Make the image area responsive: cap to 45% of screen
+                // height but keep the previous 450px as a maximum.
+                height: screenHeight * 0.45 > 450 ? 450 : screenHeight * 0.45,
+                child: imageUrls.isEmpty
+                    ? Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(25)),
                         ),
-                      ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.pets,
+                                  size: 80, color: Colors.grey[400]),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No images available',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     )
                   : PageView.builder(
                       controller: imagePageController,
@@ -147,16 +182,41 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                             height: 450,
                             width: double.infinity,
                             fit: BoxFit.cover,
+                            maxHeightDiskCache: 800,
+                            maxWidthDiskCache: 800,
+                            memCacheHeight: 720,
+                            memCacheWidth: 480,
                             placeholder: (context, url) => Container(
                               color: Colors.grey[200],
-                              child: const Center(
-                                  child: CircularProgressIndicator()),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const CircularProgressIndicator(strokeWidth: 2),
+                                    const SizedBox(height: 12),
+                                    Text('Loading image...',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
+                                  ],
+                                ),
+                              ),
                             ),
                             errorWidget: (context, url, error) => Container(
                               color: Colors.grey[200],
-                              child: const Center(
-                                child: Icon(Icons.pets,
-                                    size: 100, color: Colors.grey),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.image_not_supported,
+                                        size: 80, color: Colors.grey[400]),
+                                    const SizedBox(height: 12),
+                                    Text('Image failed to load',
+                                        style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12)),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -303,68 +363,80 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
 
         // Pet Info Section
         Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(MediaQuery.of(context).size.width > 500 ? 20.0 : 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name and Gender
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                // Name and Gender (restructured to prevent overflow)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (pet.species.toLowerCase() == 'dog')
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Image.asset(
-                          'assets/icons/dog.png',
-                          width: 32,
-                          height: 32,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (pet.species.toLowerCase() == 'dog')
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Image.asset(
+                              'assets/icons/dog.png',
+                              width: 28,
+                              height: 28,
+                            ),
+                          )
+                        else if (pet.species.toLowerCase() == 'cat')
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Image.asset(
+                              'assets/icons/cat.png',
+                              width: 28,
+                              height: 28,
+                            ),
+                          ),
+                        Expanded(
+                          child: Text(
+                            pet.name,
+                            style: GoogleFonts.newsreader(
+                              fontSize: MediaQuery.of(context).size.width > 500 ? 28 : 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      )
-                    else if (pet.species.toLowerCase() == 'cat')
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Image.asset(
-                          'assets/icons/cat.png',
-                          width: 32,
-                          height: 32,
+                        const SizedBox(width: 6),
+                        Icon(
+                          pet.gender?.toLowerCase() == 'male'
+                              ? Icons.male
+                              : Icons.female,
+                          color: pet.gender?.toLowerCase() == 'male'
+                              ? Colors.blue
+                              : Colors.pink,
+                          size: MediaQuery.of(context).size.width > 500 ? 24 : 20,
                         ),
-                      ),
-                    Text(
-                      pet.name,
-                      style: GoogleFonts.newsreader(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      ],
                     ),
-                    const Spacer(),
+                    SizedBox(height: MediaQuery.of(context).size.width > 500 ? 8 : 6),
                     Container(
-                      constraints: const BoxConstraints(
-                          maxWidth: 190), // adjust as needed
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width > 500 ? 220 : 180,
+                      ),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey[400]!),
                         borderRadius: BorderRadius.circular(8),
                         color: Colors.transparent,
                       ),
                       child: Text(
-                        '${pet.breed ?? pet.species}',
+                        pet.breed ?? pet.species,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: MediaQuery.of(context).size.width > 500 ? 16 : 14,
                           color: Colors.grey[600],
                         ),
-                        softWrap: true,
-                        overflow: TextOverflow.visible,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Icon(
-                      pet.gender?.toLowerCase() == 'male'
-                          ? Icons.male
-                          : Icons.female,
-                      color: pet.gender?.toLowerCase() == 'male'
-                          ? Colors.blue
-                          : Colors.pink,
-                      size: 32,
                     ),
                   ],
                 ),
@@ -426,10 +498,10 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _buildInfoChip(pet, '${pet.species}', Icons.pets),
+                    _buildInfoChip(pet, pet.species, Icons.pets),
                     _buildInfoChip(
-                        pet, '${pet.size ?? "Medium"}', Icons.straighten),
-                    _buildInfoChip(pet, '${pet.displayAge}', Icons.cake),
+                        pet, pet.size ?? "Medium", Icons.straighten),
+                    _buildInfoChip(pet, pet.displayAge, Icons.cake),
                   ],
                 ),
 
@@ -483,6 +555,31 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
             )),
       ],
     );
+    } catch (e) {
+      print('Error building pet details: $e');
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error, size: 80, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading pet details',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: Colors.red[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              e.toString(),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildHealthSection(Pet pet) {

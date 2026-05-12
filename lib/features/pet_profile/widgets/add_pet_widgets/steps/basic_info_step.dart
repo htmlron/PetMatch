@@ -407,7 +407,7 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
         border: Border.all(color: Colors.grey[300]!, width: 1.5),
       ),
       child: DropdownButtonFormField<String>(
-        value: displayed,
+        initialValue: displayed,
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.wc, color: Color(0xFFFF9800)),
           border: InputBorder.none,

@@ -276,7 +276,7 @@ class _PatienceLevelSetupScreenState
             child: Column(
               children: [
                 Text(
-                  '${_currentLevel['label']}',
+                    '${_patienceLevel.round()}',
                   style: GoogleFonts.newsreader(
                     fontSize: getResponsiveValue(
                       context,
@@ -466,6 +466,7 @@ class _PatienceLevelSetupScreenState
               min: 1,
               max: 5,
               divisions: 4,
+              label: _patienceLevel.round().toString(),
               onChanged: (value) {
                 setState(() {
                   _patienceLevel = value;
@@ -484,11 +485,12 @@ class _PatienceLevelSetupScreenState
     if (onboardingComplete) {
       ref
           .read(userProfileProvider.notifier)
-          .updatePatienceLevel(_patienceLevel.round(), _currentLevel['label']);
+          .updatePatienceLevel(
+              _patienceLevel.round(), _patienceLevel.round().toString());
       Navigator.of(context).pop();
       ref.read(userProfileProvider.notifier).updateUserProfile(
             level: _patienceLevel.round(),
-            label: _currentLevel['label'],
+            label: _patienceLevel.round().toString(),
             column: 'personality_traits',
             key: 'training_patience',
           );
@@ -497,7 +499,7 @@ class _PatienceLevelSetupScreenState
       ref.read(userProfileProvider.notifier).setPatienceLevel(
             context,
             _patienceLevel.round(),
-            _currentLevel['label'],
+            _patienceLevel.round().toString(),
           );
     }
   }

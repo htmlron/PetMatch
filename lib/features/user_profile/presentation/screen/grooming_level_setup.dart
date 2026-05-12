@@ -271,7 +271,7 @@ class _GroomingLevelSetupScreenState
             child: Column(
               children: [
                 Text(
-                  '${_currentLevel['label']}',
+                  '${_groomingLevel.round()}',
                   style: GoogleFonts.newsreader(
                     fontSize: getResponsiveValue(
                       context,
@@ -461,6 +461,7 @@ class _GroomingLevelSetupScreenState
               min: 1,
               max: 5,
               divisions: 4,
+              label: _groomingLevel.round().toString(),
               onChanged: (value) {
                 setState(() {
                   _groomingLevel = value;
@@ -479,14 +480,14 @@ class _GroomingLevelSetupScreenState
     if (onboardingComplete) {
       ref.read(userProfileProvider.notifier).updateUserProfile(
             level: _groomingLevel.round(),
-            label: _currentLevel['label'],
+            label: _groomingLevel.round().toString(),
             column: 'personality_traits',
             key: 'grooming_tolerance',
           );
       Navigator.of(context).pop();
     } else {
       ref.read(userProfileProvider.notifier).setGroomingLevel(
-          context, _groomingLevel.round(), _currentLevel['label']);
+          context, _groomingLevel.round(), _groomingLevel.round().toString());
     }
   }
 }

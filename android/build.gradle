@@ -3,6 +3,21 @@ buildscript {
     }
 }
 
+subprojects { project ->
+    afterEvaluate {
+        if (project.hasProperty('android')) {
+            project.android {
+                // Ensure plugin subprojects don't require missing SDK platforms.
+                compileSdkVersion = 36
+                defaultConfig {
+                    targetSdkVersion = 36
+                }
+                buildToolsVersion = "37.0.0"
+            }
+        }
+    }
+}
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

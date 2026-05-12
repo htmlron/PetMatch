@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/core/repository/user_profile_repository.dart';
+import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_state.dart';
 
 /// Notifier to manage user profile state
@@ -20,6 +21,21 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   String get userId {
     return ref.watch(authProvider).userId!;
+  }
+
+  String _numericLabel(int level) => '$level';
+
+  String? _normalizeSizePreference(String? size) {
+    if (size == null) return null;
+    final normalized = size.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    if (normalized.contains('small')) return 'Small';
+    if (normalized.contains('medium')) return 'Medium';
+    if (normalized.contains('large')) return 'Large';
+    if (normalized.contains('no preference')) return 'No Preference';
+
+    return size;
   }
 
   void setPetPreference(BuildContext context, String preference) {
@@ -50,9 +66,9 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void setActivityLevel(BuildContext context, int level, String label) {
     state = state.copyWith(
       activityLevel: level,
-      activityLabel: label,
+      activityLabel: _numericLabel(level),
     );
-    _logState('Activity level saved: $level - $label');
+    _logState('Activity level saved: $level - ${_numericLabel(level)}');
     context.push('/onboarding/patience-level');
   }
 
@@ -69,32 +85,32 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       case 'activity_level':
         state = state.copyWith(
           activityLevel: level,
-          activityLabel: label,
+          activityLabel: _numericLabel(level),
         );
         break;
       case 'patience_level':
         state = state.copyWith(
           patienceLevel: level,
-          patienceLabel: label,
+          patienceLabel: _numericLabel(level),
         );
         break;
       case 'snuggly_preference':
         state = state.copyWith(
           affectionLevel: level,
-          affectionLabel: label,
+          affectionLabel: _numericLabel(level),
         );
         break;
       case 'grooming_tolerance':
         state = state.copyWith(
           groomingLevel: level,
-          groomingLabel: label,
+          groomingLabel: _numericLabel(level),
         );
         break;
       default:
         throw ArgumentError('Unsupported update key: $key for column: $column');
     }
 
-    print('💾 Updating $column -> $key: $level - $label in state');
+    print('💾 Updating $column -> $key: $level - ${_numericLabel(level)} in state');
     _repository.updatePersonalityTrait(
       userId,
       column,
@@ -102,15 +118,15 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       level,
     );
 
-    _logState('$column updated: $level - $label');
+    _logState('$column updated: $level - ${_numericLabel(level)}');
   }
 
   void setPatienceLevel(BuildContext context, int level, String label) {
     state = state.copyWith(
       patienceLevel: level,
-      patienceLabel: label,
+      patienceLabel: _numericLabel(level),
     );
-    _logState('Patience level saved: $level - $label');
+    _logState('Patience level saved: $level - ${_numericLabel(level)}');
     context.push('/onboarding/affection-level');
   }
 
@@ -118,18 +134,18 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updatePatienceLevel(int level, String label) {
     state = state.copyWith(
       patienceLevel: level,
-      patienceLabel: label,
+      patienceLabel: _numericLabel(level),
     );
 
-    _logState('Patience level updated: $level - $label');
+    _logState('Patience level updated: $level - ${_numericLabel(level)}');
   }
 
   void setAffectionLevel(BuildContext context, int level, String label) {
     state = state.copyWith(
       affectionLevel: level,
-      affectionLabel: label,
+      affectionLabel: _numericLabel(level),
     );
-    _logState('Affection level saved: $level - $label');
+    _logState('Affection level saved: $level - ${_numericLabel(level)}');
     context.push('/onboarding/grooming-level');
   }
 
@@ -137,17 +153,17 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updateAffectionLevel(int level, String label) {
     state = state.copyWith(
       affectionLevel: level,
-      affectionLabel: label,
+      affectionLabel: _numericLabel(level),
     );
-    _logState('Affection level updated: $level - $label');
+    _logState('Affection level updated: $level - ${_numericLabel(level)}');
   }
 
   void setGroomingLevel(BuildContext context, int level, String label) {
     state = state.copyWith(
       groomingLevel: level,
-      groomingLabel: label,
+      groomingLabel: _numericLabel(level),
     );
-    _logState('Grooming level saved: $level - $label');
+    _logState('Grooming level saved: $level - ${_numericLabel(level)}');
     context.push('/onboarding/size-preference');
   }
 
@@ -155,9 +171,9 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updateGroomingLevel(int level, String label) {
     state = state.copyWith(
       groomingLevel: level,
-      groomingLabel: label,
+      groomingLabel: _numericLabel(level),
     );
-    _logState('Grooming level updated: $level - $label');
+    _logState('Grooming level updated: $level - ${_numericLabel(level)}');
   }
 
   void setSizePreference(BuildContext context, String size) {
@@ -170,6 +186,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updateSizePreference(String size) {
     state = state.copyWith(sizePreference: size);
     _logState('Size preference updated: $size');
+
+    try {
+      _repository.updatePersonalityTrait(
+        userId,
+        'user_lifestyle',
+        'size_preference',
+        _normalizeSizePreference(size),
+      );
+      print('✅ Size preference persisted for user $userId');
+      ref.read(matchProvider.notifier).fetchMatchedPets();
+    } catch (e) {
+      print('❌ Failed to persist size preference: $e');
+    }
   }
 
   /// Save whether user has children
@@ -222,7 +251,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         userId: userId!,
         userLifestyle: {
           'pet_preference': state.petPreference,
-          'size_preference': state.sizePreference,
+          'size_preference': _normalizeSizePreference(state.sizePreference),
         },
         personalityTraits: {
           'activity_level': state.activityLevel,
@@ -335,74 +364,26 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   // Helper methods to convert levels to labels
   String? _getActivityLabel(int? level) {
     if (level == null) return null;
-    switch (level) {
-      case 1:
-        return 'Inactive';
-      case 2:
-        return 'Lightly Active';
-      case 3:
-        return 'Moderately Active';
-      case 4:
-        return 'Very Active';
-      case 5:
-        return 'Extremely Active';
-      default:
-        return null;
-    }
+    if (level < 1 || level > 5) return null;
+    return _numericLabel(level);
   }
 
   String? _getGroomingLabel(int? level) {
     if (level == null) return null;
-    switch (level) {
-      case 1:
-        return 'Low Maintenance';
-      case 2:
-        return 'Basic Care';
-      case 3:
-        return 'Regular Grooming';
-      case 4:
-        return 'Frequent Care';
-      case 5:
-        return 'High Maintenance';
-      default:
-        return null;
-    }
+    if (level < 1 || level > 5) return null;
+    return _numericLabel(level);
   }
 
   String? _getAffectionLabel(int? level) {
     if (level == null) return null;
-    switch (level) {
-      case 1:
-        return 'Very Independent';
-      case 2:
-        return 'Somewhat Independent';
-      case 3:
-        return 'Balanced';
-      case 4:
-        return 'Pretty Affectionate';
-      case 5:
-        return 'Very Affectionate';
-      default:
-        return null;
-    }
+    if (level < 1 || level > 5) return null;
+    return _numericLabel(level);
   }
 
   String? _getPatienceLabel(int? level) {
     if (level == null) return null;
-    switch (level) {
-      case 1:
-        return 'Very Low';
-      case 2:
-        return 'Somewhat Low';
-      case 3:
-        return 'Moderate';
-      case 4:
-        return 'Pretty High';
-      case 5:
-        return 'Very High';
-      default:
-        return null;
-    }
+    if (level < 1 || level > 5) return null;
+    return _numericLabel(level);
   }
 
   void _logState(String message) {
