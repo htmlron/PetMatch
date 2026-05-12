@@ -9,10 +9,12 @@ import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
 import 'package:petmatch/core/services/gemini_service.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
+// removed unused favorites import
 import 'package:petmatch/features/home/widgets/ai_loader.dart';
+import 'package:petmatch/features/home/widgets/bumble_style_pet_card.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
 import 'package:petmatch/features/home/widgets/pet_details_modal.dart';
-import 'package:petmatch/features/home/widgets/swipe_card.dart';
+import 'package:petmatch/core/model/pet_model.dart';
 
 class MatchDashboard extends ConsumerStatefulWidget {
   const MatchDashboard({super.key});
@@ -24,23 +26,12 @@ class MatchDashboard extends ConsumerStatefulWidget {
 class _MatchDashboardState extends ConsumerState<MatchDashboard> {
   int _currentCardIndex = 0;
   bool _showListView = false;
+  List<Pet>? _sizeMismatchedDogs;
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() => ref.read(matchProvider.notifier).fetchMatchedPets());
-  }
-
-  void _handleSwipeLeft() {
-    setState(() {
-      _currentCardIndex++;
-    });
-  }
-
-  void _handleSwipeRight() {
-    setState(() {
-      _currentCardIndex++;
-    });
   }
 
   void _showPetDetailsFromList(int index, List<PetMatch> petMatches) {
@@ -211,120 +202,19 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       return _buildLoadingState();
     }
 
-    return Stack(
-      children: [
-        if (_currentCardIndex + 1 < petMatches.length)
-          Positioned(
-            bottom: 80,
-            left: 0,
-            right: 0,
-            child: Opacity(
-              opacity: 0.3,
-              child: Transform.translate(
-                offset: const Offset(0, 16),
-                child: SwipeCard(
-                  petMatch: petMatches[_currentCardIndex + 1],
-                  onSwipeLeft: () {},
-                  onSwipeRight: () {},
-                  onTap: () {},
-                ),
-              ),
-            ),
-          ),
-        SwipeCard(
-          petMatch: petMatches[_currentCardIndex],
-          onSwipeLeft: _handleSwipeLeft,
-          onSwipeRight: _handleSwipeRight,
-          onTap: () => _showPetDetailsFromList(_currentCardIndex, petMatches),
-          onInfoTap: () => _showMatchExplanation(petMatches[_currentCardIndex]),
-        ),
-        Positioned(
-          bottom: MediaQuery.of(context).size.width > 500 ? 20 : 12,
-          left: 0,
-          right: 0,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: MediaQuery.of(context).size.width > 500 ? 40 : 20,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  children: [
-                    FloatingActionButton(
-                      heroTag: 'skip_btn',
-                      onPressed: _handleSwipeLeft,
-                      backgroundColor: Colors.red.withOpacity(0.9),
-                      mini: MediaQuery.of(context).size.width <= 500,
-                      child: Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: MediaQuery.of(context).size.width > 500 ? 28 : 20,
-                      ),
-                    ),
-                    SizedBox(height: MediaQuery.of(context).size.width > 500 ? 6 : 4),
-                    Text(
-                      'SKIP',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    FloatingActionButton(
-                      heroTag: 'like_btn',
-                      onPressed: _handleSwipeRight,
-                      backgroundColor: Colors.green.withOpacity(0.9),
-                      mini: MediaQuery.of(context).size.width <= 500,
-                      child: Icon(
-                        Icons.favorite,
-                        color: Colors.white,
-                        size: MediaQuery.of(context).size.width > 500 ? 28 : 20,
-                      ),
-                    ),
-                    SizedBox(height: MediaQuery.of(context).size.width > 500 ? 6 : 4),
-                    Text(
-                      'LIKE',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (_currentCardIndex == 0)
-          Positioned(
-            top: 50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Swipe left to skip | Swipe right to like',
-                  style: GoogleFonts.poppins(
-                    fontSize: MediaQuery.of(context).size.width > 500 ? 13 : 11,
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
+    return BumbleStylePetCard(
+      petMatch: petMatches[_currentCardIndex],
+      onSkip: () {
+        setState(() {
+          _currentCardIndex++;
+        });
+      },
+      onLike: () {
+        setState(() {
+          _currentCardIndex++;
+        });
+      },
+      onLearnMore: () => _showMatchExplanation(petMatches[_currentCardIndex]),
     );
   }
 
@@ -418,34 +308,224 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
     );
   }
 
+  Future<void> _fetchSizeMismatchedDogs() async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Get user's size preference
+      final userProfileData = await supabase
+          .from('user_profile')
+          .select('user_lifestyle')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      final userLifestyle = userProfileData?['user_lifestyle'] as Map<String, dynamic>?;
+      final preferredSize = userLifestyle?['size_preference'] as String?;
+
+      if (preferredSize == null) return;
+
+      // Fetch dogs from different sizes and include their images
+      final response = await supabase
+          .from('pet')
+          .select('*, pets_images(*)')
+          .eq('species', 'Dog')
+          .neq('size', preferredSize)
+          .limit(3);
+
+      final pets = (response as List)
+          .map((json) => Pet.fromJson(json))
+          .toList();
+      if (mounted) {
+        setState(() {
+          _sizeMismatchedDogs = pets;
+        });
+      }
+    } catch (e) {
+      print('Error fetching size-mismatched dogs: $e');
+    }
+  }
+
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.pets,
-            size: 100,
-            color: Colors.grey[300],
+    // If we don't have fetched size-mismatched dogs yet, fetch them
+    if (_sizeMismatchedDogs == null) {
+      _fetchSizeMismatchedDogs();
+    }
+
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
+              Icon(
+                Icons.pets,
+                size: 100,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'You\'ve reviewed all perfect matches!',
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'But we found some great dogs that don\'t match your size preference',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              if (_sizeMismatchedDogs != null && _sizeMismatchedDogs!.isNotEmpty)
+                ..._buildSizeMismatchedCards()
+              else if (_sizeMismatchedDogs != null && _sizeMismatchedDogs!.isEmpty)
+                Text(
+                  'Check back later for more dogs!',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.grey[500],
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
+                      color: Colors.deepOrange,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 40),
+            ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            'No more pets to show',
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildSizeMismatchedCards() {
+    return [
+      Text(
+        'Why These Dogs?',
+        style: GoogleFonts.poppins(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[700],
+        ),
+      ),
+      const SizedBox(height: 16),
+      ..._sizeMismatchedDogs!.map((dog) => _buildSizeMismatchCard(dog)),
+    ];
+  }
+
+  Widget _buildSizeMismatchCard(Pet dog) {
+    return GestureDetector(
+      onTap: () => _showPetDetailsFromList(0, []),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.orange[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange[200]!, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 60,
+                height: 60,
+                child: dog.thumbnailUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: dog.thumbnailUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[200],
+                          child: Icon(Icons.pets,
+                              size: 28, color: Colors.grey[400]),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.grey[200],
+                        child: Icon(Icons.pets,
+                            size: 28, color: Colors.grey[400]),
+                      ),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Check back later for more matches!',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Colors.grey[500],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dog.name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        dog.size ?? 'Unknown',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '65% match',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Personality matches great, but size is different',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -376,6 +376,14 @@ class PetNotifier extends Notifier<PetState> {
       rethrow;
     }
   }
+
+  /// Add a pet to local lists if it's not already present
+  void addPetIfMissing(Pet pet) {
+    final existing = state.pets ?? [];
+    if (existing.any((p) => p.id == pet.id)) return;
+    final updated = [pet, ...existing];
+    state = state.copyWith(pets: updated, filteredPets: updated);
+  }
 }
 
 final petsProvider = NotifierProvider<PetNotifier, PetState>(

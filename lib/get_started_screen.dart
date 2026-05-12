@@ -143,7 +143,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                           ),
                           SizedBox(height: localIsSmall ? 10 : 16),
                           Text(
-                            "PersoniPet connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend.",
+                            "PetMatch connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend.",
                             textAlign: TextAlign.center,
                             style: Theme.of(context)
                                 .textTheme

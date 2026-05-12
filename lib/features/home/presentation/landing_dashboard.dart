@@ -91,7 +91,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
                   width: 320,
                   height: 320,
                   child: Lottie.asset(
-                    'assets/lottie/Catloading.json',
+                    'assets/lottie/Smiling Dog.json',
                     fit: BoxFit.contain,
                     repeat: true,
                   ),
@@ -252,7 +252,6 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
   Widget _buildCategoryCards() {
     final categories = [
       {'title': 'All', 'icon': Icons.all_inclusive, 'index': 0},
-      {'title': 'Cat', 'icon': Icons.pets, 'index': 1},
       {'title': 'Dog', 'icon': Icons.pets, 'index': 2},
     ];
 

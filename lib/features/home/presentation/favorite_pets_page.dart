@@ -30,9 +30,17 @@ class _FavoritePetsPageState extends ConsumerState<FavoritePetsPage> {
     final favoritesState = ref.watch(favoritesProvider);
     final petsState = ref.watch(petsProvider);
 
-    final favoritePets = (petsState.filteredPets ?? [])
-        .where((pet) => favoritesState.favoriteIds.contains(pet.id))
-        .toList();
+    // Build favorite pets list from favorites state (preferred) and fall back to petsProvider
+    final Map<String, Pet> favoriteMap = {};
+    for (final p in favoritesState.favoritePets) {
+      favoriteMap[p.id] = p;
+    }
+    for (final p in (petsState.filteredPets ?? [])) {
+      if (favoritesState.favoriteIds.contains(p.id)) {
+        favoriteMap[p.id] = p;
+      }
+    }
+    final favoritePets = favoriteMap.values.toList();
 
     return Scaffold(
       backgroundColor: Colors.white,

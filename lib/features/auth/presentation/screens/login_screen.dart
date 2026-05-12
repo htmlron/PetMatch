@@ -159,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Welcome to PersoniPet! Find your perfect pet companion and connect with loving animals looking for a home.',
+                                        'Welcome to PetMatch! Find your perfect pet companion and connect with loving animals looking for a home.',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium

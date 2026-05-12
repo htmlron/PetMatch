@@ -1,0 +1,294 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:petmatch/core/model/pet_match_model.dart';
+import 'package:petmatch/features/home/provider/favorites_provider.dart';
+
+class BumbleStylePetCard extends ConsumerStatefulWidget {
+  final PetMatch petMatch;
+  final VoidCallback onSkip;
+  final VoidCallback onLike;
+  final VoidCallback? onLearnMore;
+
+  const BumbleStylePetCard({
+    Key? key,
+    required this.petMatch,
+    required this.onSkip,
+    required this.onLike,
+    this.onLearnMore,
+  }) : super(key: key);
+
+  @override
+  ConsumerState<BumbleStylePetCard> createState() => _BumbleStylePetCardState();
+}
+
+class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
+  int _currentImageIndex = 0;
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pet = widget.petMatch.pet;
+
+    final images = pet.fullImageUrls.isNotEmpty
+        ? pet.fullImageUrls
+        : (pet.thumbnailUrl != null ? [pet.thumbnailUrl!] : []);
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(width: 40),
+                  Text(
+                    'Pet Match',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey[200],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      color: Colors.black54,
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Images carousel
+            Expanded(
+              flex: 3,
+              child: Stack(
+                children: [
+                  PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) => setState(() => _currentImageIndex = index),
+                    children: images.isNotEmpty
+                        ? images.map((url) {
+                            return CachedNetworkImage(
+                              imageUrl: url,
+                              fit: BoxFit.cover,
+                              maxHeightDiskCache: 1200,
+                              maxWidthDiskCache: 800,
+                              memCacheHeight: 1000,
+                              memCacheWidth: 600,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[200],
+                                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey[200],
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.pets, size: 80, color: Colors.grey[400]),
+                                    const SizedBox(height: 16),
+                                    Text('Image failed to load', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList()
+                        : [
+                            Container(
+                              color: Colors.grey[200],
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.pets, size: 80, color: Colors.grey[400]),
+                                  const SizedBox(height: 16),
+                                  Text('No image available', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ],
+                  ),
+
+                  // Match badge
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: widget.petMatch.matchColor.withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(widget.petMatch.matchIcon, color: Colors.white, size: 22),
+                          const SizedBox(width: 8),
+                          Text('${widget.petMatch.totalMatchPercent.toInt()}%', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Why? button
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: GestureDetector(
+                      onTap: widget.onLearnMore,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2))],
+                        ),
+                        child: Text('Why?', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.deepOrange)),
+                      ),
+                    ),
+                  ),
+
+                  // Indicators
+                  if (images.length > 1)
+                    Positioned(
+                      bottom: 16,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          images.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: _currentImageIndex == index ? 18 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _currentImageIndex == index ? Colors.white : Colors.white.withOpacity(0.45),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Pet info
+            Expanded(
+              flex: 1,
+              child: Container(
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(pet.name, style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black)),
+                                      const SizedBox(height: 4),
+                                      Text('${pet.age ?? '?'} ${pet.ageUnit ?? 'years old'} • ${pet.breed ?? pet.species}${pet.size != null ? ' • ${pet.size}' : ''}', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            if (pet.description != null) ...[
+                              const SizedBox(height: 16),
+                              Text(pet.description!, style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700], height: 1.6)),
+                            ],
+
+                            const SizedBox(height: 20),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                if (pet.goodWithChildren == true) _buildTraitChip('👶 Good with Kids'),
+                                if (pet.goodWithDogs == true) _buildTraitChip('🐕 Good with Dogs'),
+                                if (pet.goodWithCats == true) _buildTraitChip('🐱 Good with Cats'),
+                                if (pet.houseTrained == true) _buildTraitChip('🏠 House Trained'),
+                                if (pet.vaccinations == true) _buildTraitChip('💉 Vaccinated'),
+                                if (pet.spayedNeutered == true) _buildTraitChip('✂️ Spayed/Neutered'),
+                                if (pet.specialNeeds == true) _buildTraitChip('⭐ Special Needs'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Action buttons
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              onPressed: widget.onSkip,
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: Colors.black),
+                              child: const Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), child: Icon(Icons.close)),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                  // add to favorites via provider (requires context and petId)
+                                  final petId = pet.id;
+                                  if (petId.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pet id unavailable')));
+                                  } else {
+                                    await ref.read(favoritesProvider.notifier).addFavorite(context, petId);
+                                    widget.onLike();
+                                  }
+                                },
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange, foregroundColor: Colors.white),
+                              child: const Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), child: Icon(Icons.favorite)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTraitChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(18)),
+      child: Text(text, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[800])),
+    );
+  }
+}

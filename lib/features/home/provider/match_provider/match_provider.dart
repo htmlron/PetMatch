@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/repository/pet_repository.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_state.dart';
+import 'package:petmatch/features/home/provider/favorites_provider.dart';
 
 class MatchNotifier extends Notifier<MatchState> {
   final PetRepository _repository;
@@ -27,8 +28,12 @@ class MatchNotifier extends Notifier<MatchState> {
 
       final matches = await _repository.getMatchedPetsForUser(userId);
 
+      // Exclude pets that are already favorited locally to avoid showing them again
+      final favoriteIds = ref.read(favoritesProvider).favoriteIds;
+      final filteredMatches = matches.where((m) => !favoriteIds.contains(m.pet.id)).toList();
+
       state = state.copyWith(
-        matches: matches,
+        matches: filteredMatches,
         isLoading: false,
       );
 
@@ -44,6 +49,12 @@ class MatchNotifier extends Notifier<MatchState> {
 
   void clearMatches() {
     state = state.copyWith(matches: [], errorMessage: null);
+  }
+
+  /// Remove a pet from the current matches (e.g., when it's favorited)
+  void removePetFromMatches(String petId) {
+    final updated = state.matches.where((m) => m.pet.id != petId).toList();
+    state = state.copyWith(matches: updated);
   }
 }
 

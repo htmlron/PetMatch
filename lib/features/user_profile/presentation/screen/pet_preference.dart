@@ -22,24 +22,6 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
   final List<Map<String, dynamic>> _petOptions = [
     {
       'value': 1,
-      'label': 'Cat',
-      'emoji': '😺',
-      'image': UserProfileAssets.petPreferenceCat,
-      'color': const Color.fromARGB(255, 255, 145, 222),
-      'description':
-          'Cats are independent and love cozy spaces. Perfect for those who prefer a calm, relaxing home environment.'
-    },
-    {
-      'value': 2,
-      'label': 'No Preference',
-      'emoji': '😌',
-      'image': UserProfileAssets.petPreferenceBoth,
-      'color': const Color.fromARGB(255, 117, 154, 253),
-      'description':
-          'Open to any pet! You enjoy a balanced lifestyle and are flexible with your pet choices.'
-    },
-    {
-      'value': 3,
       'label': 'Dog',
       'emoji': '🐶',
       'image': UserProfileAssets.petPreferenceDog,
@@ -55,13 +37,9 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
     // Load saved pet preference if it exists
     final savedPreference = ref.read(userProfileProvider).petPreference;
     if (savedPreference != null) {
-      // Map preference string to value
-      if (savedPreference == 'Cat') {
+      // Always Dog now
+      if (savedPreference == 'Dog') {
         _selectedPetValue = 1.0;
-      } else if (savedPreference == 'No Preference') {
-        _selectedPetValue = 2.0;
-      } else if (savedPreference == 'Dog') {
-        _selectedPetValue = 3.0;
       }
     }
   }

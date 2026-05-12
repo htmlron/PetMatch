@@ -39,12 +39,19 @@ dev_dependencies:
   build_runner: ^2.4.13
   freezed: ^2.4.6
   json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.10.0
 
 dependency_overrides:
   app_links: 6.3.0
 
 flutter:
   uses-material-design: true
+
+# Configuration for flutter_launcher_icons
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/petmatch_logo.png"
 
   assets:
     - .env
