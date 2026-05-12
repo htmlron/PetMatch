@@ -15,37 +15,58 @@ class MatchNotifier extends Notifier<MatchState> {
 
   @override
   MatchState build() {
+    print('BUILD: MatchNotifier initializing...');
     _setupRealtimeSync();
+    // Defer initial fetch to avoid reading uninitialized providers
+    Future.microtask(() => fetchMatchedPets());
     return MatchState();
   }
 
   void _setupRealtimeSync() {
     if (_matchChannel != null) return;
 
-    _matchChannel = supabase
-        .channel('matches-realtime-sync')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pets',
-          callback: (_) => fetchMatchedPets(),
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pets_images',
-          callback: (_) => fetchMatchedPets(),
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pet_characteristics',
-          callback: (_) => fetchMatchedPets(),
-        )
-        .subscribe();
+    try {
+      print('🔧 Setting up match realtime sync...');
+      _matchChannel = supabase
+          .channel('matches-realtime-sync')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pets',
+            callback: (payload) {
+              print('🔔 Match: Pets table changed: ${payload.eventType}');
+              fetchMatchedPets();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pets_images',
+            callback: (payload) {
+              print('🔔 Match: Pets images changed: ${payload.eventType}');
+              fetchMatchedPets();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pet_characteristics',
+            callback: (payload) {
+              print('🔔 Match: Pet characteristics changed: ${payload.eventType}');
+              fetchMatchedPets();
+            },
+          )
+          .subscribe((status, error) {
+            print('✅ Match realtime subscription status: $status');
+            if (error != null) print('❌ Subscription error: $error');
+          });
+    } catch (e) {
+      print('❌ Error setting up match realtime: $e');
+    }
 
     ref.onDispose(() {
       if (_matchChannel != null) {
+        print('🧹 Disposing match realtime channel');
         supabase.removeChannel(_matchChannel!);
         _matchChannel = null;
       }

@@ -437,7 +437,7 @@
 
       async function fetchPets() {
         setStatus('#bbb', 'Refreshing...'); setMessage(lastSyncMessage, 'Fetching pets from Supabase...');
-        const { data, error } = await supabase.from('pets').select('*, pets_images(*), pet_characteristics(*)').neq('status', 'adopted').order('created_at', { ascending: false });
+        const { data, error } = await getClient().from('pets').select('*, pets_images(*), pet_characteristics(*)').neq('status', 'adopted').order('created_at', { ascending: false });
         if (error) { setStatus('var(--danger)', 'Sync failed'); setMessage(lastSyncMessage, error.message, 'error'); throw error; }
         state.pets = data || []; statPets.textContent = state.pets.length; statDogs.textContent = state.pets.filter((pet) => (pet.species || '').toLowerCase() === 'dog').length; statCats.textContent = state.pets.filter((pet) => (pet.species || '').toLowerCase() === 'cat').length;
         const firstPet = state.pets[0]; heroTitle.textContent = state.pets.length ? `${state.pets.length} pets ready to match` : 'No pets yet'; heroSubtitle.textContent = firstPet ? `Latest update: ${firstPet.name} is now live in the app and visible to matching users.` : 'Add a pet to start populating the matching feed.';
@@ -447,20 +447,20 @@
       async function refreshPets() { try { await fetchPets(); } catch (_) {} }
 
       async function deletePetImage(petId, imagePath) {
-        await supabase.storage.from(bucketName).remove([`${petId}/${imagePath}`]);
-        await supabase.from('pets_images').delete().match({ pet_id: petId, image_path: imagePath });
+        await getClient().storage.from(bucketName).remove([`${petId}/${imagePath}`]);
+        await getClient().from('pets_images').delete().match({ pet_id: petId, image_path: imagePath });
       }
 
       async function deletePet(pet) {
         if (!window.confirm(`Delete ${pet.name}? This cannot be undone.`)) return;
         try {
           setMessage(formMessage, `Deleting ${pet.name}...`);
-          for (const imagePath of getImagePaths(pet)) await supabase.storage.from(bucketName).remove([`${pet.pet_id}/${imagePath}`]);
-          if (pet.thumbnail_path) await supabase.storage.from(bucketName).remove([`${pet.pet_id}/${pet.thumbnail_path}`]);
-          await supabase.from('pets_images').delete().eq('pet_id', pet.pet_id);
-          await supabase.from('pet_characteristics').delete().eq('pet_id', pet.pet_id);
-          await supabase.from('favorites').delete().eq('pet_id', pet.pet_id);
-          await supabase.from('pets').delete().eq('pet_id', pet.pet_id);
+          for (const imagePath of getImagePaths(pet)) await getClient().storage.from(bucketName).remove([`${pet.pet_id}/${imagePath}`]);
+          if (pet.thumbnail_path) await getClient().storage.from(bucketName).remove([`${pet.pet_id}/${pet.thumbnail_path}`]);
+          await getClient().from('pets_images').delete().eq('pet_id', pet.pet_id);
+          await getClient().from('pet_characteristics').delete().eq('pet_id', pet.pet_id);
+          await getClient().from('favorites').delete().eq('pet_id', pet.pet_id);
+          await getClient().from('pets').delete().eq('pet_id', pet.pet_id);
           setMessage(formMessage, `${pet.name} deleted.`, 'success'); if (state.editingPet?.pet_id === pet.pet_id) resetForm(); await refreshPets();
         } catch (error) { setMessage(formMessage, error.message || String(error), 'error'); }
       }
@@ -475,16 +475,16 @@
           setMessage(formMessage, 'Saving pet...');
           const isEditing = Boolean($('petId').value);
           const petRecord = { pet_id: petId, name, species, breed: breed || null, age: age ?? 0, gender, size, status, description: description || null, is_adopted: String(status).toLowerCase() === 'adopted', created_at: new Date().toISOString() };
-          if (state.selectedThumbnail) { const thumbName = `${sanitizeFilename(name)}-thumbnail.${fileExt(state.selectedThumbnail)}`; await supabase.storage.from(bucketName).upload(`${petId}/${thumbName}`, state.selectedThumbnail, { upsert: true }); petRecord.thumbnail_path = thumbName; } else if (state.editingPet?.thumbnail_path) { petRecord.thumbnail_path = state.editingPet.thumbnail_path; }
-          if (isEditing) await supabase.from('pets').update(petRecord).eq('pet_id', petId); else await supabase.from('pets').insert(petRecord);
+          if (state.selectedThumbnail) { const thumbName = `${sanitizeFilename(name)}-thumbnail.${fileExt(state.selectedThumbnail)}`; await getClient().storage.from(bucketName).upload(`${petId}/${thumbName}`, state.selectedThumbnail, { upsert: true }); petRecord.thumbnail_path = thumbName; } else if (state.editingPet?.thumbnail_path) { petRecord.thumbnail_path = state.editingPet.thumbnail_path; }
+          if (isEditing) await getClient().from('pets').update(petRecord).eq('pet_id', petId); else await getClient().from('pets').insert(petRecord);
           if (state.selectedGallery.length) {
             const rows = [];
             for (let index = 0; index < state.selectedGallery.length; index += 1) {
-              const file = state.selectedGallery[index]; const imageName = `${sanitizeFilename(name)}-${Date.now()}-${index}.${fileExt(file)}`; await supabase.storage.from(bucketName).upload(`${petId}/${imageName}`, file, { upsert: true }); rows.push({ pet_id: petId, image_path: imageName, created_at: new Date().toISOString() });
+              const file = state.selectedGallery[index]; const imageName = `${sanitizeFilename(name)}-${Date.now()}-${index}.${fileExt(file)}`; await getClient().storage.from(bucketName).upload(`${petId}/${imageName}`, file, { upsert: true }); rows.push({ pet_id: petId, image_path: imageName, created_at: new Date().toISOString() });
             }
-            await supabase.from('pets_images').insert(rows);
+            await getClient().from('pets_images').insert(rows);
           }
-          await supabase.from('pet_characteristics').upsert({
+          await getClient().from('pet_characteristics').upsert({
             pet_id: petId,
             behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithDogs').value), good_with_cats: normalizeBool($('goodWithCats').value), house_trained: normalizeBool($('houseTrained').value) },
             health_notes: { vaccinations: normalizeBool($('vaccinations').value), spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
@@ -503,11 +503,25 @@
         state.session = session; adminEmail.textContent = session?.user?.email || '-'; showDashboard(); await refreshPets();
         if (state.realtimeChannel) await getClient().removeChannel(state.realtimeChannel);
         state.realtimeChannel = getClient().channel('admin-pet-feed')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, () => refreshPets())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets_images' }, () => refreshPets())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'pet_characteristics' }, () => refreshPets())
-          .subscribe();
-        setStatus('#1e6f5c', 'Live sync on');
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, (payload) => {
+            console.log('🔔 Pets table change detected:', payload.eventType);
+            refreshPets();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets_images' }, (payload) => {
+            console.log('🔔 Pets images table change detected:', payload.eventType);
+            refreshPets();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pet_characteristics' }, (payload) => {
+            console.log('🔔 Pet characteristics table change detected:', payload.eventType);
+            refreshPets();
+          })
+          .subscribe((status) => {
+            console.log('Realtime subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Realtime sync active');
+              setStatus('#1e6f5c', 'Live sync on');
+            }
+          });
       }
 
       async function handleSession(session, accessToken) {

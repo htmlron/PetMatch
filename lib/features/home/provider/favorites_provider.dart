@@ -9,6 +9,8 @@ import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart'
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
 import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:petmatch/core/config/supabase_config.dart';
 
 class FavoritesState {
   final Set<String> favoriteIds;
@@ -41,6 +43,7 @@ class FavoritesState {
 /// 🧠 Notifier
 class FavoritesNotifier extends Notifier<FavoritesState> {
   final FavoritesRepository _favoritesRepository;
+  RealtimeChannel? _favoritesChannel;
 
   FavoritesNotifier(this._favoritesRepository);
 
@@ -48,7 +51,44 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
 
   @override
   FavoritesState build() {
+    print('BUILD: FavoritesNotifier initializing...');
+    _setupRealtimeSync();
+    // Defer initial fetch to avoid reading uninitialized providers
+    Future.microtask(() => fetchFavorites());
     return const FavoritesState();
+  }
+
+  void _setupRealtimeSync() {
+    if (_favoritesChannel != null) return;
+
+    try {
+      print('🔌 Setting up favorites realtime sync...');
+      _favoritesChannel = supabase
+          .channel('favorites-realtime-sync')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'favorites',
+            callback: (payload) {
+              print('🔔 Favorites table changed: ${payload.eventType}');
+              fetchFavorites();
+            },
+          )
+          .subscribe((status, error) {
+            print('✅ Favorites realtime subscription status: $status');
+            if (error != null) print('❌ Subscription error: $error');
+          });
+    } catch (e) {
+      print('❌ Error setting up favorites realtime: $e');
+    }
+
+    ref.onDispose(() {
+      if (_favoritesChannel != null) {
+        print('🧹 Disposing favorites realtime channel');
+        supabase.removeChannel(_favoritesChannel!);
+        _favoritesChannel = null;
+      }
+    });
   }
 
   Future<void> fetchFavorites() async {

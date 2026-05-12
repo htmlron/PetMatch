@@ -19,37 +19,58 @@ class PetNotifier extends Notifier<PetState> {
 
   @override
   PetState build() {
+    print('BUILD: PetNotifier initializing...');
     _setupRealtimeSync();
+    // Defer initial fetch to avoid reading uninitialized providers
+    Future.microtask(() => fetchInitialPets());
     return PetState();
   }
 
   void _setupRealtimeSync() {
     if (_petsChannel != null) return;
 
-    _petsChannel = supabase
-        .channel('pets-realtime-sync')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pets',
-          callback: (_) => fetchInitialPets(),
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pets_images',
-          callback: (_) => fetchInitialPets(),
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'pet_characteristics',
-          callback: (_) => fetchInitialPets(),
-        )
-        .subscribe();
+    try {
+      print('🔌 Setting up pets realtime sync...');
+      _petsChannel = supabase
+          .channel('pets-realtime-sync')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pets',
+            callback: (payload) {
+              print('🔔 Pets table changed: ${payload.eventType}');
+              fetchInitialPets();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pets_images',
+            callback: (payload) {
+              print('🔔 Pets images table changed: ${payload.eventType}');
+              fetchInitialPets();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pet_characteristics',
+            callback: (payload) {
+              print('🔔 Pet characteristics changed: ${payload.eventType}');
+              fetchInitialPets();
+            },
+          )
+          .subscribe((status, error) {
+            print('✅ Pets realtime subscription status: $status');
+            if (error != null) print('❌ Subscription error: $error');
+          });
+    } catch (e) {
+      print('❌ Error setting up pets realtime: $e');
+    }
 
     ref.onDispose(() {
       if (_petsChannel != null) {
+        print('🧹 Disposing pets realtime channel');
         supabase.removeChannel(_petsChannel!);
         _petsChannel = null;
       }
