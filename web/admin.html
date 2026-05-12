@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetMatch Admin</title>
+    <meta name="description" content="Admin dashboard for managing PetMatch pets in real time." />
+    <style>
+      :root {
+        --bg: #f4efe8;
+        --surface: rgba(255, 255, 255, 0.9);
+        --text: #1f1c18;
+        --muted: #6c6257;
+        --line: rgba(31, 28, 24, 0.12);
+        --accent: #e96b3c;
+        --accent-2: #1e6f5c;
+        --danger: #c84d4d;
+        --shadow: 0 24px 80px rgba(58, 37, 23, 0.18);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(233, 107, 60, 0.18), transparent 28%),
+          radial-gradient(circle at top right, rgba(30, 111, 92, 0.16), transparent 24%),
+          linear-gradient(180deg, #fcfaf7 0%, var(--bg) 100%);
+      }
+      h1, h2, h3, p { margin: 0; }
+      .shell { max-width: 1600px; margin: 0 auto; padding: 24px; }
+      .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 20px; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .brand-mark {
+        width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; color: white;
+        background: linear-gradient(135deg, var(--accent), #f39a5b); box-shadow: 0 16px 34px rgba(233, 107, 60, 0.28); font-size: 24px;
+      }
+      .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 12px; color: var(--muted); margin: 0 0 4px; }
+      h1 { font-size: clamp(28px, 3vw, 46px); line-height: 1; }
+      .subtle { color: var(--muted); margin-top: 10px; max-width: 720px; line-height: 1.6; }
+      .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: rgba(255,255,255,0.72); border: 1px solid var(--line); color: var(--muted); box-shadow: var(--shadow); }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: #bbb; }
+      .grid { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; }
+      .panel, .card, .auth-card { background: var(--surface); backdrop-filter: blur(16px); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
+      .panel { padding: 18px; position: sticky; top: 24px; height: fit-content; }
+      .panel .metric { padding: 14px; border-radius: 20px; background: rgba(255,255,255,0.9); border: 1px solid var(--line); margin-bottom: 12px; }
+      .metric-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+      .metric-value { font-size: 28px; font-weight: 800; margin-top: 4px; }
+      .actions { display: grid; gap: 10px; margin-top: 16px; }
+      button, input, select, textarea { font: inherit; }
+      .btn { border: 0; border-radius: 18px; padding: 12px 16px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; }
+      .btn:hover { transform: translateY(-1px); }
+      .btn-primary { background: linear-gradient(135deg, var(--accent), #ff8d4f); color: white; box-shadow: 0 16px 28px rgba(233, 107, 60, 0.24); }
+      .btn-secondary { background: white; color: var(--text); border: 1px solid var(--line); }
+      .btn-danger { background: #fdecec; color: var(--danger); border: 1px solid rgba(200, 77, 77, 0.18); }
+      .content { display: grid; gap: 20px; }
+      .hero { padding: 22px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px; }
+      .hero-banner {
+        border-radius: 24px; padding: 20px; color: white;
+        background: linear-gradient(135deg, rgba(233, 107, 60, 0.95), rgba(30, 111, 92, 0.88));
+        min-height: 180px; display: flex; flex-direction: column; justify-content: space-between;
+      }
+      .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .hero-mini { background: rgba(255,255,255,0.82); border: 1px solid var(--line); border-radius: 22px; padding: 14px; }
+      .hero-mini .metric-value { font-size: 24px; }
+      .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+      .auth-card { width: min(980px, 100%); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; }
+      .auth-illustration { padding: 28px; background: linear-gradient(160deg, #1f1c18 0%, #3a2a20 52%, #61452d 100%); color: white; display: flex; flex-direction: column; justify-content: space-between; min-height: 620px; }
+      .auth-panel { padding: 28px; }
+      .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .field { display: grid; gap: 8px; }
+      .field.full { grid-column: 1 / -1; }
+      label { font-size: 13px; font-weight: 700; color: var(--muted); }
+      input, select, textarea { width: 100%; border-radius: 16px; border: 1px solid var(--line); background: rgba(255,255,255,0.94); padding: 12px 14px; color: var(--text); }
+      textarea { min-height: 110px; resize: vertical; }
+      input[type="file"] { padding: 10px; }
+      .section-title { font-size: 18px; margin-bottom: 12px; }
+      .stack { display: grid; gap: 18px; }
+      .card { padding: 20px; }
+      .toolbar { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+      .toolbar .left, .toolbar .right { display: flex; gap: 10px; flex-wrap: wrap; }
+      .search { min-width: min(420px, 100%); }
+      .pet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+      .pet-card { overflow: hidden; display: grid; gap: 0; }
+      .pet-cover { height: 180px; background: #eee center/cover no-repeat; position: relative; }
+      .pet-badge { position: absolute; top: 14px; left: 14px; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.88); font-size: 12px; font-weight: 700; }
+      .pet-content { padding: 16px; display: grid; gap: 10px; }
+      .pet-title { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+      .pet-title h3 { font-size: 18px; }
+      .pet-meta { color: var(--muted); font-size: 13px; line-height: 1.5; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip { padding: 7px 10px; border-radius: 999px; background: rgba(30, 111, 92, 0.1); color: var(--accent-2); font-size: 12px; font-weight: 700; }
+      .image-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+      .image-pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: white; border-radius: 999px; padding: 8px 10px; font-size: 12px; }
+      .message { padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.78); border: 1px solid var(--line); color: var(--muted); }
+      .message.success { color: var(--accent-2); }
+      .message.error { color: var(--danger); }
+      .hidden { display: none !important; }
+      .preview-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .preview-box { width: 88px; height: 88px; border-radius: 18px; background: #ece7df center/cover no-repeat; border: 1px solid var(--line); }
+      @media (max-width: 1100px) {
+        .grid, .hero, .auth-card { grid-template-columns: 1fr; }
+        .panel { position: relative; top: auto; }
+        .hero-stats, .field-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="authView" class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-illustration">
+          <div>
+            <p class="eyebrow" style="color: rgba(255,255,255,0.7)">PetMatch Admin</p>
+            <h1>Manage dogs in one place.</h1>
+            <p class="subtle" style="color: rgba(255,255,255,0.76); max-width: 420px;">Add, edit, and remove pets from the same Supabase tables the app already uses. Any change shows up in the mobile app in real time.</p>
+          </div>
+          <div class="stack">
+            <div class="hero-mini"><div class="metric-label">Live sync</div><div class="metric-value">Realtime</div></div>
+            <div class="hero-mini"><div class="metric-label">Access</div><div class="metric-value">Admin only</div></div>
+          </div>
+        </div>
+        <div class="auth-panel">
+          <p class="eyebrow">Secure sign in</p>
+          <h2>Open the admin dashboard</h2>
+          <p class="subtle">Sign in with an account whose role is set to <strong>admin</strong> in Supabase.</p>
+          <form id="loginForm" class="stack" style="margin-top: 24px;">
+            <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="admin@petmatch.app" required /></div>
+            <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required /></div>
+            <button class="btn btn-primary" type="submit">Sign in</button>
+            <div id="authMessage" class="message hidden"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <main id="dashboardView" class="shell hidden">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-mark">🐾</div>
+          <div>
+            <p class="eyebrow">PetMatch Admin</p>
+            <h1>Dashboard</h1>
+            <p class="subtle">Create and edit dogs, manage pet images, and keep the app in sync instantly.</p>
+          </div>
+        </div>
+        <div class="status-pill"><span class="dot" id="syncDot"></span><span id="syncLabel">Connecting...</span></div>
+      </div>
+
+      <section class="hero card">
+        <div class="hero-banner">
+          <div>
+            <p class="eyebrow" style="color: rgba(255,255,255,0.72)">Live inventory</p>
+            <h2 id="heroTitle" style="font-size: clamp(26px, 2vw, 38px); line-height: 1.05; margin-top: 4px;">Loading pets...</h2>
+            <p id="heroSubtitle" style="margin-top: 8px; max-width: 620px; color: rgba(255,255,255,0.84);">The dashboard watches Supabase changes and automatically refreshes the app list.</p>
+          </div>
+          <div class="chips">
+            <span class="chip" style="background: rgba(255,255,255,0.16); color: white;">Pets table</span>
+            <span class="chip" style="background: rgba(255,255,255,0.16); color: white;">Images bucket</span>
+            <span class="chip" style="background: rgba(255,255,255,0.16); color: white;">Realtime channel</span>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-mini"><div class="metric-label">Pets loaded</div><div class="metric-value" id="statPets">0</div></div>
+          <div class="hero-mini"><div class="metric-label">Dogs</div><div class="metric-value" id="statDogs">0</div></div>
+          <div class="hero-mini"><div class="metric-label">Cats</div><div class="metric-value" id="statCats">0</div></div>
+        </div>
+      </section>
+
+      <div class="grid">
+        <aside class="panel">
+          <div class="metric"><div class="metric-label">Signed in as</div><div class="metric-value" id="adminEmail" style="font-size: 18px;">-</div></div>
+          <div class="metric"><div class="metric-label">Role</div><div class="metric-value" style="font-size: 18px;">Administrator</div></div>
+          <div class="actions">
+            <button id="newPetButton" class="btn btn-primary" type="button">Add new pet</button>
+            <button id="refreshButton" class="btn btn-secondary" type="button">Refresh now</button>
+            <button id="logoutButton" class="btn btn-danger" type="button">Sign out</button>
+          </div>
+          <div style="margin-top: 18px;"><div class="section-title">Search</div><input id="searchInput" class="search" type="search" placeholder="Search by name, breed, or description" /></div>
+          <div style="margin-top: 18px;"><div class="section-title">Filter</div><select id="speciesFilter"><option value="All">All species</option><option value="Dog">Dog</option><option value="Cat">Cat</option></select></div>
+        </aside>
+
+        <section class="content">
+          <div id="editorCard" class="card hidden">
+            <div class="toolbar">
+              <div><p class="eyebrow">Pet editor</p><h2 class="section-title" style="margin-bottom: 0;">Create or update a pet</h2></div>
+              <div class="right"><button id="cancelEditButton" class="btn btn-secondary hidden" type="button">Cancel edit</button></div>
+            </div>
+            <form id="petForm" class="stack" style="margin-top: 18px;">
+              <input id="petId" type="hidden" />
+              <div class="field-grid">
+                <div class="field"><label for="petName">Name</label><input id="petName" required /></div>
+                <div class="field"><label for="species">Species</label><select id="species" required><option value="Dog">Dog</option><option value="Cat">Cat</option></select></div>
+                <div class="field"><label for="breed">Breed</label><input id="breed" /></div>
+                <div class="field"><label for="age">Age</label><input id="age" type="number" min="0" /></div>
+                <div class="field"><label for="gender">Gender</label><select id="gender"><option value="">Unknown</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                <div class="field"><label for="size">Size</label><select id="size"><option value="">Unknown</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></div>
+                <div class="field"><label for="status">Status</label><select id="status"><option value="Available">Available</option><option value="Adopted">Adopted</option></select></div>
+                <div class="field"><label for="groomingNeeds">Grooming needs</label><input id="groomingNeeds" type="number" min="1" max="5" /></div>
+                <div class="field full"><label for="description">Description</label><textarea id="description"></textarea></div>
+              </div>
+              <div class="field-grid">
+                <div class="field full"><label for="thumbnail">Thumbnail image</label><input id="thumbnail" type="file" accept="image/*" /></div>
+                <div class="field full"><label for="gallery">Gallery images</label><input id="gallery" type="file" accept="image/*" multiple /></div>
+                <div class="field full"><div class="preview-row" id="filePreviews"></div></div>
+                <div class="field full"><div class="image-strip" id="existingImages"></div></div>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label for="vaccinations">Vaccinated</label><select id="vaccinations"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field"><label for="spayedNeutered">Spayed / neutered</label><select id="spayedNeutered"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field"><label for="specialNeeds">Special needs</label><select id="specialNeeds"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field"><label for="goodWithChildren">Good with children</label><select id="goodWithChildren"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field"><label for="goodWithDogs">Good with dogs</label><select id="goodWithDogs"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field"><label for="goodWithCats">Good with cats</label><select id="goodWithCats"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field"><label for="houseTrained">House trained</label><select id="houseTrained"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></div>
+                <div class="field full"><label for="healthNotes">Health notes</label><textarea id="healthNotes"></textarea></div>
+                <div class="field full"><label for="behavioralNotes">Behavioral notes</label><textarea id="behavioralNotes"></textarea></div>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label for="energyLevel">Energy level</label><input id="energyLevel" type="number" min="1" max="10" value="3" /></div>
+                <div class="field"><label for="playfulness">Playfulness</label><input id="playfulness" type="number" min="1" max="10" value="3" /></div>
+                <div class="field full"><label for="dailyExercise">Daily exercise</label><input id="dailyExercise" /></div>
+                <div class="field"><label for="affectionLevel">Affection</label><input id="affectionLevel" type="number" min="1" max="10" value="3" /></div>
+                <div class="field"><label for="independence">Independence</label><input id="independence" type="number" min="1" max="10" value="3" /></div>
+                <div class="field"><label for="adaptability">Adaptability</label><input id="adaptability" type="number" min="1" max="10" value="3" /></div>
+                <div class="field"><label for="trainingDifficulty">Training difficulty</label><input id="trainingDifficulty" type="number" min="1" max="10" value="2" /></div>
+                <div class="field full"><label for="traits">Temperament traits</label><textarea id="traits" placeholder="Friendly, playful, calm"></textarea></div>
+                <div class="field full"><label for="quirk">Quirk</label><input id="quirk" placeholder="Loves belly rubs" /></div>
+              </div>
+              <div class="toolbar">
+                <div class="message" id="formMessage">Ready.</div>
+                <div class="right"><button id="saveButton" class="btn btn-primary" type="submit">Save pet</button></div>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="toolbar" style="margin-bottom: 18px;">
+              <div><p class="eyebrow">Inventory</p><h2 class="section-title" style="margin-bottom: 0;">Current pets</h2></div>
+              <div class="message" id="lastSyncMessage">Waiting for data...</div>
+            </div>
+            <div id="petGrid" class="pet-grid"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module">
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+      const SUPABASE_URL = 'https://prpcsfkzxninfiyasacd.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycGNzZmt6eG5pbmZpeWFzYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODYwNDAsImV4cCI6MjA3NTA2MjA0MH0.4IIRcQRtep_MjzG5E1lJaJ34sAYd1ywqQwidShIt5cM';
+      const baseSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const bucketName = 'pets';
+      const authView = document.getElementById('authView');
+      const dashboardView = document.getElementById('dashboardView');
+      const loginForm = document.getElementById('loginForm');
+      const authMessage = document.getElementById('authMessage');
+      const formMessage = document.getElementById('formMessage');
+      const syncDot = document.getElementById('syncDot');
+      const syncLabel = document.getElementById('syncLabel');
+      const petGrid = document.getElementById('petGrid');
+      const petForm = document.getElementById('petForm');
+      const cancelEditButton = document.getElementById('cancelEditButton');
+      const newPetButton = document.getElementById('newPetButton');
+      const refreshButton = document.getElementById('refreshButton');
+      const logoutButton = document.getElementById('logoutButton');
+      const searchInput = document.getElementById('searchInput');
+      const speciesFilter = document.getElementById('speciesFilter');
+      const adminEmail = document.getElementById('adminEmail');
+      const heroTitle = document.getElementById('heroTitle');
+      const heroSubtitle = document.getElementById('heroSubtitle');
+      const statPets = document.getElementById('statPets');
+      const statDogs = document.getElementById('statDogs');
+      const statCats = document.getElementById('statCats');
+      const filePreviews = document.getElementById('filePreviews');
+      const existingImages = document.getElementById('existingImages');
+      const lastSyncMessage = document.getElementById('lastSyncMessage');
+
+      const state = { session: null, profile: null, pets: [], editingPet: null, selectedThumbnail: null, selectedGallery: [], removedImages: new Set(), realtimeChannel: null, client: baseSupabase };
+
+      const editorCard = document.getElementById('editorCard');
+
+      function showEditor() { if (editorCard) { editorCard.classList.remove('hidden'); window.scrollTo({ top: editorCard.offsetTop - 20, behavior: 'smooth' }); } }
+      function hideEditor() { if (editorCard) { editorCard.classList.add('hidden'); } }
+
+      const $ = (id) => document.getElementById(id);
+      const normalizeBool = (value) => (value === '' || value === null || value === undefined ? null : value === 'true' || value === true);
+      const normalizeNumber = (value) => (value === '' || value === null || value === undefined ? null : Number.isFinite(Number(value)) ? Number(value) : null);
+      const sanitizeFilename = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'pet';
+      const fileExt = (file) => (file?.name?.includes('.') ? file.name.split('.').pop().toLowerCase() : 'png');
+      const setStatus = (dotColor, label) => { syncDot.style.background = dotColor; syncLabel.textContent = label; };
+      const setMessage = (el, text, kind = '') => { el.textContent = text; el.className = `message${kind ? ` ${kind}` : ''}`; };
+      const showAuth = (message = '', kind = '') => { authView.classList.remove('hidden'); dashboardView.classList.add('hidden'); if (message) setMessage(authMessage, message, kind); authMessage.classList.toggle('hidden', !message); };
+      const showDashboard = () => { authView.classList.add('hidden'); dashboardView.classList.remove('hidden'); };
+      const getCharacteristicBlock = (pet) => Array.isArray(pet.pet_characteristics) ? pet.pet_characteristics[0] || {} : pet.pet_characteristics || {};
+      const getImagePaths = (pet) => (pet.pets_images || []).map((img) => img.image_path).filter(Boolean);
+      const getClient = () => state.client || baseSupabase;
+      const makeStorageUrl = (petId, filename) => getClient().storage.from(bucketName).getPublicUrl(`${petId}/${filename}`).data.publicUrl;
+      const resolveText = (value) => (value === null || value === undefined || value === '' ? 'Unknown' : String(value));
+
+      async function signInWithPassword(email, password) {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error_description || payload.msg || payload.message || 'Unable to sign in');
+        }
+
+        return payload;
+      }
+
+      function renderPreviews() {
+        filePreviews.innerHTML = '';
+        const files = [state.selectedThumbnail, ...state.selectedGallery].filter(Boolean);
+        files.forEach((file) => {
+          const box = document.createElement('div');
+          box.className = 'preview-box';
+          box.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+          filePreviews.appendChild(box);
+        });
+      }
+
+      function resetForm() {
+        state.editingPet = null;
+        state.selectedThumbnail = null;
+        state.selectedGallery = [];
+        state.removedImages = new Set();
+        petForm.reset();
+        $('petId').value = '';
+        $('species').value = 'Dog';
+        $('status').value = 'Available';
+        $('energyLevel').value = '3'; $('playfulness').value = '3'; $('affectionLevel').value = '3'; $('independence').value = '3'; $('adaptability').value = '3'; $('trainingDifficulty').value = '2'; $('groomingNeeds').value = '';
+        $('dailyExercise').value = ''; $('traits').value = ''; $('quirk').value = ''; $('healthNotes').value = ''; $('behavioralNotes').value = ''; filePreviews.innerHTML = ''; existingImages.innerHTML = '';
+        cancelEditButton.classList.add('hidden');
+        setMessage(formMessage, 'Ready to add a new pet.');
+      }
+
+      function renderExistingImages(pet) {
+        existingImages.innerHTML = '';
+        const imagePaths = [];
+
+        if (pet.thumbnail_path) {
+          imagePaths.push({ label: 'Thumbnail', path: pet.thumbnail_path });
+        }
+
+        getImagePaths(pet).forEach((path, index) => {
+          imagePaths.push({ label: `Image ${index + 1}`, path });
+        });
+
+        if (!imagePaths.length) {
+          existingImages.innerHTML = '<span class="image-pill">No stored images yet.</span>';
+          return;
+        }
+
+        imagePaths.forEach(({ label, path }) => {
+          const pill = document.createElement('span');
+          pill.className = 'image-pill';
+          pill.innerHTML = `<span>${label}</span><strong>${path}</strong>`;
+
+          if (label !== 'Thumbnail') {
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.textContent = 'Remove';
+            remove.onclick = async () => {
+              const confirmed = window.confirm(`Remove ${path}?`);
+              if (!confirmed) return;
+              try {
+                await deletePetImage(pet.pet_id, path);
+                if (state.editingPet?.pet_id === pet.pet_id) state.removedImages.add(path);
+                await refreshPets();
+                fillForm(state.pets.find((item) => item.pet_id === pet.pet_id) || pet);
+              } catch (error) {
+                setMessage(formMessage, error.message || String(error), 'error');
+              }
+            };
+            pill.appendChild(remove);
+          }
+
+          existingImages.appendChild(pill);
+        });
+      }
+
+      function fillForm(pet) {
+        state.editingPet = pet;
+        $('petId').value = pet.pet_id; $('petName').value = pet.name ?? ''; $('species').value = pet.species ?? 'Dog'; $('breed').value = pet.breed ?? ''; $('age').value = pet.age ?? ''; $('gender').value = pet.gender ?? ''; $('size').value = pet.size ?? ''; $('status').value = pet.status ?? 'Available'; $('description').value = pet.description ?? ''; $('groomingNeeds').value = pet.groomingNeeds ?? getCharacteristicBlock(pet).temperament?.grooming_needs ?? '';
+        const characteristics = getCharacteristicBlock(pet); const behavior = characteristics.behavior_tags || {}; const health = characteristics.health_notes || {}; const activity = characteristics.activity_level || {}; const temperament = characteristics.temperament || {};
+        $('vaccinations').value = health.vaccinations === null || health.vaccinations === undefined ? '' : String(Boolean(health.vaccinations));
+        $('spayedNeutered').value = health.spayed_neutered === null || health.spayed_neutered === undefined ? '' : String(Boolean(health.spayed_neutered));
+        $('specialNeeds').value = health.special_needs === null || health.special_needs === undefined ? '' : String(Boolean(health.special_needs));
+        $('goodWithChildren').value = behavior.good_with_children === null || behavior.good_with_children === undefined ? '' : String(Boolean(behavior.good_with_children));
+        $('goodWithDogs').value = behavior.good_with_dogs === null || behavior.good_with_dogs === undefined ? '' : String(Boolean(behavior.good_with_dogs));
+        $('goodWithCats').value = behavior.good_with_cats === null || behavior.good_with_cats === undefined ? '' : String(Boolean(behavior.good_with_cats));
+        $('houseTrained').value = behavior.house_trained === null || behavior.house_trained === undefined ? '' : String(Boolean(behavior.house_trained));
+        $('healthNotes').value = health.health_notes_text ?? health.health_notes ?? ''; $('behavioralNotes').value = characteristics.behavioral_notes ?? ''; $('energyLevel').value = activity.energy_level ?? pet.energyLevel ?? 3; $('playfulness').value = activity.playfulness ?? pet.playfulness ?? 3; $('dailyExercise').value = activity.daily_exercise ?? activity.daily_exercise_needs ?? pet.dailyExercise ?? ''; $('affectionLevel').value = temperament.affection_level ?? pet.affectionLevel ?? 3; $('independence').value = temperament.independence ?? pet.independence ?? 3; $('adaptability').value = temperament.adaptability ?? pet.adaptability ?? 3; $('trainingDifficulty').value = temperament.training_difficulty ?? pet.trainingDifficulty ?? 2; $('traits').value = Array.isArray(temperament.temperament_traits) ? temperament.temperament_traits.join(', ') : ''; $('quirk').value = characteristics.quirk ?? pet.quirks ?? '';
+        renderExistingImages(pet);
+        cancelEditButton.classList.remove('hidden');
+        setMessage(formMessage, `Editing ${pet.name}. Save to update the app instantly.`);
+        showEditor();
+      }
+
+      function renderPetCards() {
+        const query = searchInput.value.trim().toLowerCase(); const species = speciesFilter.value;
+        const filtered = state.pets.filter((pet) => (species === 'All' || (pet.species || '').toLowerCase() === species.toLowerCase()) && (!query || [pet.name, pet.breed, pet.description].filter(Boolean).join(' ').toLowerCase().includes(query)));
+        petGrid.innerHTML = '';
+        if (!filtered.length) { petGrid.innerHTML = '<div class="message">No pets found.</div>'; return; }
+        filtered.forEach((pet) => {
+          const card = document.createElement('article'); card.className = 'card pet-card';
+          const cover = document.createElement('div'); cover.className = 'pet-cover';
+          const imagePaths = getImagePaths(pet); const coverUrl = pet.thumbnail_path ? makeStorageUrl(pet.pet_id, pet.thumbnail_path) : (imagePaths[0] ? makeStorageUrl(pet.pet_id, imagePaths[0]) : '');
+          cover.style.backgroundImage = coverUrl ? `linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.34)), url(${coverUrl})` : 'linear-gradient(135deg, #eae3d8, #d8c6b3)';
+          const badge = document.createElement('div'); badge.className = 'pet-badge'; badge.textContent = `${resolveText(pet.status)} • ${resolveText(pet.size)}`; cover.appendChild(badge);
+          const content = document.createElement('div'); content.className = 'pet-content';
+          const title = document.createElement('div'); title.className = 'pet-title'; title.innerHTML = `<div><h3>${pet.name}</h3><div class="pet-meta">${resolveText(pet.breed)} • ${resolveText(pet.age)} • ${resolveText(pet.gender)}</div></div>`;
+          const chips = document.createElement('div'); chips.className = 'chips';
+          const behavior = getCharacteristicBlock(pet).behavior_tags || {}; const chipLabels = [behavior.good_with_children === true ? 'Kids' : null, behavior.good_with_dogs === true ? 'Dogs' : null, behavior.good_with_cats === true ? 'Cats' : null, behavior.house_trained === true ? 'House trained' : null].filter(Boolean);
+          chipLabels.slice(0, 3).forEach((label) => { const chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = label; chips.appendChild(chip); });
+          const meta = document.createElement('div'); meta.className = 'pet-meta'; meta.textContent = pet.description || 'No description provided yet.';
+          const imageStrip = document.createElement('div'); imageStrip.className = 'image-strip'; imageStrip.innerHTML = `<span class="image-pill">${imagePaths.length + (pet.thumbnail_path ? 1 : 0)} images</span>`;
+          const footer = document.createElement('div'); footer.className = 'toolbar';
+          const editButton = document.createElement('button'); editButton.className = 'btn btn-secondary'; editButton.type = 'button'; editButton.textContent = 'Edit'; editButton.onclick = () => fillForm(pet);
+          const deleteButton = document.createElement('button'); deleteButton.className = 'btn btn-danger'; deleteButton.type = 'button'; deleteButton.textContent = 'Delete'; deleteButton.onclick = () => deletePet(pet);
+          footer.appendChild(editButton); footer.appendChild(deleteButton);
+          content.appendChild(title); content.appendChild(chips); content.appendChild(meta); content.appendChild(imageStrip); content.appendChild(footer);
+          card.appendChild(cover); card.appendChild(content); petGrid.appendChild(card);
+        });
+      }
+
+      async function fetchPets() {
+        setStatus('#bbb', 'Refreshing...'); setMessage(lastSyncMessage, 'Fetching pets from Supabase...');
+        const { data, error } = await supabase.from('pets').select('*, pets_images(*), pet_characteristics(*)').neq('status', 'adopted').order('created_at', { ascending: false });
+        if (error) { setStatus('var(--danger)', 'Sync failed'); setMessage(lastSyncMessage, error.message, 'error'); throw error; }
+        state.pets = data || []; statPets.textContent = state.pets.length; statDogs.textContent = state.pets.filter((pet) => (pet.species || '').toLowerCase() === 'dog').length; statCats.textContent = state.pets.filter((pet) => (pet.species || '').toLowerCase() === 'cat').length;
+        const firstPet = state.pets[0]; heroTitle.textContent = state.pets.length ? `${state.pets.length} pets ready to match` : 'No pets yet'; heroSubtitle.textContent = firstPet ? `Latest update: ${firstPet.name} is now live in the app and visible to matching users.` : 'Add a pet to start populating the matching feed.';
+        renderPetCards(); setStatus('#1e6f5c', 'Live sync on'); setMessage(lastSyncMessage, `Last synced at ${new Date().toLocaleTimeString()}`, 'success');
+      }
+
+      async function refreshPets() { try { await fetchPets(); } catch (_) {} }
+
+      async function deletePetImage(petId, imagePath) {
+        await supabase.storage.from(bucketName).remove([`${petId}/${imagePath}`]);
+        await supabase.from('pets_images').delete().match({ pet_id: petId, image_path: imagePath });
+      }
+
+      async function deletePet(pet) {
+        if (!window.confirm(`Delete ${pet.name}? This cannot be undone.`)) return;
+        try {
+          setMessage(formMessage, `Deleting ${pet.name}...`);
+          for (const imagePath of getImagePaths(pet)) await supabase.storage.from(bucketName).remove([`${pet.pet_id}/${imagePath}`]);
+          if (pet.thumbnail_path) await supabase.storage.from(bucketName).remove([`${pet.pet_id}/${pet.thumbnail_path}`]);
+          await supabase.from('pets_images').delete().eq('pet_id', pet.pet_id);
+          await supabase.from('pet_characteristics').delete().eq('pet_id', pet.pet_id);
+          await supabase.from('favorites').delete().eq('pet_id', pet.pet_id);
+          await supabase.from('pets').delete().eq('pet_id', pet.pet_id);
+          setMessage(formMessage, `${pet.name} deleted.`, 'success'); if (state.editingPet?.pet_id === pet.pet_id) resetForm(); await refreshPets();
+        } catch (error) { setMessage(formMessage, error.message || String(error), 'error'); }
+      }
+
+      async function savePet(event) {
+        event.preventDefault();
+        const petId = $('petId').value || crypto.randomUUID();
+        const name = $('petName').value.trim();
+        const species = $('species').value; const breed = $('breed').value.trim(); const age = normalizeNumber($('age').value); const gender = $('gender').value || null; const size = $('size').value || null; const status = $('status').value || 'Available'; const description = $('description').value.trim(); const groomingNeeds = normalizeNumber($('groomingNeeds').value);
+        if (!name || !species) { setMessage(formMessage, 'Name and species are required.', 'error'); return; }
+        try {
+          setMessage(formMessage, 'Saving pet...');
+          const isEditing = Boolean($('petId').value);
+          const petRecord = { pet_id: petId, name, species, breed: breed || null, age: age ?? 0, gender, size, status, description: description || null, is_adopted: String(status).toLowerCase() === 'adopted', created_at: new Date().toISOString() };
+          if (state.selectedThumbnail) { const thumbName = `${sanitizeFilename(name)}-thumbnail.${fileExt(state.selectedThumbnail)}`; await supabase.storage.from(bucketName).upload(`${petId}/${thumbName}`, state.selectedThumbnail, { upsert: true }); petRecord.thumbnail_path = thumbName; } else if (state.editingPet?.thumbnail_path) { petRecord.thumbnail_path = state.editingPet.thumbnail_path; }
+          if (isEditing) await supabase.from('pets').update(petRecord).eq('pet_id', petId); else await supabase.from('pets').insert(petRecord);
+          if (state.selectedGallery.length) {
+            const rows = [];
+            for (let index = 0; index < state.selectedGallery.length; index += 1) {
+              const file = state.selectedGallery[index]; const imageName = `${sanitizeFilename(name)}-${Date.now()}-${index}.${fileExt(file)}`; await supabase.storage.from(bucketName).upload(`${petId}/${imageName}`, file, { upsert: true }); rows.push({ pet_id: petId, image_path: imageName, created_at: new Date().toISOString() });
+            }
+            await supabase.from('pets_images').insert(rows);
+          }
+          await supabase.from('pet_characteristics').upsert({
+            pet_id: petId,
+            behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithDogs').value), good_with_cats: normalizeBool($('goodWithCats').value), house_trained: normalizeBool($('houseTrained').value) },
+            health_notes: { vaccinations: normalizeBool($('vaccinations').value), spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
+            activity_level: { energy_level: normalizeNumber($('energyLevel').value), playfulness: normalizeNumber($('playfulness').value), daily_exercise_needs: $('dailyExercise').value.trim() || null },
+            temperament: { affection_level: normalizeNumber($('affectionLevel').value), independence: normalizeNumber($('independence').value), adaptability: normalizeNumber($('adaptability').value), training_difficulty: normalizeNumber($('trainingDifficulty').value), grooming_needs: groomingNeeds, temperament_traits: $('traits').value.split(',').map((value) => value.trim()).filter(Boolean) },
+            quirk: $('quirk').value.trim() || null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'pet_id' });
+          setMessage(formMessage, isEditing ? 'Pet updated successfully.' : 'Pet added successfully.', 'success');
+          hideEditor();
+          resetForm(); await refreshPets();
+        } catch (error) { setMessage(formMessage, error.message || String(error), 'error'); }
+      }
+
+      async function openAdminSession(session) {
+        state.session = session; adminEmail.textContent = session?.user?.email || '-'; showDashboard(); await refreshPets();
+        if (state.realtimeChannel) await getClient().removeChannel(state.realtimeChannel);
+        state.realtimeChannel = getClient().channel('admin-pet-feed')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, () => refreshPets())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets_images' }, () => refreshPets())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pet_characteristics' }, () => refreshPets())
+          .subscribe();
+        setStatus('#1e6f5c', 'Live sync on');
+      }
+
+      async function handleSession(session, accessToken) {
+        if (!session || !accessToken) { state.session = null; state.profile = null; state.client = baseSupabase; showAuth(); setStatus('#bbb', 'Signed out'); return; }
+
+        state.client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        });
+
+        if (state.client.realtime?.setAuth) {
+          state.client.realtime.setAuth(accessToken);
+        }
+
+        let role = null;
+
+        const { data: userRecord, error: userError } = await getClient()
+          .from('users')
+          .select('user_role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (!userError && userRecord) {
+          role = userRecord.user_role || null;
+        }
+
+        if (!role) {
+          const { data: profileRecord, error: profileError } = await getClient()
+            .from('user_profile')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (!profileError && profileRecord) {
+            role = profileRecord.role || null;
+          }
+        }
+
+        if (!role) {
+          state.client = baseSupabase;
+          showAuth('No admin role was found for this account. Check the users table or user_profile record.', 'error');
+          return;
+        }
+
+        if (role !== 'admin') {
+          state.client = baseSupabase;
+          showAuth(`This account is signed in, but its role is "${role}" instead of "admin".`, 'error');
+          return;
+        }
+
+        state.profile = { role };
+        await openAdminSession(session);
+      }
+
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); setMessage(authMessage, 'Signing in...');
+
+        try {
+          const authResult = await signInWithPassword($('email').value.trim(), $('password').value);
+          await handleSession({ user: authResult.user }, authResult.access_token);
+        } catch (error) {
+          showAuth(error.message || String(error), 'error');
+        }
+      });
+      petForm.addEventListener('submit', savePet);
+      cancelEditButton.addEventListener('click', () => { resetForm(); hideEditor(); });
+      newPetButton.addEventListener('click', () => { resetForm(); showEditor(); });
+      refreshButton.addEventListener('click', refreshPets);
+      logoutButton.addEventListener('click', async () => { state.client = baseSupabase; showAuth(); setStatus('#bbb', 'Signed out'); });
+      $('thumbnail').addEventListener('change', (event) => { state.selectedThumbnail = event.target.files?.[0] || null; renderPreviews(); });
+      $('gallery').addEventListener('change', (event) => { state.selectedGallery = Array.from(event.target.files || []); renderPreviews(); });
+      searchInput.addEventListener('input', renderPetCards); speciesFilter.addEventListener('change', renderPetCards);
+      showAuth();
+      setStatus('#bbb', 'Signed out');
+    </script>
+  </body>
+</html>

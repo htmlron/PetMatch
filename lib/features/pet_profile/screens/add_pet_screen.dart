@@ -142,6 +142,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     _trainingDifficulty = pet.trainingDifficulty?.toDouble() ?? 2.0;
   }
 
+  // ignore: unused_element
   String? _mapTrainingDifficultyToLevel(int difficulty) {
     if (difficulty <= 1) return 'beginner';
     if (difficulty == 2) return 'novice';

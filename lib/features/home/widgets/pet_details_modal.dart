@@ -114,7 +114,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
   Widget _buildPetDetails(
       Pet pet, int petIndex, ScrollController scrollController) {
     try {
-      final imageUrls = pet.fullImageUrls ?? [];
+      final imageUrls = pet.fullImageUrls;
       print('Image Url: $imageUrls');
 
       // Ensure imagePageController exists for this pet
@@ -979,6 +979,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildHealthItem(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -1022,6 +1023,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
         : Colors.pink[700]!;
   }
 
+  // ignore: unused_element
   List<Color> _getGradientColors(Pet pet) {
     return pet.gender?.toLowerCase() == 'male'
         ? [Colors.blue[100]!, Colors.blue[200]!]

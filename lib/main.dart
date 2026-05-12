@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/router/app_router.dart';
 import 'package:petmatch/theme/theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

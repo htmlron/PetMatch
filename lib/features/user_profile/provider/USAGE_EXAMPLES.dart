@@ -224,7 +224,6 @@ class ReadOnceExample extends ConsumerWidget {
     return ElevatedButton(
       onPressed: () {
         // ✅ Read state once (doesn't rebuild on changes)
-        final profile = ref.read(userProfileProvider);
 
         // Get profile summary
         final notifier = ref.read(userProfileProvider.notifier);

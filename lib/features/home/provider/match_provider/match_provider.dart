@@ -5,15 +5,51 @@ import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/repository/pet_repository.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_state.dart';
 import 'package:petmatch/features/home/provider/favorites_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MatchNotifier extends Notifier<MatchState> {
   final PetRepository _repository;
+  RealtimeChannel? _matchChannel;
 
   MatchNotifier(this._repository);
 
   @override
   MatchState build() {
+    _setupRealtimeSync();
     return MatchState();
+  }
+
+  void _setupRealtimeSync() {
+    if (_matchChannel != null) return;
+
+    _matchChannel = supabase
+        .channel('matches-realtime-sync')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pets',
+          callback: (_) => fetchMatchedPets(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pets_images',
+          callback: (_) => fetchMatchedPets(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pet_characteristics',
+          callback: (_) => fetchMatchedPets(),
+        )
+        .subscribe();
+
+    ref.onDispose(() {
+      if (_matchChannel != null) {
+        supabase.removeChannel(_matchChannel!);
+        _matchChannel = null;
+      }
+    });
   }
 
   Future<void> fetchMatchedPets() async {

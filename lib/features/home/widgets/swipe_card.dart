@@ -32,6 +32,7 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
   late AnimationController _rotationController;
   Offset _dragOffset = Offset.zero;
   SwipeDirection _currentDirection = SwipeDirection.none;
+  // ignore: unused_field
   bool _isAnimating = false;
 
   @override

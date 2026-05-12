@@ -84,6 +84,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
   // ---------------------------
   // Widget Builders
   // ---------------------------
+  // ignore: unused_element
   Widget _buildTraitChips() {
     final traits = [
       {'label': 'Gentle', 'emoji': '🕊️'},

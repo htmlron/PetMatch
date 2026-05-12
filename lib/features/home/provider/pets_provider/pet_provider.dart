@@ -6,9 +6,12 @@ import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/features/home/provider/pets_provider/pet_state.dart';
 import 'package:petmatch/core/repository/pet_repository.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:petmatch/core/config/supabase_config.dart';
 
 class PetNotifier extends Notifier<PetState> {
   final PetRepository _repository;
+  RealtimeChannel? _petsChannel;
 
   PetNotifier(this._repository);
 
@@ -16,7 +19,41 @@ class PetNotifier extends Notifier<PetState> {
 
   @override
   PetState build() {
+    _setupRealtimeSync();
     return PetState();
+  }
+
+  void _setupRealtimeSync() {
+    if (_petsChannel != null) return;
+
+    _petsChannel = supabase
+        .channel('pets-realtime-sync')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pets',
+          callback: (_) => fetchInitialPets(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pets_images',
+          callback: (_) => fetchInitialPets(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'pet_characteristics',
+          callback: (_) => fetchInitialPets(),
+        )
+        .subscribe();
+
+    ref.onDispose(() {
+      if (_petsChannel != null) {
+        supabase.removeChannel(_petsChannel!);
+        _petsChannel = null;
+      }
+    });
   }
 
   Future<void> fetchInitialPets() async {
@@ -126,7 +163,7 @@ class PetNotifier extends Notifier<PetState> {
       state = state.copyWith(isLoading: true, errorMessage: null);
       print('💾 Saving new pet: $petName');
 
-      const Uuid uuid = Uuid();
+      final Uuid uuid = Uuid();
       final petId = uuid.v4();
 
       await _repository.savePet(
