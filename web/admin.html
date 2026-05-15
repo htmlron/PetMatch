@@ -1077,7 +1077,8 @@
                   </div>
                   <div class="field">
                     <label for="size">Size</label>
-                    <select id="size" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select>
+                    <select id="size" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="small">Small (about 5-10 kg, 20-35 cm)</option><option value="medium">Medium (about 11-20 kg, 36-55 cm)</option><option value="large">Large (about 21+ kg, 56+ cm)</option></select>
+                    <div class="text-xs" style="color: var(--muted);">Use the pet's approximate kilo and height to decide the size.</div>
                   </div>
                   <div class="field">
                     <label for="status">Status</label>
@@ -1120,8 +1121,15 @@
                 <h4 class="section-title">Health & Behavior</h4>
                 <div class="field-grid">
                   <div class="field">
-                    <label for="vaccinations">Vaccinated</label>
-                    <select id="vaccinations" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <label for="vaccinationTypes">Vaccinations (select all that apply)</label>
+                    <div id="vaccinationTypes" style="display:flex;flex-direction:column;gap:6px;">
+                      <label><input type="checkbox" value="rabies" class="vax-checkbox"> Anti-rabies (Rabies)</label>
+                      <label><input type="checkbox" value="distemper" class="vax-checkbox"> Distemper</label>
+                      <label><input type="checkbox" value="parvo" class="vax-checkbox"> Parvo</label>
+                      <label><input type="checkbox" value="bordetella" class="vax-checkbox"> Bordetella (Kennel cough)</label>
+                      <label><input type="checkbox" value="heartworm" class="vax-checkbox"> Heartworm prevention</label>
+                      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;"><label style="min-width:180px;">Update frequency</label><select id="vaccinationUpdate" style="width:140px;"><option value="6">Every 6 months</option><option value="12">Every 12 months</option><option value="24">Every 24 months</option><option value="0">Other / as needed</option></select></div>
+                    </div>
                   </div>
                   <div class="field">
                     <label for="spayedNeutered">Spayed/Neutered</label>
@@ -1136,12 +1144,8 @@
                     <select id="goodWithChildren" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
-                    <label for="goodWithDogs">Good with Dogs</label>
-                    <select id="goodWithDogs" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
-                  </div>
-                  <div class="field">
-                    <label for="goodWithCats">Good with Cats</label>
-                    <select id="goodWithCats" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <label for="goodWithOtherPets">Good with other pets</label>
+                    <select id="goodWithOtherPets" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="houseTrained">House Trained</label>
@@ -1382,12 +1386,28 @@
         state.editingPet = pet;
         $('petId').value = pet.pet_id; $('petName').value = pet.name ?? ''; $('species').value = pet.species ?? 'Dog'; $('breed').value = pet.breed ?? ''; $('age').value = pet.age ?? ''; $('gender').value = pet.gender ?? ''; $('size').value = pet.size ?? ''; $('status').value = pet.status ?? 'Available'; $('description').value = pet.description ?? ''; $('groomingNeeds').value = pet.groomingNeeds ?? getCharacteristicBlock(pet).temperament?.grooming_needs ?? '';
         const characteristics = getCharacteristicBlock(pet); const behavior = characteristics.behavior_tags || {}; const health = characteristics.health_notes || {}; const activity = characteristics.activity_level || {}; const temperament = characteristics.temperament || {};
-        $('vaccinations').value = health.vaccinations === null || health.vaccinations === undefined ? '' : String(Boolean(health.vaccinations));
+        // populate vaccination checkboxes and update frequency
+        document.querySelectorAll('.vax-checkbox').forEach((cb) => cb.checked = false);
+        if (Array.isArray(health.vaccination_types)) {
+          health.vaccination_types.forEach((type) => {
+            const el = Array.from(document.querySelectorAll('.vax-checkbox')).find((i) => i.value === String(type));
+            if (el) el.checked = true;
+          });
+        } else if (health.vaccinations === true) {
+          // legacy boolean - mark update frequency default
+          // no specific vaccines known
+        }
+        $('vaccinationUpdate').value = health.vaccination_update_months ?? 6;
         $('spayedNeutered').value = health.spayed_neutered === null || health.spayed_neutered === undefined ? '' : String(Boolean(health.spayed_neutered));
         $('specialNeeds').value = health.special_needs === null || health.special_needs === undefined ? '' : String(Boolean(health.special_needs));
         $('goodWithChildren').value = behavior.good_with_children === null || behavior.good_with_children === undefined ? '' : String(Boolean(behavior.good_with_children));
-        $('goodWithDogs').value = behavior.good_with_dogs === null || behavior.good_with_dogs === undefined ? '' : String(Boolean(behavior.good_with_dogs));
-        $('goodWithCats').value = behavior.good_with_cats === null || behavior.good_with_cats === undefined ? '' : String(Boolean(behavior.good_with_cats));
+        // Combine dogs/cats into single admin control
+        if (behavior.good_with_dogs === null && behavior.good_with_cats === null) {
+          $('goodWithOtherPets').value = '';
+        } else {
+          const any = Boolean(behavior.good_with_dogs) || Boolean(behavior.good_with_cats);
+          $('goodWithOtherPets').value = String(any);
+        }
         $('houseTrained').value = behavior.house_trained === null || behavior.house_trained === undefined ? '' : String(Boolean(behavior.house_trained));
         $('healthNotes').value = health.health_notes_text ?? health.health_notes ?? ''; $('behavioralNotes').value = characteristics.behavioral_notes ?? ''; $('energyLevel').value = activity.energy_level ?? pet.energyLevel ?? 3; $('playfulness').value = activity.playfulness ?? pet.playfulness ?? 3; $('dailyExercise').value = activity.daily_exercise ?? activity.daily_exercise_needs ?? pet.dailyExercise ?? ''; $('affectionLevel').value = temperament.affection_level ?? pet.affectionLevel ?? 3; $('independence').value = temperament.independence ?? pet.independence ?? 3; $('adaptability').value = temperament.adaptability ?? pet.adaptability ?? 3; $('trainingDifficulty').value = temperament.training_difficulty ?? pet.trainingDifficulty ?? 2; $('traits').value = Array.isArray(temperament.temperament_traits) ? temperament.temperament_traits.join(', ') : ''; $('quirk').value = characteristics.quirk ?? pet.quirks ?? '';
         renderExistingImages(pet);
@@ -1410,7 +1430,7 @@
           const content = document.createElement('div'); content.className = 'pet-content';
           const title = document.createElement('div'); title.className = 'pet-title'; title.innerHTML = `<div><h3>${pet.name}</h3><div class="pet-meta">${resolveText(pet.breed)} • ${resolveText(pet.age)} • ${resolveText(pet.gender)}</div></div>`;
           const chips = document.createElement('div'); chips.className = 'chips';
-          const behavior = getCharacteristicBlock(pet).behavior_tags || {}; const chipLabels = [behavior.good_with_children === true ? 'Kids' : null, behavior.good_with_dogs === true ? 'Dogs' : null, behavior.good_with_cats === true ? 'Cats' : null, behavior.house_trained === true ? 'House trained' : null].filter(Boolean);
+          const behavior = getCharacteristicBlock(pet).behavior_tags || {}; const chipLabels = [behavior.good_with_children === true ? 'Kids' : null, (behavior.good_with_dogs === true || behavior.good_with_cats === true) ? 'Other pets' : null, behavior.house_trained === true ? 'House trained' : null].filter(Boolean);
           chipLabels.slice(0, 3).forEach((label) => { const chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = label; chips.appendChild(chip); });
           const meta = document.createElement('div'); meta.className = 'pet-meta'; meta.textContent = pet.description || 'No description provided yet.';
           const imageStrip = document.createElement('div'); imageStrip.className = 'image-strip'; imageStrip.innerHTML = `<span class="image-pill">${imagePaths.length + (pet.thumbnail_path ? 1 : 0)} images</span>`;
@@ -1497,10 +1517,11 @@
             if (imagesError) { console.error('pets_images insert error:', imagesError); setMessage(formMessage, `Images insert failed: ${imagesError.message || imagesError}`, 'error'); return; }
           }
 
+          const vaxChecked = Array.from(document.querySelectorAll('.vax-checkbox')).filter((i) => i.checked).map((i) => i.value);
           const characteristicsPayload = {
             pet_id: petId,
-            behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithDogs').value), good_with_cats: normalizeBool($('goodWithCats').value), house_trained: normalizeBool($('houseTrained').value) },
-            health_notes: { vaccinations: normalizeBool($('vaccinations').value), spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
+            behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithOtherPets').value), good_with_cats: normalizeBool($('goodWithOtherPets').value), house_trained: normalizeBool($('houseTrained').value) },
+            health_notes: { vaccinations: vaxChecked.length > 0 ? true : false, vaccination_types: vaxChecked.length ? vaxChecked : null, vaccination_update_months: parseInt($('vaccinationUpdate').value, 10) || null, spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
             activity_level: { energy_level: normalizeNumber($('energyLevel').value), playfulness: normalizeNumber($('playfulness').value), daily_exercise_needs: $('dailyExercise').value.trim() || null },
             temperament: { affection_level: normalizeNumber($('affectionLevel').value), independence: normalizeNumber($('independence').value), adaptability: normalizeNumber($('adaptability').value), training_difficulty: normalizeNumber($('trainingDifficulty').value), grooming_needs: groomingNeeds, temperament_traits: $('traits').value.split(',').map((value) => value.trim()).filter(Boolean) },
             quirk: $('quirk').value.trim() || null,
