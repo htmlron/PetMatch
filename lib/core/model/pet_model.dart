@@ -31,15 +31,15 @@ class Pet {
   final int? groomingNeeds; // 1-5 scale
 
   // Activity & Personality
-  final int? energyLevel; // 1-10 scale
-  final int? playfulness; // 1-10 scale
+  final int? energyLevel; // 1-5 scale
+  final int? playfulness; // 1-5 scale
   final String? dailyExercise;
 
   // Temperament
-  final int? affectionLevel; // 1-10 scale
-  final int? independence; // 1-10 scale
-  final int? adaptability; // 1-10 scale
-  final int? trainingDifficulty; // 1-10 scale
+  final int? affectionLevel; // 1-5 scale
+  final int? independence; // 1-5 scale
+  final int? adaptability; // 1-5 scale
+  final int? trainingDifficulty; // 1-5 scale
   final List<String> temperamentTraits;
   final String? quirks;
 

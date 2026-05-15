@@ -50,7 +50,7 @@ class _FavoritePetsPageState extends ConsumerState<FavoritePetsPage> {
                 width: 220,
                 height: 220,
                 child: Lottie.asset(
-                  'assets/lottie/Catlover.json',
+                  'assets/lottie/Smiling Dog.json',
                   fit: BoxFit.contain,
                   repeat: true,
                 ),
@@ -65,7 +65,7 @@ class _FavoritePetsPageState extends ConsumerState<FavoritePetsPage> {
                         width: 180,
                         height: 180,
                         child: Lottie.asset(
-                          'assets/lottie/Catlover.json',
+                          'assets/lottie/Smiling Dog.json',
                           fit: BoxFit.contain,
                         ),
                       ),

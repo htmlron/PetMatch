@@ -72,16 +72,43 @@ class PetRepository {
     try {
       print('🎯 Fetching matched pets for user: $userId');
 
+      // Validate user profile before attempting match
+      final userProfile = await _supabase
+          .from('user_profile')
+          .select('personality_traits, user_lifestyle, household_info')
+          .eq('user_id', userId)
+          .maybeSingle()
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception('User profile fetch timeout'),
+          );
+
+      if (userProfile == null) {
+        print('⚠️ User profile not found');
+        return [];
+      }
+
+      print('✅ User profile loaded successfully');
+
       // Call the PostgreSQL function with timeout
-      final response = await _supabase
-          .rpc('match_pets_for_user_weighted_detailed_v3', params: {
-        'user_uuid': userId,
-      }).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw Exception('Database timeout - taking too long to fetch matches');
-        },
-      );
+      late dynamic response;
+      try {
+        response = await _supabase
+            .rpc('match_pets_for_user_weighted_detailed_v3', params: {
+          'user_uuid': userId,
+        }).timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            throw Exception('Database timeout - taking too long to fetch matches');
+          },
+        );
+      } catch (rpcError) {
+        print('❌ RPC Error: $rpcError');
+        print('   Stack trace: $rpcError');
+        // Return empty list as fallback instead of crashing
+        print('⚠️ Falling back to empty match list due to RPC error');
+        return [];
+      }
 
       final responseList = response as List?;
       if (responseList == null || responseList.isEmpty) {
@@ -168,10 +195,65 @@ class PetRepository {
       return matches;
     } on TimeoutException catch (e) {
       print('❌ Timeout error fetching matched pets: $e');
-      rethrow;
+      print('⚠️ Falling back to basic pet list as fallback...');
+      return await _getFallbackMatches(userId);
     } catch (e) {
       print('❌ Error fetching matched pets: $e');
-      rethrow;
+      print('⚠️ Falling back to basic pet list...');
+      return await _getFallbackMatches(userId);
+    }
+  }
+
+  /// Fallback matching method when SQL function fails
+  /// Returns available pets with basic matching scores
+  Future<List<PetMatch>> _getFallbackMatches(String userId) async {
+    try {
+      print('🔄 Using fallback matching logic...');
+
+      // Fetch all available pets
+      final petsData = await _supabase
+          .from('pets')
+          .select('*, pets_images(*), pet_characteristics(*)')
+          .neq('status', 'adopted')
+          .order('created_at', ascending: false)
+          .limit(50)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () =>
+                throw Exception('Fallback: Failed to fetch pets'),
+          );
+
+      if ((petsData as List).isEmpty) {
+        print('⚠️ No pets available for fallback matching');
+        return [];
+      }
+
+      // Convert to Pet objects and create basic PetMatch with fallback scores
+      final matches = <PetMatch>[];
+      for (var petJson in petsData) {
+        try {
+          final pet = Pet.fromJson(petJson);
+          // Create basic match with default scores
+          final match = PetMatch(
+            pet: pet,
+            lifestyleScore: 60.0,
+            personalityScore: 60.0,
+            householdScore: 60.0,
+            healthScore: 60.0,
+            totalMatchPercent: 60.0,
+            matchLabel: 'Good Match',
+          );
+          matches.add(match);
+        } catch (e) {
+          print('⚠️ Error parsing fallback pet: $e');
+        }
+      }
+
+      print('✅ Fallback matching returned ${matches.length} pets');
+      return matches;
+    } catch (e) {
+      print('❌ Fallback matching also failed: $e');
+      return [];
     }
   }
 

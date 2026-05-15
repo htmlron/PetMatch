@@ -143,15 +143,15 @@ Basic Info:
   • Gender: ${pet.gender ?? 'Unknown'}
 
 Activity & Energy:
-  • Energy Level: $petEnergyLevel/10 (1=Very calm, 10=Extremely energetic)
-  • Playfulness: $petPlayfulness/10 (1=Not playful, 10=Very playful)
+  • Energy Level: $petEnergyLevel/5 (1=Very calm, 5=Extremely energetic)
+  • Playfulness: $petPlayfulness/5 (1=Not playful, 5=Very playful)
   • Daily Exercise Needs: $petDailyExerciseNeeds
 
 Temperament & Personality:
-  • Affection Level: $petAffectionLevel/10 (1=Independent, 10=Very affectionate)
-  • Independence: $petIndependence/10 (1=Needs constant attention, 10=Very independent)
-  • Adaptability: $petAdaptability/10 (1=Needs routine, 10=Highly adaptable)
-  • Training Difficulty: $petTrainingDifficulty/10 (1=Easy to train, 10=Challenging)
+  • Affection Level: $petAffectionLevel/5 (1=Independent, 5=Very affectionate)
+  • Independence: $petIndependence/5 (1=Needs constant attention, 5=Very independent)
+  • Adaptability: $petAdaptability/5 (1=Needs routine, 5=Highly adaptable)
+  • Training Difficulty: $petTrainingDifficulty/5 (1=Easy to train, 5=Challenging)
   • Grooming Needs: $petGroomingNeeds/5 (1=Low, 5=High)
   • Personality Traits: $petTraits
   • Quirks: $petQuirks ${hasQuirk ? '⭐ (This is a unique characteristic!)' : ''}
@@ -181,17 +181,17 @@ Write a warm, friendly, personalized explanation (2-3 short paragraphs, max 150 
 
 1. **Starts with excitement** about ${pet.name} being a great match
 2. **Compares USER traits with PET traits** - Show specific alignments like:
-   - "Your activity level ($userActivityLevel/5) pairs perfectly with ${pet.name}'s energy ($petEnergyLevel/10)"
-   - "Since you're comfortable with grooming ($userGroomingLevel/5), ${pet.name}'s grooming needs ($petGroomingNeeds/5) won't be overwhelming"
-   - "Your training patience ($userTrainingPatience/5) is ideal for ${pet.name}'s training needs ($petTrainingDifficulty/10)"
+   - "Your calm, low-key lifestyle pairs perfectly with ${pet.name}'s relaxed demeanor"
+   - "Since you're comfortable with regular grooming, ${pet.name}'s grooming needs won't be overwhelming"
+   - "Your patient approach to training is ideal for ${pet.name}'s learning style"
 3. **Highlight household compatibility** if relevant (children, other pets)
 4. **If a quirk exists (not "None"), weave it naturally into the explanation** - This is ${pet.name}'s unique personality trait that makes them special! Use it to add character and warmth to your explanation. Examples:
    - "${pet.name} is sweet and easygoing, making her a perfect companion for your moderate activity lifestyle"
    - "Known as the 'mayordoma' who greets everyone at the kennel doors, ${pet.name}'s friendly nature will bring joy to your home"
 5. **Mention 1-2 strongest score categories** (above 75%) without stating exact percentages
 6. **Use a warm, conversational tone** - like a friend giving advice
-7. **DO NOT** list scores or percentages in your explanation
-8. **Focus on WHY this pet fits the user's lifestyle and personality**
+7. **CRITICAL: DO NOT include ANY numbers, scales, or percentages in your explanation** - No "4/5", "7/10", percentages, or rating numbers. Only use descriptive language like "highly energetic", "moderately affectionate", "very patient", etc.
+8. **Focus on WHY this pet fits the user's lifestyle and personality** without referencing any numerical scales
 
 Generate the explanation now:
 ''';
@@ -220,10 +220,10 @@ Pet 1: ${pet1.pet.name}
 - Match Score: ${pet1.totalMatchPercent.toInt()}%
 - Breed: ${pet1.pet.breed ?? 'Mixed'}
 - Age: ${pet1.pet.age ?? '?'} ${pet1.pet.ageUnit ?? 'years'}
-- Energy: ${pet1.pet.energyLevel ?? '?'}/10
+- Energy: ${pet1.pet.energyLevel ?? '?'}/5
 - Size: ${pet1.pet.size ?? 'Unknown'}
-- Affection: ${pet1.pet.affectionLevel ?? '?'}/10
-- Independence: ${pet1.pet.independence ?? '?'}/10
+- Affection: ${pet1.pet.affectionLevel ?? '?'}/5
+- Independence: ${pet1.pet.independence ?? '?'}/5
 - Good with Children: ${pet1.pet.goodWithChildren ?? 'Unknown'}
 - Good with Pets: Dogs: ${pet1.pet.goodWithDogs ?? 'Unknown'}, Cats: ${pet1.pet.goodWithCats ?? 'Unknown'}
 
@@ -231,10 +231,10 @@ Pet 2: ${pet2.pet.name}
 - Match Score: ${pet2.totalMatchPercent.toInt()}%
 - Breed: ${pet2.pet.breed ?? 'Mixed'}
 - Age: ${pet2.pet.age ?? '?'} ${pet2.pet.ageUnit ?? 'years'}
-- Energy: ${pet2.pet.energyLevel ?? '?'}/10
+- Energy: ${pet2.pet.energyLevel ?? '?'}/5
 - Size: ${pet2.pet.size ?? 'Unknown'}
-- Affection: ${pet2.pet.affectionLevel ?? '?'}/10
-- Independence: ${pet2.pet.independence ?? '?'}/10
+- Affection: ${pet2.pet.affectionLevel ?? '?'}/5
+- Independence: ${pet2.pet.independence ?? '?'}/5
 - Good with Children: ${pet2.pet.goodWithChildren ?? 'Unknown'}
 - Good with Pets: Dogs: ${pet2.pet.goodWithDogs ?? 'Unknown'}, Cats: ${pet2.pet.goodWithCats ?? 'Unknown'}
 
@@ -251,11 +251,11 @@ Generate the comparison now:
   Future<String> generateTransitionTips(Pet pet) async {
     final prompt = '''
 You are a pet care expert. Provide 4-5 practical tips for someone adopting ${pet.name}, a ${pet.breed ?? 'mixed breed'} with:
-- Energy Level: ${pet.energyLevel ?? '?'}/10
+- Energy Level: ${pet.energyLevel ?? '?'}/5
 - Age: ${pet.age ?? '?'} ${pet.ageUnit ?? 'years'}
 - Special Needs: ${pet.specialNeeds ?? 'None'}
-- Training Difficulty: ${pet.trainingDifficulty ?? '?'}/10
-- Adaptability: ${pet.adaptability ?? '?'}/10
+- Training Difficulty: ${pet.trainingDifficulty ?? '?'}/5
+- Adaptability: ${pet.adaptability ?? '?'}/5
 
 Keep it concise, practical, and specific to this pet's characteristics. Format as a bulleted list with actionable advice.
 ''';

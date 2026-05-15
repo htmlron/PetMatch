@@ -88,7 +88,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
           activityLabel: _numericLabel(level),
         );
         break;
-      case 'patience_level':
+      case 'training_patience':
         state = state.copyWith(
           patienceLevel: level,
           patienceLabel: _numericLabel(level),
