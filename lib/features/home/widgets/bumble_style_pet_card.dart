@@ -195,14 +195,13 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
-                                    if (pet.goodWithChildren == true) _buildTraitChip('👶 Good with Kids'),
-                                    if (pet.goodWithDogs == true) _buildTraitChip('🐕 Good with Dogs'),
-                                    if (pet.goodWithCats == true) _buildTraitChip('🐱 Good with Cats'),
-                                    if (pet.houseTrained == true) _buildTraitChip('🏠 House Trained'),
-                                    if (pet.vaccinations == true) _buildTraitChip('💉 Vaccinated'),
-                                    if (pet.spayedNeutered == true) _buildTraitChip('✂️ Spayed/Neutered'),
-                                    if (pet.specialNeeds == true) _buildTraitChip('⭐ Special Needs'),
-                                  ],
+                                      if (pet.goodWithChildren == true) _buildTraitChip('👶 Good with Kids'),
+                                      if ((pet.goodWithDogs == true) || (pet.goodWithCats == true)) _buildTraitChip('🐾 Good with other pets'),
+                                      if (pet.houseTrained == true) _buildTraitChip('🏠 House Trained'),
+                                      if (pet.isVaccinated) _buildTraitChip('💉 Vaccinated'),
+                                      if (pet.spayedNeutered == true) _buildTraitChip('✂️ Spayed/Neutered'),
+                                      if (pet.specialNeeds == true) _buildTraitChip('⭐ Special Needs'),
+                                    ],
                                 ),
 
                                 const SizedBox(height: 120), // leave space for fixed buttons

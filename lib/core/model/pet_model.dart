@@ -26,6 +26,8 @@ class Pet {
 
   // Health information
   final bool? vaccinations;
+  final List<String> vaccinationTypes;
+  final int? vaccinationUpdateMonths;
   final bool? spayedNeutered;
   final bool? specialNeeds;
   final int? groomingNeeds; // 1-5 scale
@@ -65,6 +67,8 @@ class Pet {
     this.goodWithCats,
     this.houseTrained,
     this.vaccinations,
+    this.vaccinationTypes = const [],
+    this.vaccinationUpdateMonths,
     this.spayedNeutered,
     this.specialNeeds,
     this.groomingNeeds,
@@ -158,8 +162,18 @@ class Pet {
       goodWithDogs: behaviorTags?['good_with_dogs'] as bool?,
       goodWithCats: behaviorTags?['good_with_cats'] as bool?,
       houseTrained: behaviorTags?['house_trained'] as bool?,
-      // Health information from health_notes
-      vaccinations: healthNotes?['vaccinations'] as bool?,
+        // Health information from health_notes
+        vaccinations: healthNotes?['vaccinations'] as bool?,
+        vaccinationTypes: ((healthNotes?['vaccination_types'] is List)
+            ? (healthNotes?['vaccination_types'] as List).map((e) => e.toString()).toList()
+            : (healthNotes?['vaccination_types'] != null && healthNotes!['vaccination_types'] is String)
+              ? (healthNotes!['vaccination_types'] as String).split(',').map((e) => e.trim()).where((s) => s.isNotEmpty).toList()
+              : <String>[]),
+        vaccinationUpdateMonths: healthNotes?['vaccination_update_months'] is int
+          ? healthNotes?['vaccination_update_months'] as int?
+          : (healthNotes?['vaccination_update_months'] is String
+            ? int.tryParse(healthNotes?['vaccination_update_months'] as String)
+            : null),
       spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
       specialNeeds: healthNotes?['special_needs'] as bool?,
       groomingNeeds: parseInt(temperament?['grooming_needs']),
@@ -270,5 +284,18 @@ class Pet {
     if (adaptability! <= 3) return 'Prefers routine';
     if (adaptability! <= 6) return 'Moderately flexible';
     return 'Highly adaptable';
+  }
+
+  // Whether pet is considered vaccinated (either boolean or types present)
+  bool get isVaccinated {
+    if (vaccinationTypes.isNotEmpty) return true;
+    return vaccinations == true;
+  }
+
+  /// Human friendly vaccination summary
+  String get vaccinationSummary {
+    if (vaccinationTypes.isNotEmpty) return vaccinationTypes.join(', ');
+    if (vaccinations == true) return 'Vaccinated (types not specified)';
+    return 'Unknown';
   }
 }

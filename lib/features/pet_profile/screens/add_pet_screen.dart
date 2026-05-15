@@ -117,7 +117,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     _existingThumbnailUrl = pet.thumbnailUrl;
 
     // Health Information
-    _isVaccinationUpToDate = pet.vaccinations;
+    _isVaccinationUpToDate = pet.vaccinations ?? (pet.vaccinationTypes.isNotEmpty ? true : null);
     _isSpayedNeutered = pet.spayedNeutered;
     _hasSpecialNeeds = pet.specialNeeds;
     _groomingNeeds = pet.groomingNeeds;

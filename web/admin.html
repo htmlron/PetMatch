@@ -466,6 +466,32 @@
         padding: 8px 10px;
         transition: all 0.15s ease;
       }
+
+      /* Checkbox and vaccination label overrides so checkboxes remain small and inline */
+      input[type="checkbox"] {
+        width: auto;
+        height: auto;
+        padding: 0;
+        margin: 0 8px 0 0;
+        -webkit-appearance: checkbox;
+        appearance: checkbox;
+        background: transparent;
+        border: none;
+      }
+
+      .vax-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .vax-checkbox {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
       
       input:focus,
       select:focus,
@@ -1121,14 +1147,23 @@
                 <h4 class="section-title">Health & Behavior</h4>
                 <div class="field-grid">
                   <div class="field">
-                    <label for="vaccinationTypes">Vaccinations (select all that apply)</label>
-                    <div id="vaccinationTypes" style="display:flex;flex-direction:column;gap:6px;">
-                      <label><input type="checkbox" value="rabies" class="vax-checkbox"> Anti-rabies (Rabies)</label>
-                      <label><input type="checkbox" value="distemper" class="vax-checkbox"> Distemper</label>
-                      <label><input type="checkbox" value="parvo" class="vax-checkbox"> Parvo</label>
-                      <label><input type="checkbox" value="bordetella" class="vax-checkbox"> Bordetella (Kennel cough)</label>
-                      <label><input type="checkbox" value="heartworm" class="vax-checkbox"> Heartworm prevention</label>
-                      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;"><label style="min-width:180px;">Update frequency</label><select id="vaccinationUpdate" style="width:140px;"><option value="6">Every 6 months</option><option value="12">Every 12 months</option><option value="24">Every 24 months</option><option value="0">Other / as needed</option></select></div>
+                    <label for="vaccinationToggleBtn">Vaccination</label>
+                    <button type="button" id="vaccinationToggleBtn" class="btn btn-secondary" style="padding:8px 10px;font-weight:600;">Show vaccination details ▾</button>
+                    <div id="vaccinationDetails" style="display:none;margin-top:8px;">
+                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="rabies" class="vax-checkbox"> Anti-rabies (Rabies)</label>
+                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="distemper" class="vax-checkbox"> Distemper</label>
+                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="parvo" class="vax-checkbox"> Parvo</label>
+                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="bordetella" class="vax-checkbox"> Bordetella (Kennel cough)</label>
+                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="heartworm" class="vax-checkbox"> Heartworm prevention</label>
+                      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                        <label style="margin:0;">Update frequency</label>
+                        <select id="vaccinationUpdate" style="width:160px;">
+                          <option value="6">Every 6 months</option>
+                          <option value="12">Every 12 months</option>
+                          <option value="24">Every 24 months</option>
+                          <option value="0">Other / as needed</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                   <div class="field">
@@ -1292,6 +1327,22 @@
       const makeStorageUrl = (petId, filename) => getClient().storage.from(bucketName).getPublicUrl(`${petId}/${filename}`).data.publicUrl;
       const resolveText = (value) => (value === null || value === undefined || value === '' ? 'Unknown' : String(value));
 
+      // Wire vaccination toggle button for initial page load
+      try {
+        document.addEventListener('DOMContentLoaded', () => {
+          const btn = document.getElementById('vaccinationToggleBtn');
+          const details = document.getElementById('vaccinationDetails');
+          if (!btn || !details) return;
+          btn.addEventListener('click', () => {
+            const isHidden = details.style.display === 'none' || details.style.display === '';
+            details.style.display = isHidden ? 'block' : 'none';
+            btn.textContent = isHidden ? 'Hide vaccination details ▴' : 'Show vaccination details ▾';
+          });
+        });
+      } catch (e) {
+        console.warn('Failed to wire vaccination toggle', e);
+      }
+
       async function signInWithPassword(email, password) {
         const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
           method: 'POST',
@@ -1335,6 +1386,15 @@
         $('dailyExercise').value = ''; $('traits').value = ''; $('quirk').value = ''; $('healthNotes').value = ''; $('behavioralNotes').value = ''; filePreviews.innerHTML = ''; existingImages.innerHTML = '';
         cancelEditButton.classList.add('hidden');
         setMessage(formMessage, 'Ready to add a new pet.');
+        // ensure vaccination details are hidden and button reset
+        try {
+          const details = document.getElementById('vaccinationDetails');
+          const btn = document.getElementById('vaccinationToggleBtn');
+          if (details) details.style.display = 'none';
+          if (btn) btn.textContent = 'Show vaccination details ▾';
+          document.querySelectorAll('.vax-checkbox').forEach((cb) => cb.checked = false);
+          if ($('vaccinationUpdate')) $('vaccinationUpdate').value = '6';
+        } catch (e) { /* ignore */ }
       }
 
       function renderExistingImages(pet) {
@@ -1398,6 +1458,15 @@
           // no specific vaccines known
         }
         $('vaccinationUpdate').value = health.vaccination_update_months ?? 6;
+        // show/hide vaccination details depending on data
+        try {
+          const vaxTypes = Array.isArray(health.vaccination_types) ? health.vaccination_types : [];
+          const shouldShow = (vaxTypes && vaxTypes.length) || health.vaccinations === true;
+          const details = document.getElementById('vaccinationDetails');
+          const btn = document.getElementById('vaccinationToggleBtn');
+          if (details) details.style.display = shouldShow ? 'block' : 'none';
+          if (btn) btn.textContent = shouldShow ? 'Hide vaccination details ▴' : 'Show vaccination details ▾';
+        } catch (e) { console.warn('Vaccination UI toggle error', e); }
         $('spayedNeutered').value = health.spayed_neutered === null || health.spayed_neutered === undefined ? '' : String(Boolean(health.spayed_neutered));
         $('specialNeeds').value = health.special_needs === null || health.special_needs === undefined ? '' : String(Boolean(health.special_needs));
         $('goodWithChildren').value = behavior.good_with_children === null || behavior.good_with_children === undefined ? '' : String(Boolean(behavior.good_with_children));

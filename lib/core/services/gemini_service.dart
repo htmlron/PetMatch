@@ -102,9 +102,9 @@ class GeminiService {
     final petSpecialNeeds = pet.specialNeeds == null
         ? 'Unknown'
         : (pet.specialNeeds! ? 'Yes' : 'No');
-    final petVaccinations = pet.vaccinations == null
-        ? 'Unknown'
-        : (pet.vaccinations! ? 'Yes' : 'No');
+    final petVaccinations = pet.isVaccinated
+      ? (pet.vaccinationTypes.isNotEmpty ? pet.vaccinationTypes.join(', ') : 'Yes')
+      : 'No';
     final petSpayedNeutered = pet.spayedNeutered == null
         ? 'Unknown'
         : (pet.spayedNeutered! ? 'Yes' : 'No');

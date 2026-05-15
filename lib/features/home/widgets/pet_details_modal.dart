@@ -586,7 +586,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (pet.vaccinations != null ||
+        if ((pet.vaccinations != null || pet.vaccinationTypes.isNotEmpty) ||
             pet.spayedNeutered != null ||
             pet.groomingNeeds != null ||
             pet.specialNeeds != null)
@@ -597,8 +597,13 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
               if (pet.dailyExercise != null)
                 _buildHealthBadge('Daily Exercise - ${pet.dailyExercise}',
                     Icons.directions_run, Colors.blue),
-              if (pet.vaccinations == true)
-                _buildHealthBadge('Vaccinated', Icons.vaccines, Colors.green),
+              if (pet.isVaccinated)
+                _buildHealthBadge(
+                    pet.vaccinationTypes.isNotEmpty
+                        ? 'Vaccinated: ${pet.vaccinationSummary}'
+                        : 'Vaccinated',
+                    Icons.vaccines,
+                    Colors.green),
               if (pet.spayedNeutered == true)
                 _buildHealthBadge(
                     'Spayed/Neutered', Icons.healing, Colors.teal),
