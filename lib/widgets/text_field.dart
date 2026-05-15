@@ -67,7 +67,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
               fontSize: widget.fontSize,
             ),
         contentPadding:
-          const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+          const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
         filled: widget.filled,
         fillColor: widget.fillColor,
         enabledBorder: OutlineInputBorder(
@@ -106,7 +106,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     );
 
     return Padding(
-      padding: widget.padding ?? const EdgeInsets.symmetric(vertical: 6.0),
+      padding: widget.padding ?? const EdgeInsets.symmetric(vertical: 4.0),
       child: textField,
     );
   }

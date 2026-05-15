@@ -221,8 +221,8 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final compactFieldWidth = width >= 700 ? 180.0 : width;
-        final wideFieldWidth = width >= 700 ? 420.0 : width;
+        final compactFieldWidth = width >= 700 ? 150.0 : width;
+        final wideFieldWidth = width >= 700 ? 340.0 : width;
 
         Widget compactFieldBlock({
           required String text,
@@ -287,8 +287,8 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
               const SizedBox(height: 20),
 
               Wrap(
-                spacing: 12,
-                runSpacing: 16,
+                spacing: 10,
+                runSpacing: 14,
                 children: [
                   compactFieldBlock(
                     text: 'Breed',

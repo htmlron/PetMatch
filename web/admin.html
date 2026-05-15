@@ -853,7 +853,19 @@
       .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
       .auth-card { width: min(440px, 100%); overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.86)); }
       .auth-panel { padding: 40px 28px; }
+      #editorCard {
+        width: min(100%, 920px);
+        margin-inline: auto;
+      }
+      #editorCard .card-content {
+        display: flex;
+        justify-content: center;
+      }
+      #petForm {
+        width: 100%;
+      }
       .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      #editorCard .field-grid { grid-template-columns: repeat(2, minmax(0, 320px)); justify-content: center; }
       .field { display: grid; gap: 8px; }
       .field.full { grid-column: 1 / -1; }
       label { font-size: 13px; font-weight: 700; color: var(--muted); }
@@ -865,7 +877,7 @@
       }
       textarea { min-height: 110px; resize: vertical; }
       input[type="file"] { padding: 10px; }
-      .section-title { font-size: 18px; margin-bottom: 10px; letter-spacing: -0.02em; }
+      .section-title { font-size: 18px; margin-bottom: 10px; letter-spacing: -0.02em; text-align: center; width: 100%; }
       .stack { display: grid; gap: 16px; }
       .card {
         padding: 18px;
@@ -912,6 +924,9 @@
         .hero, .card, .auth-panel { padding-left: 16px; padding-right: 16px; }
         .hero-banner { min-height: 170px; }
         .search { min-width: 0; }
+        #editorCard { width: 100%; }
+        #editorCard .card-content { display: block; }
+        #editorCard .field-grid { grid-template-columns: 1fr; }
         .panel { padding: 16px 14px; bottom: 0; height: auto; flex-direction: row; flex-wrap: wrap; border-radius: 24px 24px 0 0; }
         .sidebar-top { border-bottom: none; border-right: 1px solid rgba(16,32,51,0.06); padding: 0 16px 0 0; margin-bottom: 0; }
         .sidebar-nav { padding: 0; flex-direction: row; gap: 0; border-left: 1px solid rgba(16,32,51,0.06); padding-left: 16px; }
@@ -1030,7 +1045,6 @@
               <div>
                 <h3>Add or Edit Pet</h3>
               </div>
-              <button id="cancelEditButton" class="btn btn-secondary hidden" type="button">Cancel</button>
             </div>
           </div>
           <div class="card-content">
@@ -1043,39 +1057,39 @@
                 <div class="field-grid">
                   <div class="field">
                     <label for="petName">Name *</label>
-                    <input id="petName" required />
+                    <input id="petName" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="species">Species *</label>
-                    <select id="species" required><option value="Dog">Dog</option></select>
+                    <select id="species" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Select species</option><option value="Dog">Dog</option></select>
                   </div>
                   <div class="field">
                     <label for="breed">Breed</label>
-                    <input id="breed" />
+                    <input id="breed" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="age">Age</label>
-                    <input id="age" type="number" min="0" />
+                    <input id="age" type="number" min="0" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="gender">Gender</label>
-                    <select id="gender"><option value="">Unknown</option><option value="Male">Male</option><option value="Female">Female</option></select>
+                    <select id="gender" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="Male">Male</option><option value="Female">Female</option></select>
                   </div>
                   <div class="field">
                     <label for="size">Size</label>
-                    <select id="size"><option value="">Unknown</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select>
+                    <select id="size" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select>
                   </div>
                   <div class="field">
                     <label for="status">Status</label>
-                    <select id="status"><option value="Available">Available</option><option value="Adopted">Adopted</option></select>
+                    <select id="status" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Select status</option><option value="Available">Available</option><option value="Adopted">Adopted</option></select>
                   </div>
                   <div class="field">
                     <label for="groomingNeeds">Grooming Needs (1-5)</label>
-                    <input id="groomingNeeds" type="number" min="1" max="5" />
+                    <input id="groomingNeeds" type="number" min="1" max="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field full">
                     <label for="description">Description</label>
-                    <textarea id="description" placeholder="Describe this pet..."></textarea>
+                    <textarea id="description" placeholder="Describe this pet..." required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"></textarea>
                   </div>
                 </div>
               </div>
@@ -1107,31 +1121,31 @@
                 <div class="field-grid">
                   <div class="field">
                     <label for="vaccinations">Vaccinated</label>
-                    <select id="vaccinations"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="vaccinations" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="spayedNeutered">Spayed/Neutered</label>
-                    <select id="spayedNeutered"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="spayedNeutered" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="specialNeeds">Special Needs</label>
-                    <select id="specialNeeds"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="specialNeeds" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="goodWithChildren">Good with Children</label>
-                    <select id="goodWithChildren"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="goodWithChildren" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="goodWithDogs">Good with Dogs</label>
-                    <select id="goodWithDogs"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="goodWithDogs" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="goodWithCats">Good with Cats</label>
-                    <select id="goodWithCats"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="goodWithCats" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field">
                     <label for="houseTrained">House Trained</label>
-                    <select id="houseTrained"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                    <select id="houseTrained" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
                   </div>
                   <div class="field full">
                     <label for="healthNotes">Health Notes</label>
@@ -1150,11 +1164,11 @@
                 <div class="field-grid">
                   <div class="field">
                     <label for="energyLevel">Energy Level (1-5)</label>
-                    <input id="energyLevel" type="number" min="1" max="5" value="5" />
+                    <input id="energyLevel" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="playfulness">Playfulness (1-5)</label>
-                    <input id="playfulness" type="number" min="1" max="5" value="5" />
+                    <input id="playfulness" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field full">
                     <label for="dailyExercise">Daily Exercise Needs</label>
@@ -1162,27 +1176,27 @@
                   </div>
                   <div class="field">
                     <label for="affectionLevel">Affection Level (1-5)</label>
-                    <input id="affectionLevel" type="number" min="1" max="5" value="5" />
+                    <input id="affectionLevel" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="independence">Independence (1-5)</label>
-                    <input id="independence" type="number" min="1" max="5" value="5" />
+                    <input id="independence" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="adaptability">Adaptability (1-5)</label>
-                    <input id="adaptability" type="number" min="1" max="5" value="5" />
+                    <input id="adaptability" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field">
                     <label for="trainingDifficulty">Training Difficulty (1-5)</label>
-                    <input id="trainingDifficulty" type="number" min="1" max="5" value="5" />
+                    <input id="trainingDifficulty" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                   <div class="field full">
                     <label for="traits">Temperament Traits</label>
-                    <textarea id="traits" placeholder="e.g., Friendly, playful, calm"></textarea>
+                    <textarea id="traits" placeholder="e.g., Friendly, playful, calm" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"></textarea>
                   </div>
                   <div class="field full">
                     <label for="quirk">Special Quirk</label>
-                    <input id="quirk" placeholder="e.g., Loves belly rubs" />
+                    <input id="quirk" placeholder="e.g., Loves belly rubs" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
                   </div>
                 </div>
               </div>
@@ -1190,7 +1204,10 @@
               <!-- Actions -->
               <div class="toolbar" style="margin-top: 16px;">
                 <div class="message" id="formMessage">Ready to add a new pet.</div>
-                <button id="saveButton" class="btn btn-primary" type="submit">Save Pet</button>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                  <button id="saveButton" class="btn btn-primary" type="submit">Save Pet</button>
+                  <button id="cancelEditButton" class="btn btn-secondary hidden" type="button">Cancel</button>
+                </div>
               </div>
             </form>
           </div>
@@ -1597,7 +1614,13 @@
       });
       petForm.addEventListener('submit', savePet);
       cancelEditButton.addEventListener('click', () => { resetForm(); hideEditor(); });
-      newPetButton.addEventListener('click', () => { resetForm(); showEditor(); });
+      newPetButton.addEventListener('click', () => {
+        resetForm();
+        // When adding a new pet, show the cancel control so admin can abort
+        cancelEditButton.classList.remove('hidden');
+        setMessage(formMessage, 'Adding a new pet. Click Cancel to abort.');
+        showEditor();
+      });
       refreshButton.addEventListener('click', refreshPets);
       logoutButton.addEventListener('click', async () => { state.client = baseSupabase; showAuth(); setStatus('#bbb', 'Signed out'); });
       $('thumbnail').addEventListener('change', (event) => { state.selectedThumbnail = event.target.files?.[0] || null; renderPreviews(); });
