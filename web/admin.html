@@ -458,14 +458,32 @@
       select,
       textarea {
         font-family: inherit;
-        font-size: 13px;
-        border-radius: 6px;
+        font-size: 14px;
+        border-radius: 999px;
         border: 1px solid var(--border);
         background: var(--surface);
         color: var(--text);
-        padding: 8px 10px;
+        padding: 12px 18px;
         transition: all 0.15s ease;
+        min-height: 44px;
+        box-shadow: none;
       }
+
+      /* pill-style selects with custom arrow */
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><path d='M2 4l4 4 4-4' fill='none' stroke='%23222' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 12px 12px;
+        padding-right: 44px;
+        background-color: white;
+      }
+
+      /* ensure labels and fields align nicely */
+      .field label { margin-bottom: 8px; }
+      .field .vax-label { font-weight:500; }
 
       /* Checkbox and vaccination label overrides so checkboxes remain small and inline */
       input[type="checkbox"] {
@@ -529,57 +547,72 @@
       }
       
       textarea {
-        min-height: 80px;
+        min-height: 120px;
         resize: vertical;
+        border-radius: 12px;
+        padding: 12px 16px;
       }
       
       input[type="file"] {
         padding: 6px;
       }
       
-      /* BUTTONS */
+      /* BUTTONS - pill-style across admin UI */
       button {
         font: inherit;
       }
-      
+
       .btn {
-        border: 0;
-        border-radius: 6px;
-        padding: 8px 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 10px 22px;
+        border-radius: 999px;
         cursor: pointer;
         font-weight: 600;
-        font-size: 12px;
+        font-size: 13px;
         transition: all 0.15s ease;
-      }
-      
-      .btn-primary {
-        background: var(--accent);
-        color: white;
-        box-shadow: var(--shadow-sm);
-      }
-      
-      .btn-primary:hover {
-        background: var(--accent-hover);
-      }
-      
-      .btn-secondary {
-        background: var(--surface-alt);
+        background: var(--surface);
         color: var(--text);
         border: 1px solid var(--border);
       }
-      
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      }
+
+      .btn-primary {
+        background: linear-gradient(180deg, var(--accent), var(--accent-hover));
+        color: white;
+        border: 1px solid rgba(37, 99, 235, 0.12);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+      }
+
+      .btn-primary:hover {
+        filter: brightness(0.98);
+      }
+
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
       .btn-secondary:hover {
-        background: #f3f4f6;
+        background: #fbfbfd;
       }
-      
+
       .btn-danger {
-        background: rgba(220, 38, 38, 0.1);
+        background: rgba(220, 38, 38, 0.04);
         color: var(--danger);
-        border: 1px solid rgba(220, 38, 38, 0.2);
+        border: 1px solid rgba(220, 38, 38, 0.15);
       }
-      
+
       .btn-danger:hover {
-        background: rgba(220, 38, 38, 0.15);
+        background: rgba(220, 38, 38, 0.08);
       }
       
       /* MESSAGES */
@@ -1146,26 +1179,25 @@
               <div style="margin-bottom: 12px;">
                 <h4 class="section-title">Health & Behavior</h4>
                 <div class="field-grid">
-                  <div class="field">
-                    <label for="vaccinationToggleBtn">Vaccination</label>
-                    <button type="button" id="vaccinationToggleBtn" class="btn btn-secondary" style="padding:8px 10px;font-weight:600;">Show vaccination details ▾</button>
-                    <div id="vaccinationDetails" style="display:none;margin-top:8px;">
-                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="rabies" class="vax-checkbox"> Anti-rabies (Rabies)</label>
-                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="distemper" class="vax-checkbox"> Distemper</label>
-                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="parvo" class="vax-checkbox"> Parvo</label>
-                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="bordetella" class="vax-checkbox"> Bordetella (Kennel cough)</label>
-                      <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="heartworm" class="vax-checkbox"> Heartworm prevention</label>
-                      <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-                        <label style="margin:0;">Update frequency</label>
-                        <select id="vaccinationUpdate" style="width:160px;">
-                          <option value="6">Every 6 months</option>
-                          <option value="12">Every 12 months</option>
-                          <option value="24">Every 24 months</option>
-                          <option value="0">Other / as needed</option>
-                        </select>
+                  <div class="field" style="position:relative;">
+                      <label for="vaccinationToggleBtn">Vaccination</label>
+                      <button type="button" id="vaccinationToggleBtn" class="btn btn-secondary" style="padding:8px 10px;font-weight:600;">Show vaccination details ▾</button>
+                      <div id="vaccinationDetails" style="display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:40;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-md);width:320px;max-height:320px;overflow:auto;">
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="rabies" class="vax-checkbox"> Anti-rabies (Rabies)</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="distemper" class="vax-checkbox"> Distemper</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="parvo" class="vax-checkbox"> Parvo</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="bordetella" class="vax-checkbox"> Bordetella (Kennel cough)</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="heartworm" class="vax-checkbox"> Heartworm prevention</label>
+                        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                          <label style="margin:0;">Recommended checkup interval (consult vet)</label>
+                          <select id="vaccinationUpdate" style="width:220px;">
+                            <option value="6">Every 6 months</option>
+                            <option value="12">Every 12 months</option>
+                            <option value="24">Every 24 months</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
-                  </div>
                   <div class="field">
                     <label for="spayedNeutered">Spayed/Neutered</label>
                     <select id="spayedNeutered" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
@@ -1393,7 +1425,7 @@
           if (details) details.style.display = 'none';
           if (btn) btn.textContent = 'Show vaccination details ▾';
           document.querySelectorAll('.vax-checkbox').forEach((cb) => cb.checked = false);
-          if ($('vaccinationUpdate')) $('vaccinationUpdate').value = '6';
+          if ($('vaccinationUpdate')) $('vaccinationUpdate').value = '12';
         } catch (e) { /* ignore */ }
       }
 
@@ -1457,7 +1489,7 @@
           // legacy boolean - mark update frequency default
           // no specific vaccines known
         }
-        $('vaccinationUpdate').value = health.vaccination_update_months ?? 6;
+        $('vaccinationUpdate').value = health.vaccination_update_months ?? 12;
         // show/hide vaccination details depending on data
         try {
           const vaxTypes = Array.isArray(health.vaccination_types) ? health.vaccination_types : [];
@@ -1590,7 +1622,7 @@
           const characteristicsPayload = {
             pet_id: petId,
             behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithOtherPets').value), good_with_cats: normalizeBool($('goodWithOtherPets').value), house_trained: normalizeBool($('houseTrained').value) },
-            health_notes: { vaccinations: vaxChecked.length > 0 ? true : false, vaccination_types: vaxChecked.length ? vaxChecked : null, vaccination_update_months: parseInt($('vaccinationUpdate').value, 10) || null, spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
+            health_notes: { vaccinations: vaxChecked.length > 0 ? true : false, vaccination_types: vaxChecked.length ? vaxChecked : null, vaccination_update_months: (function(){ const n = parseInt($('vaccinationUpdate').value, 10); return Number.isFinite(n) ? n : null; })(), spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
             activity_level: { energy_level: normalizeNumber($('energyLevel').value), playfulness: normalizeNumber($('playfulness').value), daily_exercise_needs: $('dailyExercise').value.trim() || null },
             temperament: { affection_level: normalizeNumber($('affectionLevel').value), independence: normalizeNumber($('independence').value), adaptability: normalizeNumber($('adaptability').value), training_difficulty: normalizeNumber($('trainingDifficulty').value), grooming_needs: groomingNeeds, temperament_traits: $('traits').value.split(',').map((value) => value.trim()).filter(Boolean) },
             quirk: $('quirk').value.trim() || null,
