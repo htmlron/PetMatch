@@ -470,6 +470,8 @@ class _SwipeCardState extends State<SwipeCard> with TickerProviderStateMixin {
                                   _buildTraitBadge('🐕 Dogs', Colors.orange),
                                 if (pet.goodWithCats == true)
                                   _buildTraitBadge('🐱 Cats', Colors.purple),
+                                if (pet.affectionLevel != null)
+                                  _buildTraitBadge('💞 ${pet.getAffectionLevelDescription()}', Colors.pink),
                                 if (pet.energyLevel != null && pet.energyLevel! >= 7)
                                   _buildTraitBadge('⚡ Energetic', Colors.yellow[700]!),
                               ],

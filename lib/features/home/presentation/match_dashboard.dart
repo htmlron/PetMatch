@@ -150,20 +150,25 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                       color: Colors.black87,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      _showListView ? Icons.view_carousel : Icons.view_list,
-                      color: Colors.deepOrange,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _showListView = !_showListView;
-                        _currentCardIndex = 0;
-                      });
-                    },
-                    tooltip: _showListView
-                        ? 'Switch to Swipe View'
-                        : 'Switch to List View',
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          _showListView ? Icons.view_carousel : Icons.view_list,
+                          color: Colors.deepOrange,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _showListView = !_showListView;
+                            _currentCardIndex = 0;
+                          });
+                        },
+                        tooltip: _showListView
+                            ? 'Switch to Swipe View'
+                            : 'Switch to List View',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -206,7 +211,9 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       petMatch: petMatches[_currentCardIndex],
       onSkip: () {
         setState(() {
-          _currentCardIndex++;
+          if (_currentCardIndex > 0) {
+            _currentCardIndex--;
+          }
         });
       },
       onLike: () {

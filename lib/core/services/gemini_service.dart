@@ -184,14 +184,16 @@ Write a warm, friendly, personalized explanation (2-3 short paragraphs, max 150 
    - "Your calm, low-key lifestyle pairs perfectly with ${pet.name}'s relaxed demeanor"
    - "Since you're comfortable with regular grooming, ${pet.name}'s grooming needs won't be overwhelming"
    - "Your patient approach to training is ideal for ${pet.name}'s learning style"
+  - "Your love for cuddles matches ${pet.name}'s affectionate personality"
 3. **Highlight household compatibility** if relevant (children, other pets)
 4. **If a quirk exists (not "None"), weave it naturally into the explanation** - This is ${pet.name}'s unique personality trait that makes them special! Use it to add character and warmth to your explanation. Examples:
    - "${pet.name} is sweet and easygoing, making her a perfect companion for your moderate activity lifestyle"
    - "Known as the 'mayordoma' who greets everyone at the kennel doors, ${pet.name}'s friendly nature will bring joy to your home"
 5. **Mention 1-2 strongest score categories** (above 75%) without stating exact percentages
-6. **Use a warm, conversational tone** - like a friend giving advice
-7. **CRITICAL: DO NOT include ANY numbers, scales, or percentages in your explanation** - No "4/5", "7/10", percentages, or rating numbers. Only use descriptive language like "highly energetic", "moderately affectionate", "very patient", etc.
-8. **Focus on WHY this pet fits the user's lifestyle and personality** without referencing any numerical scales
+6. **Explicitly connect affection** - compare the user's snuggly preference with the pet's affection level and say whether that comfort level matches well
+7. **Use a warm, conversational tone** - like a friend giving advice
+8. **CRITICAL: DO NOT include ANY numbers, scales, or percentages in your explanation** - No "4/5", "7/10", percentages, or rating numbers. Only use descriptive language like "highly energetic", "moderately affectionate", "very patient", etc.
+9. **Focus on WHY this pet fits the user's lifestyle and personality** without referencing any numerical scales
 
 Generate the explanation now:
 ''';

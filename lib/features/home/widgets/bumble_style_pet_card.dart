@@ -26,11 +26,36 @@ class BumbleStylePetCard extends ConsumerStatefulWidget {
 class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
+  bool _swipeLocked = false;
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSwipe(DragEndDetails details) async {
+    if (_swipeLocked) return;
+
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity.abs() < 250) return;
+
+    _swipeLocked = true;
+    try {
+      if (velocity < 0) {
+        // Swipe left = view next pet
+        widget.onLike();
+      } else {
+        // Swipe right = view previous pet
+        widget.onSkip();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _swipeLocked = false;
+        });
+      }
+    }
   }
 
   @override
@@ -48,7 +73,10 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
           builder: (context, constraints) {
             final imageHeight = constraints.maxHeight * 0.6;
 
-            return Stack(
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragEnd: _handleSwipe,
+              child: Stack(
               children: [
                 // Fixed image area (TikTok-style)
                 Positioned(
@@ -126,7 +154,7 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                         ),
                       ),
 
-                      // Indicators
+                      // Image indicators (dots)
                       if (images.length > 1)
                         Positioned(
                           bottom: 16,
@@ -149,6 +177,48 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                             ),
                           ),
                         ),
+
+                      // Left swipe indicator
+                      Positioned(
+                        left: 16,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.chevron_left,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Right swipe indicator
+                      Positioned(
+                        right: 16,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -197,6 +267,7 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                                   children: [
                                       if (pet.goodWithChildren == true) _buildTraitChip('👶 Good with Kids'),
                                       if ((pet.goodWithDogs == true) || (pet.goodWithCats == true)) _buildTraitChip('🐾 Good with other pets'),
+                                      if (pet.affectionLevel != null) _buildTraitChip('💞 ${pet.getAffectionLevelDescription()}'),
                                       if (pet.houseTrained == true) _buildTraitChip('🏠 House Trained'),
                                       if (pet.isVaccinated) _buildTraitChip('💉 Vaccinated'),
                                       if (pet.spayedNeutered == true) _buildTraitChip('✂️ Spayed/Neutered'),
@@ -263,6 +334,7 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                   ),
                 ),
               ],
+            ),
             );
           },
         ),
