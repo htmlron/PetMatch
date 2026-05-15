@@ -140,6 +140,23 @@ class Pet {
       return null;
     }
 
+    
+    // Post-process some fields that were easier to compute outside the constructor call
+    // (we couldn't reference local vars inline cleanly for complex parsing)
+    // Parse vaccination types (could be List or comma-separated String)
+    final vaxRaw = healthNotes?['vaccination_types'];
+    final List<String> parsedVaxTypes;
+    if (vaxRaw == null) {
+      parsedVaxTypes = <String>[];
+    } else if (vaxRaw is List) {
+      parsedVaxTypes = vaxRaw.map((e) => e.toString()).toList();
+    } else {
+      parsedVaxTypes = vaxRaw.toString().split(',').map((e) => e.trim()).where((s) => s.isNotEmpty).toList();
+    }
+
+    // Parse vaccination update months using helper
+    final vaxUpdateMonths = parseInt(healthNotes?['vaccination_update_months']);
+
     return Pet(
       id: json['pet_id'] as String,
       name: json['name'] as String,
@@ -154,34 +171,20 @@ class Pet {
       status: json['status'] as String?,
       isAdopted: (json['status'] as String?)?.toLowerCase() == 'adopted',
       availablity: json['status'] as String?,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
-          : null,
-      // Behavior traits from behavior_tags
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
       goodWithChildren: behaviorTags?['good_with_children'] as bool?,
       goodWithDogs: behaviorTags?['good_with_dogs'] as bool?,
       goodWithCats: behaviorTags?['good_with_cats'] as bool?,
       houseTrained: behaviorTags?['house_trained'] as bool?,
-        // Health information from health_notes
-        vaccinations: healthNotes?['vaccinations'] as bool?,
-        vaccinationTypes: ((healthNotes?['vaccination_types'] is List)
-            ? (healthNotes?['vaccination_types'] as List).map((e) => e.toString()).toList()
-            : (healthNotes?['vaccination_types'] != null && healthNotes!['vaccination_types'] is String)
-              ? (healthNotes!['vaccination_types'] as String).split(',').map((e) => e.trim()).where((s) => s.isNotEmpty).toList()
-              : <String>[]),
-        vaccinationUpdateMonths: healthNotes?['vaccination_update_months'] is int
-          ? healthNotes?['vaccination_update_months'] as int?
-          : (healthNotes?['vaccination_update_months'] is String
-            ? int.tryParse(healthNotes?['vaccination_update_months'] as String)
-            : null),
+      vaccinations: healthNotes?['vaccinations'] as bool?,
+      vaccinationTypes: parsedVaxTypes,
+      vaccinationUpdateMonths: vaxUpdateMonths,
       spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
       specialNeeds: healthNotes?['special_needs'] as bool?,
       groomingNeeds: parseInt(temperament?['grooming_needs']),
-      // Activity & Personality from activity_level
       energyLevel: parseInt(activityLevel?['energy_level']),
       playfulness: parseInt(activityLevel?['playfulness']),
       dailyExercise: activityLevel?['daily_exercise'] as String?,
-      // Temperament from temperament
       affectionLevel: parseInt(temperament?['affection_level']),
       independence: parseInt(temperament?['independence']),
       adaptability: parseInt(temperament?['adaptability']),
@@ -209,8 +212,7 @@ class Pet {
     }
 
     return imagesToUse
-        .map((filename) =>
-            supabase.storage.from(bucketName).getPublicUrl('$id/$filename'))
+        .map((filename) => supabase.storage.from(bucketName).getPublicUrl('$id/$filename').toString())
         .toList();
   }
 
@@ -219,7 +221,7 @@ class Pet {
       return null;
     }
     const bucketName = 'pets';
-    return supabase.storage.from(bucketName).getPublicUrl('$id/$thumbnailPath');
+    return supabase.storage.from(bucketName).getPublicUrl('$id/$thumbnailPath').toString();
   }
 
   // Display age in friendly format

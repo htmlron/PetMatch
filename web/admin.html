@@ -997,7 +997,7 @@
     </style>
   </head>
   <body>
-    <div id="authView" class="auth-wrap">
+    <div id="authView" class="auth-wrap hidden">
       <div class="auth-card">
         <div class="auth-panel">
           <div style="margin-bottom: 32px;">
@@ -1729,6 +1729,10 @@
 
         try {
           const authResult = await signInWithPassword($('email').value.trim(), $('password').value);
+          // persist admin session to localStorage so refresh won't sign out
+          try {
+            localStorage.setItem('admin_session', JSON.stringify({ user: authResult.user, accessToken: authResult.access_token }));
+          } catch (e) { console.warn('Failed to persist admin session', e); }
           await handleSession({ user: authResult.user }, authResult.access_token);
         } catch (error) {
           showAuth(error.message || String(error), 'error');
@@ -1744,12 +1748,34 @@
         showEditor();
       });
       refreshButton.addEventListener('click', refreshPets);
-      logoutButton.addEventListener('click', async () => { state.client = baseSupabase; showAuth(); setStatus('#bbb', 'Signed out'); });
+      logoutButton.addEventListener('click', async () => {
+        try { localStorage.removeItem('admin_session'); } catch (e) { /* ignore */ }
+        if (state.realtimeChannel) {
+          try { await getClient().removeChannel(state.realtimeChannel); } catch (e) { console.warn('Failed to remove channel', e); }
+        }
+        state.client = baseSupabase; state.session = null; state.profile = null; showAuth(); setStatus('#bbb', 'Signed out');
+      });
       $('thumbnail').addEventListener('change', (event) => { state.selectedThumbnail = event.target.files?.[0] || null; renderPreviews(); });
       $('gallery').addEventListener('change', (event) => { state.selectedGallery = Array.from(event.target.files || []); renderPreviews(); });
       searchInput.addEventListener('input', renderPetCards); speciesFilter.addEventListener('change', renderPetCards);
-      showAuth();
-      setStatus('#bbb', 'Signed out');
+      // Try to restore session from localStorage before showing auth
+      try {
+        const saved = localStorage.getItem('admin_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.user && parsed.accessToken) {
+            // Attempt to reuse saved session
+            await handleSession({ user: parsed.user }, parsed.accessToken);
+          } else {
+            showAuth(); setStatus('#bbb', 'Signed out');
+          }
+        } else {
+          showAuth(); setStatus('#bbb', 'Signed out');
+        }
+      } catch (e) {
+        console.warn('Session restore failed', e);
+        showAuth(); setStatus('#bbb', 'Signed out');
+      }
     </script>
   </body>
 </html>
