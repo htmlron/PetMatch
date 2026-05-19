@@ -26,6 +26,14 @@ class _ActivityLevelSetupScreenState
 
   final List<Map<String, dynamic>> _activityLevels = [
     {
+      'value': 0,
+      'label': 'Very Inactive',
+      'emoji': '🛌',
+      'image': UserProfileAssets.activityInactive,
+      'color': const Color.fromARGB(255, 168, 177, 191),
+      'description': 'I prefer resting and keeping things very calm'
+    },
+    {
       'value': 1,
       'label': 'Inactive',
       'emoji': '🛋️',
@@ -72,7 +80,7 @@ class _ActivityLevelSetupScreenState
     super.initState();
     // Load saved activity level if it exists
     final savedLevel = ref.read(userProfileProvider).activityLevel;
-    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+    if (savedLevel != null && savedLevel >= 0 && savedLevel <= 5) {
       _activityLevel = savedLevel.toDouble();
     }
   }
@@ -91,7 +99,7 @@ class _ActivityLevelSetupScreenState
     final roundedLevel = _activityLevel.round();
     return _activityLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
-      orElse: () => _activityLevels[2],
+      orElse: () => _activityLevels[3],
     );
   }
 
@@ -471,9 +479,9 @@ class _ActivityLevelSetupScreenState
             ),
             child: Slider(
               value: _activityLevel,
-              min: 1,
+              min: 0,
               max: 5,
-              divisions: 4,
+              divisions: 5,
               label: _activityLevel.round().toString(),
               onChanged: (value) {
                 setState(() {

@@ -24,6 +24,14 @@ class _AffectionLevelSetupScreenState
 
   final List<Map<String, dynamic>> _affectionLevels = [
     {
+      'value': 0,
+      'label': 'No Contact',
+      'emoji': '🧊',
+      'image': UserProfileAssets.affectionVeryIndependent,
+      'color': const Color.fromARGB(255, 106, 114, 132),
+      'description': 'I prefer almost no physical affection'
+    },
+    {
       'value': 1,
       'label': 'Very Independent',
       'emoji': '🧘‍♂️',
@@ -70,7 +78,7 @@ class _AffectionLevelSetupScreenState
     super.initState();
     // Load saved affection level if it exists
     final savedLevel = ref.read(userProfileProvider).affectionLevel;
-    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+    if (savedLevel != null && savedLevel >= 0 && savedLevel <= 5) {
       _affectionLevel = savedLevel.toDouble();
     }
   }
@@ -89,7 +97,7 @@ class _AffectionLevelSetupScreenState
     final roundedLevel = _affectionLevel.round();
     return _affectionLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
-      orElse: () => _affectionLevels[2],
+      orElse: () => _affectionLevels[3],
     );
   }
 
@@ -469,9 +477,9 @@ class _AffectionLevelSetupScreenState
             ),
             child: Slider(
               value: _affectionLevel,
-              min: 1,
+              min: 0,
               max: 5,
-              divisions: 4,
+              divisions: 5,
               label: _affectionLevel.round().toString(),
               onChanged: (value) {
                 setState(() {

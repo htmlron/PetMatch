@@ -13,19 +13,19 @@ class UserProfileState with _$UserProfileState {
     String? petPreference,
 
     // Activity level (Step 1)
-    int? activityLevel, // 1-5
+    int? activityLevel, // 0-5
     String? activityLabel,
 
     // Affection level (Step 2)
-    int? affectionLevel, // 1-5
+    int? affectionLevel, // 0-5
     String? affectionLabel,
 
     // Patience level (Step 3)
-    int? patienceLevel, // 1-5
+    int? patienceLevel, // 0-5
     String? patienceLabel,
 
     // Grooming level (Step 4)
-    int? groomingLevel, // 1-5
+    int? groomingLevel, // 0-5
     String? groomingLabel,
 
     // Household fields

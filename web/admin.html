@@ -707,11 +707,32 @@
         font-size: 12px;
         line-height: 1.4;
       }
-      /* Affection pills and rubric */
-      .affection-pills { display:flex; gap:8px; margin-top:8px; }
-      .aff-pill { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); cursor:pointer; font-weight:600; }
-      .aff-pill.active { background: linear-gradient(90deg,var(--accent),var(--accent-2)); color: white; border-color: transparent; }
-      .rubric { background: var(--surface-alt); border:1px solid var(--border); padding:12px; border-radius:8px; margin-top:8px; font-size:13px; }
+      /* Level controls and rubrics */
+      .level-field { position: relative; }
+      .level-rubric-toggle {
+        margin-top: 2px;
+        padding: 8px 10px;
+        font-weight: 600;
+        align-self: flex-start;
+      }
+      .level-rubric {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: calc(100% + 8px);
+        z-index: 40;
+        padding: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: var(--shadow-md);
+        width: min(340px, calc(100vw - 48px));
+        max-height: 320px;
+        overflow: auto;
+      }
+      .level-rubric ul { margin: 0; padding-left: 18px; }
+      .level-rubric li + li { margin-top: 6px; }
+      .level-rubric p { margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
       
       .pet-description {
         font-size: 12px;
@@ -1153,9 +1174,28 @@
                     <label for="status">Status</label>
                     <select id="status" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Select status</option><option value="Available">Available</option><option value="Adopted">Adopted</option></select>
                   </div>
-                  <div class="field">
-                    <label for="groomingNeeds">Grooming Needs (1-5)</label>
-                    <input id="groomingNeeds" type="number" min="1" max="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  <div class="field level-field">
+                    <label for="groomingNeeds">Grooming Needs (0-5)</label>
+                    <select id="groomingNeeds" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - None</option>
+                      <option value="1">1 - Minimal</option>
+                      <option value="2">2 - Low</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="groomingRubricBtn" class="btn btn-secondary level-rubric-toggle">Show grooming rubric ▾</button>
+                    <div id="groomingRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - None:</strong> Naturally low-maintenance or no grooming routine needed.</li>
+                        <li><strong>1 - Minimal:</strong> Very light coat care; brushing or cleaning is rarely needed.</li>
+                        <li><strong>2 - Low:</strong> Occasional brushing and basic hygiene are enough.</li>
+                        <li><strong>3 - Moderate:</strong> Regular brushing and routine care keep the pet comfortable.</li>
+                        <li><strong>4 - High:</strong> Frequent brushing, baths, or coat maintenance are needed.</li>
+                        <li><strong>5 - Very High:</strong> Intensive grooming, trimming, or frequent maintenance is required.</li>
+                      </ul>
+                      <p>Use coat type, shedding, tangles, cleanliness, and maintenance needs as your guide.</p>
+                    </div>
                   </div>
                   <div class="field full">
                     <label for="description">Description</label>
@@ -1243,51 +1283,147 @@
               <div style="margin-bottom: 12px;">
                 <h4 class="section-title">Personality</h4>
                 <div class="field-grid">
-                  <div class="field">
-                    <label for="energyLevel">Energy Level (1-5)</label>
-                    <input id="energyLevel" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  <div class="field level-field">
+                    <label for="energyLevel">Energy Level (0-5)</label>
+                    <select id="energyLevel" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Very Calm</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Light</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="energyRubricBtn" class="btn btn-secondary level-rubric-toggle">Show energy rubric ▾</button>
+                    <div id="energyRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Very Calm:</strong> Sleeps or rests most of the day and rarely seeks activity.</li>
+                        <li><strong>1 - Low:</strong> Relaxed and steady; only short bursts of movement.</li>
+                        <li><strong>2 - Light:</strong> Enjoys short walks and mild play without much intensity.</li>
+                        <li><strong>3 - Moderate:</strong> Balanced energy; likes a normal amount of daily activity.</li>
+                        <li><strong>4 - High:</strong> Active and lively; needs regular exercise and engagement.</li>
+                        <li><strong>5 - Very High:</strong> Extremely energetic and needs strong daily outlets.</li>
+                      </ul>
+                      <p>Judge by movement, stamina, rest patterns, and how much activity the pet seeks.</p>
+                    </div>
                   </div>
-                  <div class="field">
-                    <label for="playfulness">Playfulness (1-5)</label>
-                    <input id="playfulness" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  <div class="field level-field">
+                    <label for="playfulness">Playfulness (0-5)</label>
+                    <select id="playfulness" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - None</option>
+                      <option value="1">1 - Very Low</option>
+                      <option value="2">2 - Low</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="playfulnessRubricBtn" class="btn btn-secondary level-rubric-toggle">Show playfulness rubric ▾</button>
+                    <div id="playfulnessRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - None:</strong> Shows little or no interest in toys or play.</li>
+                        <li><strong>1 - Very Low:</strong> Rarely initiates play, but may join briefly.</li>
+                        <li><strong>2 - Low:</strong> Enjoys occasional short play sessions.</li>
+                        <li><strong>3 - Moderate:</strong> Responds well to toys, games, and interaction.</li>
+                        <li><strong>4 - High:</strong> Actively seeks play and engagement.</li>
+                        <li><strong>5 - Very High:</strong> Loves frequent interactive play and stimulation.</li>
+                      </ul>
+                      <p>Look at toy interest, chase behavior, pouncing, and how often the pet asks to play.</p>
+                    </div>
                   </div>
                   <div class="field full">
                     <label for="dailyExercise">Daily Exercise Needs</label>
                     <input id="dailyExercise" placeholder="e.g., 2 hours of walking" />
                   </div>
-                  <div class="field" style="position:relative;">
-                    <label>Affection Level (1-5)</label>
-                    <div class="affection-pills" id="affectionPills">
-                      <button type="button" class="aff-pill" data-value="1">1</button>
-                      <button type="button" class="aff-pill" data-value="2">2</button>
-                      <button type="button" class="aff-pill" data-value="3">3</button>
-                      <button type="button" class="aff-pill" data-value="4">4</button>
-                      <button type="button" class="aff-pill" data-value="5">5</button>
-                    </div>
-                    <input id="affectionLevel" type="hidden" value="3" />
-                    <button type="button" id="affectionRubricBtn" class="btn btn-secondary" style="margin-top:8px;padding:8px 10px;font-weight:600;">Show affection rubric ▾</button>
-                    <div id="affectionRubric" class="rubric hidden" style="display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:40;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-md);width:320px;max-height:320px;overflow:auto;">
-                      <ul style="margin:0;padding-left:18px;">
-                        <li><strong>1 - Minimal:</strong> Avoids contact; prefers to be left alone.</li>
-                        <li><strong>2 - Low:</strong> Occasionally seeks gentle attention; tolerates petting.</li>
-                        <li><strong>3 - Moderate:</strong> Enjoys interaction; responds well to affection.</li>
+                  <div class="field level-field">
+                    <label for="affectionLevel">Affection Level (0-5)</label>
+                    <select id="affectionLevel" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Minimal</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Mild</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="affectionRubricBtn" class="btn btn-secondary level-rubric-toggle">Show affection rubric ▾</button>
+                    <div id="affectionRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Minimal:</strong> Avoids contact and prefers to be left alone.</li>
+                        <li><strong>1 - Low:</strong> Accepts little contact and is cautious with affection.</li>
+                        <li><strong>2 - Mild:</strong> Tolerates gentle attention and light petting.</li>
+                        <li><strong>3 - Moderate:</strong> Enjoys interaction and responds well to affection.</li>
                         <li><strong>4 - High:</strong> Frequently seeks cuddles and physical closeness.</li>
-                        <li><strong>5 - Very High:</strong> Loves constant contact; enthusiastic about being held or petted.</li>
+                        <li><strong>5 - Very High:</strong> Loves constant contact and being held or petted.</li>
                       </ul>
-                      <p style="margin-top:8px;font-size:12px;color:var(--text-secondary)">Use observations during meet-and-greet: approach response, willingness to be held, tail/ear relaxation, and soliciting contact.</p>
+                      <p>Use meet-and-greet behavior, approach response, body relaxation, and contact seeking.</p>
                     </div>
                   </div>
-                  <div class="field">
-                    <label for="independence">Independence (1-5)</label>
-                    <input id="independence" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  <div class="field level-field">
+                    <label for="independence">Independence (0-5)</label>
+                    <select id="independence" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Dependent</option>
+                      <option value="1">1 - Very Low</option>
+                      <option value="2">2 - Low</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="independenceRubricBtn" class="btn btn-secondary level-rubric-toggle">Show independence rubric ▾</button>
+                    <div id="independenceRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Dependent:</strong> Needs constant company and reassurance.</li>
+                        <li><strong>1 - Very Low:</strong> Strongly attached and dislikes being alone.</li>
+                        <li><strong>2 - Low:</strong> Prefers presence and regular check-ins.</li>
+                        <li><strong>3 - Moderate:</strong> Handles some alone time comfortably.</li>
+                        <li><strong>4 - High:</strong> Comfortable with independence and routine alone time.</li>
+                        <li><strong>5 - Very High:</strong> Highly independent and relaxed when alone.</li>
+                      </ul>
+                      <p>Think about separation comfort, attachment level, and how often the pet seeks human presence.</p>
+                    </div>
                   </div>
-                  <div class="field">
-                    <label for="adaptability">Adaptability (1-5)</label>
-                    <input id="adaptability" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  <div class="field level-field">
+                    <label for="adaptability">Adaptability (0-5)</label>
+                    <select id="adaptability" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Very Low</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Mild</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="adaptabilityRubricBtn" class="btn btn-secondary level-rubric-toggle">Show adaptability rubric ▾</button>
+                    <div id="adaptabilityRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Very Low:</strong> Struggles with change and new environments.</li>
+                        <li><strong>1 - Low:</strong> Needs lots of time and support to adjust.</li>
+                        <li><strong>2 - Mild:</strong> Can adapt slowly when introduced carefully.</li>
+                        <li><strong>3 - Moderate:</strong> Adjusts to new routines with some help.</li>
+                        <li><strong>4 - High:</strong> Adapts well to new people, places, and routines.</li>
+                        <li><strong>5 - Very High:</strong> Extremely flexible and settles in quickly.</li>
+                      </ul>
+                      <p>Consider stress response, routine changes, travel, and how quickly the pet settles in.</p>
+                    </div>
                   </div>
-                  <div class="field">
-                    <label for="trainingDifficulty">Training Difficulty (1-5)</label>
-                    <input id="trainingDifficulty" type="number" min="1" max="5" value="5" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  <div class="field level-field">
+                    <label for="trainingDifficulty">Training Difficulty (0-5)</label>
+                    <select id="trainingDifficulty" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Very Easy</option>
+                      <option value="1">1 - Easy</option>
+                      <option value="2">2 - Mild</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - Challenging</option>
+                      <option value="5">5 - Very Challenging</option>
+                    </select>
+                    <button type="button" id="trainingRubricBtn" class="btn btn-secondary level-rubric-toggle">Show training rubric ▾</button>
+                    <div id="trainingRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Very Easy:</strong> Learns quickly and responds well to training.</li>
+                        <li><strong>1 - Easy:</strong> Picks up commands with light guidance.</li>
+                        <li><strong>2 - Mild:</strong> Needs some repetition but learns steadily.</li>
+                        <li><strong>3 - Moderate:</strong> Requires consistent training and patience.</li>
+                        <li><strong>4 - Challenging:</strong> Takes longer to learn and may resist new commands.</li>
+                        <li><strong>5 - Very Challenging:</strong> Needs strong consistency and experienced handling.</li>
+                      </ul>
+                      <p>Use response to cues, consistency, obedience, and how much repetition the pet needs.</p>
+                    </div>
                   </div>
                   <div class="field full">
                     <label for="traits">Temperament Traits</label>
@@ -1398,37 +1534,62 @@
             details.style.display = isHidden ? 'block' : 'none';
             btn.textContent = isHidden ? 'Hide vaccination details ▴' : 'Show vaccination details ▾';
           });
-          // Affection pills wiring
-          const pills = document.getElementById('affectionPills');
-          const hiddenAff = document.getElementById('affectionLevel');
-          const rubricBtn = document.getElementById('affectionRubricBtn');
-          const rubric = document.getElementById('affectionRubric');
-          function updateAffectionUI() {
-            const val = (hiddenAff && hiddenAff.value) ? String(hiddenAff.value) : '3';
-            Array.from(pills.querySelectorAll('.aff-pill')).forEach((b) => {
-              b.classList.toggle('active', b.getAttribute('data-value') === val);
+          const rubricPairs = [
+            ['groomingRubricBtn', 'groomingRubric'],
+            ['energyRubricBtn', 'energyRubric'],
+            ['playfulnessRubricBtn', 'playfulnessRubric'],
+            ['affectionRubricBtn', 'affectionRubric'],
+            ['independenceRubricBtn', 'independenceRubric'],
+            ['adaptabilityRubricBtn', 'adaptabilityRubric'],
+            ['trainingRubricBtn', 'trainingRubric'],
+          ];
+
+          const rubricTargets = rubricPairs.map(([buttonId, panelId]) => ({
+            button: document.getElementById(buttonId),
+            panel: document.getElementById(panelId),
+          })).filter(({ button, panel }) => button && panel);
+
+          const setRubricButtonState = (button, isOpen) => {
+            const label = button.dataset.label || 'rubric';
+            button.textContent = `${isOpen ? 'Hide' : 'Show'} ${label} ${isOpen ? '▴' : '▾'}`;
+          };
+
+          const closeAllRubrics = () => {
+            rubricTargets.forEach(({ button, panel }) => {
+              panel.style.display = 'none';
+              setRubricButtonState(button, false);
             });
-          }
-          // expose for other functions (reset/fill) to call
-          try { window.updateAffectionUI = updateAffectionUI; } catch (e) { /* ignore */ }
-          if (pills && hiddenAff) {
-            pills.addEventListener('click', (e) => {
-              const btnEl = e.target.closest('.aff-pill');
-              if (!btnEl) return;
-              const v = btnEl.getAttribute('data-value');
-              hiddenAff.value = v;
-              updateAffectionUI();
+          };
+
+          rubricTargets.forEach(({ button, panel }) => {
+            const label = button.textContent.replace(/^Show\s+/, '').replace(/^Hide\s+/, '').replace(/\s+▾$/, '').replace(/\s+▴$/, '');
+            button.dataset.label = label;
+            button.addEventListener('click', (event) => {
+              event.preventDefault();
+              const isHidden = panel.style.display === 'none' || panel.style.display === '';
+              closeAllRubrics();
+              panel.style.display = isHidden ? 'block' : 'none';
+              setRubricButtonState(button, isHidden);
+              if (isHidden) {
+                rubricTargets.forEach(({ button: otherButton, panel: otherPanel }) => {
+                  if (otherPanel !== panel) {
+                    otherPanel.style.display = 'none';
+                    setRubricButtonState(otherButton, false);
+                  }
+                });
+              }
             });
-            updateAffectionUI();
-          }
-          if (rubricBtn && rubric) {
-            rubricBtn.addEventListener('click', () => {
-              const isHidden = rubric.style.display === 'none' || rubric.classList.contains('hidden');
-              rubric.classList.toggle('hidden', !isHidden);
-              rubric.style.display = isHidden ? 'block' : 'none';
-              rubricBtn.textContent = isHidden ? 'Hide affection rubric ▴' : 'Show affection rubric ▾';
-            });
-          }
+          });
+
+          document.addEventListener('click', (event) => {
+            const clickedInsideRubric = rubricTargets.some(({ button, panel }) => button.contains(event.target) || panel.contains(event.target));
+            if (!clickedInsideRubric) {
+              rubricTargets.forEach(({ button, panel }) => {
+                panel.style.display = 'none';
+                setRubricButtonState(button, false);
+              });
+            }
+          });
         });
       } catch (e) {
         console.warn('Failed to wire vaccination toggle', e);
@@ -1473,8 +1634,7 @@
         $('petId').value = '';
         $('species').value = 'Dog';
         $('status').value = 'Available';
-        $('energyLevel').value = '3'; $('playfulness').value = '3'; $('affectionLevel').value = '3'; $('independence').value = '3'; $('adaptability').value = '3'; $('trainingDifficulty').value = '2'; $('groomingNeeds').value = '';
-        try { if (typeof window.updateAffectionUI === 'function') window.updateAffectionUI(); } catch (e) { /* ignore */ }
+        $('energyLevel').value = '0'; $('playfulness').value = '0'; $('affectionLevel').value = '0'; $('independence').value = '0'; $('adaptability').value = '0'; $('trainingDifficulty').value = '0'; $('groomingNeeds').value = '0';
         $('dailyExercise').value = ''; $('traits').value = ''; $('quirk').value = ''; $('healthNotes').value = ''; $('behavioralNotes').value = ''; filePreviews.innerHTML = ''; existingImages.innerHTML = '';
         cancelEditButton.classList.add('hidden');
         setMessage(formMessage, 'Ready to add a new pet.');
@@ -1570,8 +1730,7 @@
           $('goodWithOtherPets').value = String(any);
         }
         $('houseTrained').value = behavior.house_trained === null || behavior.house_trained === undefined ? '' : String(Boolean(behavior.house_trained));
-        $('healthNotes').value = health.health_notes_text ?? health.health_notes ?? ''; $('behavioralNotes').value = characteristics.behavioral_notes ?? ''; $('energyLevel').value = activity.energy_level ?? pet.energyLevel ?? 3; $('playfulness').value = activity.playfulness ?? pet.playfulness ?? 3; $('dailyExercise').value = activity.daily_exercise ?? activity.daily_exercise_needs ?? pet.dailyExercise ?? ''; $('affectionLevel').value = temperament.affection_level ?? pet.affectionLevel ?? 3; $('independence').value = temperament.independence ?? pet.independence ?? 3; $('adaptability').value = temperament.adaptability ?? pet.adaptability ?? 3; $('trainingDifficulty').value = temperament.training_difficulty ?? pet.trainingDifficulty ?? 2; $('traits').value = Array.isArray(temperament.temperament_traits) ? temperament.temperament_traits.join(', ') : ''; $('quirk').value = characteristics.quirk ?? pet.quirks ?? '';
-        try { if (typeof window.updateAffectionUI === 'function') window.updateAffectionUI(); } catch (e) { /* ignore */ }
+        $('healthNotes').value = health.health_notes_text ?? health.health_notes ?? ''; $('behavioralNotes').value = characteristics.behavioral_notes ?? ''; $('energyLevel').value = activity.energy_level ?? pet.energyLevel ?? 0; $('playfulness').value = activity.playfulness ?? pet.playfulness ?? 0; $('dailyExercise').value = activity.daily_exercise ?? activity.daily_exercise_needs ?? pet.dailyExercise ?? ''; $('affectionLevel').value = temperament.affection_level ?? pet.affectionLevel ?? 0; $('independence').value = temperament.independence ?? pet.independence ?? 0; $('adaptability').value = temperament.adaptability ?? pet.adaptability ?? 0; $('trainingDifficulty').value = temperament.training_difficulty ?? pet.trainingDifficulty ?? 0; $('traits').value = Array.isArray(temperament.temperament_traits) ? temperament.temperament_traits.join(', ') : ''; $('quirk').value = characteristics.quirk ?? pet.quirks ?? '';
         renderExistingImages(pet);
         cancelEditButton.classList.remove('hidden');
         setMessage(formMessage, `Editing ${pet.name}. Save to update the app instantly.`);

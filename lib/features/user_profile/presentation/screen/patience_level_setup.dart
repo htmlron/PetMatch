@@ -20,9 +20,18 @@ class PatienceLevelSetupScreen extends ConsumerStatefulWidget {
 class _PatienceLevelSetupScreenState
     extends ConsumerState<PatienceLevelSetupScreen>
     with SingleTickerProviderStateMixin {
-  double _patienceLevel = 3.0; // 1-5 scale
+  double _patienceLevel = 3.0; // 0-5 scale
 
   final List<Map<String, dynamic>> _patienceLevels = [
+    {
+      'value': 0,
+      'label': 'No Patience Buffer',
+      'emoji': '⚡',
+      'image': UserProfileAssets.patienceVeryLow,
+      'color': const Color.fromARGB(255, 210, 150, 190),
+      'darkColor': const Color.fromARGB(255, 140, 80, 120),
+      'description': 'I need very short and simple training sessions.'
+    },
     {
       'value': 1,
       'label': 'Very Low',
@@ -80,7 +89,7 @@ class _PatienceLevelSetupScreenState
     super.initState();
     // Load saved patience level if it exists
     final savedLevel = ref.read(userProfileProvider).patienceLevel;
-    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+    if (savedLevel != null && savedLevel >= 0 && savedLevel <= 5) {
       _patienceLevel = savedLevel.toDouble();
     }
   }
@@ -100,7 +109,7 @@ class _PatienceLevelSetupScreenState
     final roundedLevel = _patienceLevel.round();
     return _patienceLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
-      orElse: () => _patienceLevels[2],
+      orElse: () => _patienceLevels[3],
     );
   }
 
@@ -463,9 +472,9 @@ class _PatienceLevelSetupScreenState
             ),
             child: Slider(
               value: _patienceLevel,
-              min: 1,
+              min: 0,
               max: 5,
-              divisions: 4,
+              divisions: 5,
               label: _patienceLevel.round().toString(),
               onChanged: (value) {
                 setState(() {

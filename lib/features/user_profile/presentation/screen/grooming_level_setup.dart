@@ -20,9 +20,18 @@ class GroomingLevelSetupScreen extends ConsumerStatefulWidget {
 class _GroomingLevelSetupScreenState
     extends ConsumerState<GroomingLevelSetupScreen>
     with SingleTickerProviderStateMixin {
-  double _groomingLevel = 3.0; // 1-5 scale
+  double _groomingLevel = 3.0; // 0-5 scale
 
   final List<Map<String, dynamic>> _groomingLevels = [
+    {
+      'value': 0,
+      'label': 'No Grooming',
+      'emoji': '✨',
+      'image': UserProfileAssets.groomingLowMaintenance,
+      'color': const Color.fromARGB(255, 180, 180, 180),
+      'darkColor': const Color.fromARGB(255, 120, 120, 120),
+      'description': 'Almost no grooming is needed.'
+    },
     {
       'value': 1,
       'label': 'Low Maintenance',
@@ -75,7 +84,7 @@ class _GroomingLevelSetupScreenState
     super.initState();
     // Load saved grooming level if it exists
     final savedLevel = ref.read(userProfileProvider).groomingLevel;
-    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+    if (savedLevel != null && savedLevel >= 0 && savedLevel <= 5) {
       _groomingLevel = savedLevel.toDouble();
     }
   }
@@ -95,7 +104,7 @@ class _GroomingLevelSetupScreenState
     final roundedLevel = _groomingLevel.round();
     return _groomingLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
-      orElse: () => _groomingLevels[2],
+      orElse: () => _groomingLevels[3],
     );
   }
 
@@ -458,9 +467,9 @@ class _GroomingLevelSetupScreenState
             ),
             child: Slider(
               value: _groomingLevel,
-              min: 1,
+              min: 0,
               max: 5,
-              divisions: 4,
+              divisions: 5,
               label: _groomingLevel.round().toString(),
               onChanged: (value) {
                 setState(() {
