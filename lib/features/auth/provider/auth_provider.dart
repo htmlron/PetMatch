@@ -212,14 +212,25 @@ class AuthNotifier extends Notifier<UserAuthState> {
 
       if (existingUser != null) {
         state = state.copyWith(userEmail: email, userPassword: password);
+        await supabase.auth.resend(
+          type: OtpType.signup,
+          email: email,
+          emailRedirectTo: 'https://petmatch-nine.vercel.app/verify-email',
+        );
+
+        NotifierHelper.closeToast(context);
+        NotifierHelper.showSuccessToast(
+          context,
+          'This email is already registered. We sent a new verification email.',
+        );
+        context.go('/verify-email?email=$email&password=$password');
         return;
       }
 
       final response = await supabase.auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo:
-            'https://soiltrack-server.onrender.com/auth/verify-email',
+        emailRedirectTo: 'https://petmatch-nine.vercel.app/verify-email',
       );
 
       if (response.user != null) {

@@ -28,10 +28,11 @@ class UserProfileRepository {
       await supabase.from('user_profile').update(data).eq('user_id', userId);
     } else {
       await supabase.from('user_profile').insert(data);
-      await supabase.from('users').update({
-        'onboarding_completed': true,
-      }).eq('user_id', userId);
     }
+
+    await supabase.from('users').update({
+      'onboarding_completed': true,
+    }).eq('user_id', userId);
   }
 
   Future<void> updatePersonalityTrait(
