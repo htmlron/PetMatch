@@ -269,7 +269,7 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                                       if ((pet.goodWithDogs == true) || (pet.goodWithCats == true)) _buildTraitChip('🐾 Good with other pets'),
                                       if (pet.affectionLevel != null) _buildTraitChip('💞 ${pet.getAffectionLevelDescription()}'),
                                       if (pet.houseTrained == true) _buildTraitChip('🏠 House Trained'),
-                                      if (pet.isVaccinated) _buildTraitChip('💉 Vaccinated'),
+                                      if (pet.isVaccinated) _buildTraitChip('💉 Vaccinated${pet.vaccinationUpdateMonthsSuffix}'),
                                       if (pet.spayedNeutered == true) _buildTraitChip('✂️ Spayed/Neutered'),
                                       if (pet.specialNeeds == true) _buildTraitChip('⭐ Special Needs'),
                                     ],

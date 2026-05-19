@@ -62,6 +62,7 @@ flutter:
     - assets/user_profile/patience_faces/
     - assets/user_profile/affection_faces/
     - assets/user_profile/grooming_faces/
+    - assets/user_profile/hairiness_faces/
     - assets/user_profile/pet_preference/
     - assets/user_profile/size_preference/
 

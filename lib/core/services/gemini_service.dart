@@ -27,11 +27,6 @@ class GeminiService {
       userHousehold: userHousehold,
     );
 
-    // Quick guard: ensure API key exists
-    if (apiKey.isEmpty) {
-      return 'AI not configured. Please set GEMINI_API_KEY in your environment to enable explanations.';
-    }
-
     try {
       final content = [Content.text(prompt)];
       final response = await _model.generateContent(content);
@@ -51,22 +46,36 @@ class GeminiService {
   }) {
     final pet = petMatch.pet;
 
-    final userActivityLevel = userPersonality?['activity_level'] ?? 'Unknown';
+    String intOrUnknown(dynamic value) {
+      if (value == null) return 'Unknown';
+      if (value is int) return value.toString();
+      if (value is num) return value.toInt().toString();
+      if (value is String && int.tryParse(value) != null) return value;
+      return 'Unknown';
+    }
+
+    String yesNoUnknown(dynamic value) {
+      if (value is bool) return value ? 'Yes' : 'No';
+      return 'Unknown';
+    }
+
+    final userActivityLevel = intOrUnknown(userPersonality?['activity_level']);
     final userGroomingLevel =
-        userPersonality?['grooming_tolerance'] ?? 'Unknown';
+        intOrUnknown(userPersonality?['grooming_tolerance']);
+    final userHairinessPreference =
+      intOrUnknown(userPersonality?['hairiness_preference']);
     final userPetPreference = userLifestyle?['pet_preference'] ?? 'Unknown';
     final userSizePreference = userLifestyle?['size_preference'] ?? 'Unknown';
 
     final userTrainingPatience =
-        userPersonality?['training_patience'] ?? 'Unknown';
+        intOrUnknown(userPersonality?['training_patience']);
     final userSnugglyPreference =
-        userPersonality?['snuggly_preference'] ?? 'Unknown';
+        intOrUnknown(userPersonality?['snuggly_preference']);
 
-    final userHasChildren = userHousehold?['has_children'] ?? false;
-    final userHasOtherPets = userHousehold?['has_other_pets'] ?? false;
-    final userComfortableWithShyPet =
-        userHousehold?['comfortable_with_shy_pet'] ?? false;
-    final userHadPetBefore = userHousehold?['had_pet_before'] ?? false;
+    final userHasChildren = userHousehold?['has_children'];
+    final userHasOtherPets = userHousehold?['has_other_pets'];
+    final userComfortableWithShyPet = userHousehold?['shy_pet_ok'];
+    final userHadPetBefore = userHousehold?['had_pet_before'];
 
     final petGoodWithChildren = pet.goodWithChildren == null
         ? 'Unknown'
@@ -103,8 +112,10 @@ class GeminiService {
         ? 'Unknown'
         : (pet.specialNeeds! ? 'Yes' : 'No');
     final petVaccinations = pet.isVaccinated
-      ? (pet.vaccinationTypes.isNotEmpty ? pet.vaccinationTypes.join(', ') : 'Yes')
-      : 'No';
+        ? (pet.vaccinationTypes.isNotEmpty
+        ? '${pet.vaccinationTypes.join(', ')}${pet.vaccinationUpdateMonthsSuffix}'
+        : 'Yes${pet.vaccinationUpdateMonthsSuffix}')
+        : 'No';
     final petSpayedNeutered = pet.spayedNeutered == null
         ? 'Unknown'
         : (pet.spayedNeutered! ? 'Yes' : 'No');
@@ -117,20 +128,21 @@ Your task is to explain the compatibility between THIS USER and THIS PET by comp
 🧑 USER PROFILE (The person adopting):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Lifestyle Preferences:
-  • Activity Level: $userActivityLevel/5 (1=Couch potato, 5=Very active)
-  • Grooming Tolerance: $userGroomingLevel/5 (1=Low maintenance, 5=High maintenance OK)
+  • Activity Level: $userActivityLevel/5 (0=Very inactive, 5=Very active)
+  • Hairiness Preference: $userHairinessPreference/5 (0=Low shedding preferred, 5=Heavy shedding OK)
+  • Grooming Tolerance: $userGroomingLevel/5 (0=No grooming OK, 5=High maintenance OK)
   • Pet Type Preference: $userPetPreference
   • Size Preference: $userSizePreference
 
 Personality Traits:
-  • Training Patience: $userTrainingPatience/5 (1=Low patience, 5=Very patient)
-  • Snuggly Preference: $userSnugglyPreference/5 (1=Independent pets OK, 5=Loves cuddles)
+  • Training Patience: $userTrainingPatience/5 (0=No patience, 5=Very patient)
+  • Snuggly Preference: $userSnugglyPreference/5 (0=Very independent pets OK, 5=Loves cuddles)
 
 Household Situation:
-  • Has Children: ${userHasChildren ? 'Yes' : 'No'}
-  • Has Other Pets: ${userHasOtherPets ? 'Yes' : 'No'}
-  • Comfortable with Shy Pets: ${userComfortableWithShyPet ? 'Yes' : 'No'}
-  • Previous Pet Experience: ${userHadPetBefore ? 'Yes' : 'No'}
+  • Has Children: ${yesNoUnknown(userHasChildren)}
+  • Has Other Pets: ${yesNoUnknown(userHasOtherPets)}
+  • Comfortable with Shy Pets: ${yesNoUnknown(userComfortableWithShyPet)}
+  • Previous Pet Experience: ${yesNoUnknown(userHadPetBefore)}
 
 🐾 PET CHARACTERISTICS (${pet.name}):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -182,6 +194,7 @@ Write a warm, friendly, personalized explanation (2-3 short paragraphs, max 150 
 1. **Starts with excitement** about ${pet.name} being a great match
 2. **Compares USER traits with PET traits** - Show specific alignments like:
    - "Your calm, low-key lifestyle pairs perfectly with ${pet.name}'s relaxed demeanor"
+  - "Because you prefer minimal shedding, you'll likely appreciate pets that are lower-maintenance to groom"
    - "Since you're comfortable with regular grooming, ${pet.name}'s grooming needs won't be overwhelming"
    - "Your patient approach to training is ideal for ${pet.name}'s learning style"
   - "Your love for cuddles matches ${pet.name}'s affectionate personality"
@@ -194,6 +207,9 @@ Write a warm, friendly, personalized explanation (2-3 short paragraphs, max 150 
 7. **Use a warm, conversational tone** - like a friend giving advice
 8. **CRITICAL: DO NOT include ANY numbers, scales, or percentages in your explanation** - No "4/5", "7/10", percentages, or rating numbers. Only use descriptive language like "highly energetic", "moderately affectionate", "very patient", etc.
 9. **Focus on WHY this pet fits the user's lifestyle and personality** without referencing any numerical scales
+10. **If any user preference is listed as "Unknown", do not mention that trait**
+11. **Treat 0/5 preferences as "very low" (e.g., very calm lifestyle, minimal grooming tolerance, very independent/snuggly-low, very low training patience)**
+12. **Treat hairiness preference as shedding tolerance** (0 = prefers low shedding, 5 = totally OK with lots of shedding)
 
 Generate the explanation now:
 ''';

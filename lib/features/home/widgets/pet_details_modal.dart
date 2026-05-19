@@ -589,6 +589,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
         if ((pet.vaccinations != null || pet.vaccinationTypes.isNotEmpty) ||
             pet.spayedNeutered != null ||
             pet.groomingNeeds != null ||
+            pet.sheddingLevel != null ||
             pet.specialNeeds != null)
           Wrap(
             spacing: 8,
@@ -600,8 +601,8 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
               if (pet.isVaccinated)
                 _buildHealthBadge(
                     pet.vaccinationTypes.isNotEmpty
-                        ? 'Vaccinated: ${pet.vaccinationSummary}'
-                        : 'Vaccinated',
+                    ? 'Vaccinated: ${pet.vaccinationSummary}${pet.vaccinationUpdateMonthsSuffix}'
+                    : 'Vaccinated${pet.vaccinationUpdateMonthsSuffix}',
                     Icons.vaccines,
                     Colors.green),
               if (pet.spayedNeutered == true)
@@ -615,6 +616,12 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                   pet.getGroomingDescription(),
                   Icons.content_cut,
                   Colors.indigo,
+                ),
+              if (pet.sheddingLevel != null)
+                _buildHealthBadge(
+                  pet.getSheddingDescription(),
+                  Icons.brush,
+                  Colors.deepOrange,
                 ),
             ],
           ),

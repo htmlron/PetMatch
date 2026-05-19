@@ -31,6 +31,7 @@ class Pet {
   final bool? spayedNeutered;
   final bool? specialNeeds;
   final int? groomingNeeds; // 0-5 scale
+  final int? sheddingLevel; // 0-5 scale (hairiness / shedding)
 
   // Activity & Personality
   final int? energyLevel; // 0-5 scale
@@ -72,6 +73,7 @@ class Pet {
     this.spayedNeutered,
     this.specialNeeds,
     this.groomingNeeds,
+    this.sheddingLevel,
     this.energyLevel,
     this.playfulness,
     this.dailyExercise,
@@ -136,7 +138,13 @@ class Pet {
       if (value == null) return null;
       if (value is int) return value;
       if (value is num) return value.toInt();
-      if (value is String) return int.tryParse(value);
+      if (value is String) {
+        final direct = int.tryParse(value.trim());
+        if (direct != null) return direct;
+        final match = RegExp(r'(\d+)').firstMatch(value);
+        if (match != null) return int.tryParse(match.group(1)!);
+        return null;
+      }
       return null;
     }
 
@@ -182,6 +190,7 @@ class Pet {
       spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
       specialNeeds: healthNotes?['special_needs'] as bool?,
       groomingNeeds: parseInt(temperament?['grooming_needs']),
+      sheddingLevel: parseInt(temperament?['shedding_level']),
       energyLevel: parseInt(activityLevel?['energy_level']),
       playfulness: parseInt(activityLevel?['playfulness']),
       dailyExercise: activityLevel?['daily_exercise'] as String?,
@@ -280,6 +289,27 @@ class Pet {
     return 'High - Frequent grooming';
   }
 
+  // Get shedding / hairiness description
+  String getSheddingDescription() {
+    if (sheddingLevel == null) return 'Unknown';
+    switch (sheddingLevel!.clamp(0, 5)) {
+      case 0:
+        return 'Low shedding';
+      case 1:
+        return 'Light shedding';
+      case 2:
+        return 'Some fur';
+      case 3:
+        return 'Noticeable shedding';
+      case 4:
+        return 'Lots of fur';
+      case 5:
+        return 'Heavy shedding';
+      default:
+        return 'Unknown';
+    }
+  }
+
   // Get adaptability description
   String getAdaptabilityDescription() {
     if (adaptability == null) return 'Unknown';
@@ -299,5 +329,20 @@ class Pet {
     if (vaccinationTypes.isNotEmpty) return vaccinationTypes.join(', ');
     if (vaccinations == true) return 'Vaccinated (types not specified)';
     return 'Unknown';
+  }
+
+  /// Returns formatted text like `6 months` or `1 month`.
+  String? get vaccinationUpdateMonthsText {
+    final months = vaccinationUpdateMonths;
+    if (months == null) return null;
+    final unit = months == 1 ? 'month' : 'months';
+    return '$months $unit';
+  }
+
+  /// Returns formatted suffix like ` (6 months)` for UI labels.
+  String get vaccinationUpdateMonthsSuffix {
+    final text = vaccinationUpdateMonthsText;
+    if (text == null) return '';
+    return ' ($text)';
   }
 }

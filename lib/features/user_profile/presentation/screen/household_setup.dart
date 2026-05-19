@@ -405,6 +405,8 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
     Color? customBorderColor,
     Color? customColor,
   }) {
+    final scheme = Theme.of(context).colorScheme;
+
     // Default colors
     final gradient = customGradient ??
         const LinearGradient(
@@ -415,6 +417,11 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
         );
     final borderColor = customBorderColor ?? const Color(0xFF0284C7);
     final mainColor = customColor ?? const Color(0xFF0EA5E9);
+
+    // "No" selected styling (use theme error colors)
+    final noBorderColor = scheme.error;
+    final noFillColor = scheme.error;
+    final noTextColor = scheme.onError;
 
     return GestureDetector(
       onTap: onTap,
@@ -427,14 +434,14 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
         decoration: BoxDecoration(
           gradient: isSelected && value ? gradient : null,
           color: isSelected && !value
-              ? Colors.grey[300]
+              ? noFillColor
               : isSelected
                   ? null
                   : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? (value ? borderColor : Colors.grey[400]!)
+                ? (value ? borderColor : noBorderColor)
                 : mainColor.withOpacity(0.3),
             width: isSelected ? 2.5 : 1.5,
           ),
@@ -449,7 +456,7 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
               : isSelected && !value
                   ? [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
+                        color: noBorderColor.withOpacity(0.25),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -465,7 +472,7 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
               color: isSelected && value
                   ? Colors.white
                   : isSelected
-                      ? Colors.grey[700]
+                      ? (value ? Colors.white : noTextColor)
                       : mainColor,
             ),
           ),

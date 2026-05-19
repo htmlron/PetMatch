@@ -1197,6 +1197,29 @@
                       <p>Use coat type, shedding, tangles, cleanliness, and maintenance needs as your guide.</p>
                     </div>
                   </div>
+                  <div class="field level-field">
+                    <label for="hairinessPreference">Hairiness / Shedding (0-5)</label>
+                    <select id="hairinessPreference" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Low shedding</option>
+                      <option value="1">1 - Light shedding</option>
+                      <option value="2">2 - Some fur</option>
+                      <option value="3">3 - Noticeable shedding</option>
+                      <option value="4">4 - Lots of fur</option>
+                      <option value="5">5 - Heavy shedding</option>
+                    </select>
+                    <button type="button" id="hairinessRubricBtn" class="btn btn-secondary level-rubric-toggle">Show hairiness rubric ▾</button>
+                    <div id="hairinessRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Low shedding:</strong> Minimal shedding; easy to keep floors and clothes clean.</li>
+                        <li><strong>1 - Light shedding:</strong> Occasional fur; quick brushing helps.</li>
+                        <li><strong>2 - Some fur:</strong> Moderate shedding; lint rollers and regular brushing recommended.</li>
+                        <li><strong>3 - Noticeable shedding:</strong> Fur is common around the home; frequent brushing helps a lot.</li>
+                        <li><strong>4 - Lots of fur:</strong> Heavy shedding or seasonal blowouts; expect regular cleanup.</li>
+                        <li><strong>5 - Heavy shedding:</strong> Very heavy shedding; fur on furniture/clothes is expected.</li>
+                      </ul>
+                      <p>Use coat length/density, seasonal shedding, and how quickly fur builds up in the home as your guide.</p>
+                    </div>
+                  </div>
                   <div class="field full">
                     <label for="description">Description</label>
                     <textarea id="description" placeholder="Describe this pet..." required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"></textarea>
@@ -1536,6 +1559,7 @@
           });
           const rubricPairs = [
             ['groomingRubricBtn', 'groomingRubric'],
+            ['hairinessRubricBtn', 'hairinessRubric'],
             ['energyRubricBtn', 'energyRubric'],
             ['playfulnessRubricBtn', 'playfulnessRubric'],
             ['affectionRubricBtn', 'affectionRubric'],
@@ -1634,7 +1658,7 @@
         $('petId').value = '';
         $('species').value = 'Dog';
         $('status').value = 'Available';
-        $('energyLevel').value = '0'; $('playfulness').value = '0'; $('affectionLevel').value = '0'; $('independence').value = '0'; $('adaptability').value = '0'; $('trainingDifficulty').value = '0'; $('groomingNeeds').value = '0';
+        $('energyLevel').value = '0'; $('playfulness').value = '0'; $('affectionLevel').value = '0'; $('independence').value = '0'; $('adaptability').value = '0'; $('trainingDifficulty').value = '0'; $('groomingNeeds').value = '0'; $('hairinessPreference').value = '0';
         $('dailyExercise').value = ''; $('traits').value = ''; $('quirk').value = ''; $('healthNotes').value = ''; $('behavioralNotes').value = ''; filePreviews.innerHTML = ''; existingImages.innerHTML = '';
         cancelEditButton.classList.add('hidden');
         setMessage(formMessage, 'Ready to add a new pet.');
@@ -1696,7 +1720,7 @@
 
       function fillForm(pet) {
         state.editingPet = pet;
-        $('petId').value = pet.pet_id; $('petName').value = pet.name ?? ''; $('species').value = pet.species ?? 'Dog'; $('breed').value = pet.breed ?? ''; $('age').value = pet.age ?? ''; $('gender').value = pet.gender ?? ''; $('size').value = pet.size ?? ''; $('status').value = pet.status ?? 'Available'; $('description').value = pet.description ?? ''; $('groomingNeeds').value = pet.groomingNeeds ?? getCharacteristicBlock(pet).temperament?.grooming_needs ?? '';
+        $('petId').value = pet.pet_id; $('petName').value = pet.name ?? ''; $('species').value = pet.species ?? 'Dog'; $('breed').value = pet.breed ?? ''; $('age').value = pet.age ?? ''; $('gender').value = pet.gender ?? ''; $('size').value = pet.size ?? ''; $('status').value = pet.status ?? 'Available'; $('description').value = pet.description ?? ''; $('groomingNeeds').value = pet.groomingNeeds ?? getCharacteristicBlock(pet).temperament?.grooming_needs ?? ''; $('hairinessPreference').value = getCharacteristicBlock(pet).temperament?.shedding_level ?? 0;
         const characteristics = getCharacteristicBlock(pet); const behavior = characteristics.behavior_tags || {}; const health = characteristics.health_notes || {}; const activity = characteristics.activity_level || {}; const temperament = characteristics.temperament || {};
         // populate vaccination checkboxes and update frequency
         document.querySelectorAll('.vax-checkbox').forEach((cb) => cb.checked = false);
@@ -1798,7 +1822,7 @@
         event.preventDefault();
         const petId = $('petId').value || crypto.randomUUID();
         const name = $('petName').value.trim();
-        const species = $('species').value; const breed = $('breed').value.trim(); const age = normalizeNumber($('age').value); const gender = $('gender').value || null; const size = $('size').value || null; const status = $('status').value || 'Available'; const description = $('description').value.trim(); const groomingNeeds = normalizeNumber($('groomingNeeds').value);
+        const species = $('species').value; const breed = $('breed').value.trim(); const age = normalizeNumber($('age').value); const gender = $('gender').value || null; const size = $('size').value || null; const status = $('status').value || 'Available'; const description = $('description').value.trim(); const groomingNeeds = normalizeNumber($('groomingNeeds').value); const hairinessPreference = normalizeNumber($('hairinessPreference').value);
         if (!name || !species) { setMessage(formMessage, 'Name and species are required.', 'error'); return; }
         try {
           setMessage(formMessage, 'Saving pet...');
@@ -1844,7 +1868,7 @@
             behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithOtherPets').value), good_with_cats: normalizeBool($('goodWithOtherPets').value), house_trained: normalizeBool($('houseTrained').value) },
             health_notes: { vaccinations: vaxChecked.length > 0 ? true : false, vaccination_types: vaxChecked.length ? vaxChecked : null, vaccination_update_months: (function(){ const n = parseInt($('vaccinationUpdate').value, 10); return Number.isFinite(n) ? n : null; })(), spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
             activity_level: { energy_level: normalizeNumber($('energyLevel').value), playfulness: normalizeNumber($('playfulness').value), daily_exercise_needs: $('dailyExercise').value.trim() || null },
-            temperament: { affection_level: normalizeNumber($('affectionLevel').value), independence: normalizeNumber($('independence').value), adaptability: normalizeNumber($('adaptability').value), training_difficulty: normalizeNumber($('trainingDifficulty').value), grooming_needs: groomingNeeds, temperament_traits: $('traits').value.split(',').map((value) => value.trim()).filter(Boolean) },
+            temperament: { affection_level: normalizeNumber($('affectionLevel').value), independence: normalizeNumber($('independence').value), adaptability: normalizeNumber($('adaptability').value), training_difficulty: normalizeNumber($('trainingDifficulty').value), grooming_needs: groomingNeeds, shedding_level: hairinessPreference, temperament_traits: $('traits').value.split(',').map((value) => value.trim()).filter(Boolean) },
             quirk: $('quirk').value.trim() || null,
             updated_at: new Date().toISOString(),
           };

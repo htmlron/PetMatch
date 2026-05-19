@@ -24,6 +24,10 @@ class UserProfileState with _$UserProfileState {
     int? patienceLevel, // 0-5
     String? patienceLabel,
 
+    // Hairiness preference (new, 0-5)
+    int? hairinessLevel, // 0-5
+    String? hairinessLabel,
+
     // Grooming level (Step 4)
     int? groomingLevel, // 0-5
     String? groomingLabel,
@@ -57,17 +61,20 @@ class UserProfileState with _$UserProfileState {
     return petPreference != null &&
         activityLevel != null &&
         affectionLevel != null &&
-        patienceLevel != null;
+      patienceLevel != null &&
+      hairinessLevel != null &&
+      groomingLevel != null;
   }
 
   int get completionPercentage {
     int filledFields = 0;
-    int totalFields = 5;
+    int totalFields = 6;
 
     if (petPreference != null) filledFields++;
     if (activityLevel != null) filledFields++;
     if (affectionLevel != null) filledFields++;
     if (patienceLevel != null) filledFields++;
+    if (hairinessLevel != null) filledFields++;
     if (groomingLevel != null) filledFields++;
 
     return ((filledFields / totalFields) * 100).round();

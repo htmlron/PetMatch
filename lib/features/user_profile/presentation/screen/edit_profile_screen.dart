@@ -153,21 +153,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     _buildEditCard(
                       icon: Icons.fitness_center_rounded,
                       title: 'Activity Level',
-                      value: profile.activityLabel ?? 'Not set',
-                      subtitle: profile.activityLevel != null
-                          ? '${profile.activityLevel}/5'
-                          : null,
+                      value: profile.activityLabel ?? '0',
+                      subtitle: '${profile.activityLevel ?? 0}/5',
                       color: const Color.fromARGB(255, 247, 127, 211),
                       onTap: () => context.push('/onboarding/activity-level'),
                     ),
                     const SizedBox(height: 12),
                     _buildEditCard(
+                      icon: Icons.brush_rounded,
+                      title: 'Hairiness Preference',
+                      value: profile.hairinessLabel ?? '0',
+                      subtitle: '${profile.hairinessLevel ?? 0}/5',
+                      color: const Color.fromARGB(255, 68, 127, 236),
+                      onTap: () => context.push('/onboarding/hairiness-level'),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildEditCard(
                       icon: Icons.spa_rounded,
                       title: 'Grooming Tolerance',
-                      value: profile.groomingLabel ?? 'Not set',
-                      subtitle: profile.groomingLevel != null
-                          ? '${profile.groomingLevel}/5'
-                          : null,
+                      value: profile.groomingLabel ?? '0',
+                      subtitle: '${profile.groomingLevel ?? 0}/5',
                       color: const Color.fromARGB(255, 68, 127, 236),
                       onTap: () => context.push('/onboarding/grooming-level'),
                     ),
@@ -180,10 +185,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     _buildEditCard(
                       icon: Icons.favorite_border_rounded,
                       title: 'Affection Preference',
-                      value: profile.affectionLabel ?? 'Not set',
-                      subtitle: profile.affectionLevel != null
-                          ? '${profile.affectionLevel}/5'
-                          : null,
+                      value: profile.affectionLabel ?? '0',
+                      subtitle: '${profile.affectionLevel ?? 0}/5',
                       color: const Color.fromARGB(255, 133, 54, 179),
                       onTap: () => context.push('/onboarding/affection-level'),
                     ),
@@ -191,10 +194,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     _buildEditCard(
                       icon: Icons.timelapse_rounded,
                       title: 'Training Patience',
-                      value: profile.patienceLabel ?? 'Not set',
-                      subtitle: profile.patienceLevel != null
-                          ? '${profile.patienceLevel}/5'
-                          : null,
+                      value: profile.patienceLabel ?? '0',
+                      subtitle: '${profile.patienceLevel ?? 0}/5',
                       color: const Color.fromARGB(255, 63, 211, 154),
                       onTap: () => context.push('/onboarding/patience-level'),
                     ),
@@ -209,7 +210,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       title: 'Household Setup',
                       value: _getHouseholdSummary(profile),
                       color: const Color.fromARGB(255, 255, 206, 43),
-                      onTap: () => context.push('/onboarding/household-setup'),
+                      onTap: () => context.push('/onboarding/household'),
                     ),
 
                     const SizedBox(height: 40),

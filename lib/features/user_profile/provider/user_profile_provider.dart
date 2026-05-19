@@ -72,6 +72,15 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     context.push('/onboarding/patience-level');
   }
 
+  void setHairinessLevel(BuildContext context, int level, String label) {
+    state = state.copyWith(
+      hairinessLevel: level,
+      hairinessLabel: _numericLabel(level),
+    );
+    _logState('Hairiness preference saved: $level - ${_numericLabel(level)}');
+    context.push('/onboarding/grooming-level');
+  }
+
   void updateUserProfile({
     required int level,
     required String label,
@@ -100,6 +109,12 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
           affectionLabel: _numericLabel(level),
         );
         break;
+      case 'hairiness_preference':
+        state = state.copyWith(
+          hairinessLevel: level,
+          hairinessLabel: _numericLabel(level),
+        );
+        break;
       case 'grooming_tolerance':
         state = state.copyWith(
           groomingLevel: level,
@@ -110,7 +125,8 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         throw ArgumentError('Unsupported update key: $key for column: $column');
     }
 
-    print('💾 Updating $column -> $key: $level - ${_numericLabel(level)} in state');
+    print(
+        '💾 Updating $column -> $key: $level - ${_numericLabel(level)} in state');
     _repository.updatePersonalityTrait(
       userId,
       column,
@@ -146,10 +162,9 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       affectionLabel: _numericLabel(level),
     );
     _logState('Affection level saved: $level - ${_numericLabel(level)}');
-    context.push('/onboarding/grooming-level');
+    context.push('/onboarding/hairiness-level');
   }
 
-  /// Update affection level without navigation (for editing)
   void updateAffectionLevel(int level, String label) {
     state = state.copyWith(
       affectionLevel: level,
@@ -236,6 +251,8 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       if (state.activityLevel == null) print('  - Activity level');
       if (state.affectionLevel == null) print('  - Affection level');
       if (state.patienceLevel == null) print('  - Patience level');
+      if (state.hairinessLevel == null) print('  - Hairiness preference');
+      if (state.groomingLevel == null) print('  - Grooming tolerance');
       return false;
     }
 
@@ -247,7 +264,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       // Simulate API call
       await Future.delayed(const Duration(seconds: 5));
 
-      _repository.saveUserProfile(
+      await _repository.saveUserProfile(
         userId: userId!,
         userLifestyle: {
           'pet_preference': state.petPreference,
@@ -255,6 +272,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         },
         personalityTraits: {
           'activity_level': state.activityLevel,
+          'hairiness_preference': state.hairinessLevel,
           'grooming_tolerance': state.groomingLevel,
           'snuggly_preference': state.affectionLevel,
           'training_patience': state.patienceLevel,
@@ -269,6 +287,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
           'okay_with_special_needs': state.okayWithSpecialNeeds,
         },
       );
+
+      // Refresh auth state so screens that depend on `onboardingComplete`
+      // (like edit-mode profile screens) behave correctly immediately.
+      await ref.read(authProvider.notifier).fetchUserRecord(userId);
 
       state = state.copyWith(
         isSubmitting: false,
@@ -329,6 +351,9 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         activityLevel: personalityTraits?['activity_level'] as int?,
         activityLabel:
             _getActivityLabel(personalityTraits?['activity_level'] as int?),
+        hairinessLevel: personalityTraits?['hairiness_preference'] as int?,
+        hairinessLabel: _getHairinessLabel(
+            personalityTraits?['hairiness_preference'] as int?),
         groomingLevel: personalityTraits?['grooming_tolerance'] as int?,
         groomingLabel:
             _getGroomingLabel(personalityTraits?['grooming_tolerance'] as int?),
@@ -364,25 +389,31 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   // Helper methods to convert levels to labels
   String? _getActivityLabel(int? level) {
     if (level == null) return null;
-    if (level < 1 || level > 5) return null;
+    if (level < 0 || level > 5) return null;
     return _numericLabel(level);
   }
 
   String? _getGroomingLabel(int? level) {
     if (level == null) return null;
-    if (level < 1 || level > 5) return null;
+    if (level < 0 || level > 5) return null;
+    return _numericLabel(level);
+  }
+
+  String? _getHairinessLabel(int? level) {
+    if (level == null) return null;
+    if (level < 0 || level > 5) return null;
     return _numericLabel(level);
   }
 
   String? _getAffectionLabel(int? level) {
     if (level == null) return null;
-    if (level < 1 || level > 5) return null;
+    if (level < 0 || level > 5) return null;
     return _numericLabel(level);
   }
 
   String? _getPatienceLabel(int? level) {
     if (level == null) return null;
-    if (level < 1 || level > 5) return null;
+    if (level < 0 || level > 5) return null;
     return _numericLabel(level);
   }
 

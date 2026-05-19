@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/activity_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/affection_level_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/hairiness_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/patience_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/grooming_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/pet_preference.dart';
@@ -45,21 +46,28 @@ final onboardingRoutes = [
     builder: (context, state) => const AffectionLevelSetupScreen(),
   ),
 
-  // Step 4: Grooming Level
+  // Step 4: Hairiness Preference
+  GoRoute(
+    path: '/onboarding/hairiness-level',
+    name: 'hairiness-level',
+    builder: (context, state) => const HairinessLevelSetupScreen(),
+  ),
+
+  // Step 5: Grooming Level
   GoRoute(
     path: '/onboarding/grooming-level',
     name: 'grooming-level',
     builder: (context, state) => const GroomingLevelSetupScreen(),
   ),
 
-  // Step 5: Size Preference
+  // Step 6: Size Preference
   GoRoute(
     path: '/onboarding/size-preference',
     name: 'size-preference',
     builder: (context, state) => const SizePreferenceScreen(),
   ),
 
-  // Step 6: Household Setup
+  // Step 7: Household Setup
   GoRoute(
     path: '/onboarding/household',
     name: 'onboarding-household-setup',
