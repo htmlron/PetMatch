@@ -145,7 +145,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
               const SizedBox(height: 12),
               _buildTutorialStep(
                 'Swipe to browse',
-                'Swipe right to view the previous pet, or swipe left to see the next one. Use the heart and X buttons to like or skip.',
+                'Swipe left to view the previous pet, or swipe right to see the next one. Use the heart and X buttons to like or skip.',
                 Icons.swipe,
               ),
               const SizedBox(height: 20),

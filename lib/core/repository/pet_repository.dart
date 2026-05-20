@@ -410,7 +410,7 @@ class PetRepository {
         'activity_level': {
           'energy_level': energyLevel,
           'playfulness': playfulness,
-          'daily_exercise_needs': dailyExerciseNeeds,
+          'daily_exercise': dailyExerciseNeeds,
         },
         'temperament': {
           'affection_level': affectionLevel,

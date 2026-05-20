@@ -193,7 +193,9 @@ class Pet {
       sheddingLevel: parseInt(temperament?['shedding_level']),
       energyLevel: parseInt(activityLevel?['energy_level']),
       playfulness: parseInt(activityLevel?['playfulness']),
-      dailyExercise: activityLevel?['daily_exercise'] as String?,
+        dailyExercise: (activityLevel?['daily_exercise'] ??
+            activityLevel?['daily_exercise_needs'])
+          as String?,
       affectionLevel: parseInt(temperament?['affection_level']),
       independence: parseInt(temperament?['independence']),
       adaptability: parseInt(temperament?['adaptability']),

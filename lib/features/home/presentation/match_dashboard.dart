@@ -9,7 +9,7 @@ import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
 import 'package:petmatch/core/services/gemini_service.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
-// removed unused favorites import
+import 'package:petmatch/features/home/provider/favorites_provider.dart';
 import 'package:petmatch/features/home/widgets/ai_loader.dart';
 import 'package:petmatch/features/home/widgets/bumble_style_pet_card.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
@@ -27,6 +27,17 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
   int _currentCardIndex = 0;
   bool _showListView = false;
   List<Pet>? _sizeMismatchedDogs;
+
+  String? _normalizeSizeValue(String? value) {
+    if (value == null) return null;
+    final normalized = value.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+    if (normalized.contains('small')) return 'small';
+    if (normalized.contains('medium')) return 'medium';
+    if (normalized.contains('large')) return 'large';
+    if (normalized.contains('no preference')) return 'no_preference';
+    return normalized;
+  }
 
   @override
   void initState() {
@@ -192,36 +203,74 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
   }
 
   Widget _buildSwipeView(List<PetMatch> petMatches) {
-    // Safety check: ensure we have matches and valid index
-    if (petMatches.isEmpty || _currentCardIndex >= petMatches.length) {
+    if (petMatches.isEmpty) {
       return _buildEmptyState();
     }
 
-    // Reset index if it goes out of bounds
-    if (_currentCardIndex < 0) {
+    final clampedIndex = _currentCardIndex.clamp(0, petMatches.length - 1);
+    if (clampedIndex != _currentCardIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          _currentCardIndex = 0;
-        });
+        if (!mounted) return;
+        setState(() => _currentCardIndex = clampedIndex);
       });
-      return _buildLoadingState();
     }
 
+    final currentMatch = petMatches[clampedIndex];
+    final petId = currentMatch.pet.id;
+
     return BumbleStylePetCard(
-      petMatch: petMatches[_currentCardIndex],
-      onSkip: () {
+      key: ValueKey(petId),
+      petMatch: currentMatch,
+      onPrevious: () {
         setState(() {
-          if (_currentCardIndex > 0) {
-            _currentCardIndex--;
+          if (_currentCardIndex > 0) _currentCardIndex--;
+        });
+      },
+      onNext: () {
+        setState(() {
+          if (_currentCardIndex < petMatches.length - 1) {
+            _currentCardIndex++;
           }
         });
       },
-      onLike: () {
+      onSkipPet: () {
+        if (petId.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pet id unavailable')),
+          );
+          return;
+        }
+
+        // Remove current pet; keep index pointing at the next card if possible.
+        final wasLast = clampedIndex >= petMatches.length - 1;
         setState(() {
-          _currentCardIndex++;
+          if (wasLast && _currentCardIndex > 0) {
+            _currentCardIndex--;
+          }
         });
+
+        ref.read(matchProvider.notifier).removePetFromMatches(petId);
       },
-      onLearnMore: () => _showMatchExplanation(petMatches[_currentCardIndex]),
+      onLikePet: () async {
+        if (petId.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pet id unavailable')),
+          );
+          return;
+        }
+
+        // Pre-adjust index for the "liked last card" case so we never go out of range
+        // after favorites remove it from matches.
+        final wasLast = clampedIndex >= petMatches.length - 1;
+        if (wasLast) {
+          setState(() {
+            if (_currentCardIndex > 0) _currentCardIndex--;
+          });
+        }
+
+        await ref.read(favoritesProvider.notifier).addFavorite(context, petId);
+      },
+      onLearnMore: () => _showMatchExplanation(currentMatch),
     );
   }
 
@@ -330,19 +379,41 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       final userLifestyle = userProfileData?['user_lifestyle'] as Map<String, dynamic>?;
       final preferredSize = userLifestyle?['size_preference'] as String?;
 
-      if (preferredSize == null) return;
+      final normalizedPreferredSize = _normalizeSizeValue(preferredSize);
+      if (normalizedPreferredSize == null ||
+          normalizedPreferredSize == 'no_preference') {
+        return;
+      }
 
-      // Fetch dogs from different sizes and include their images
+      final favoriteIds = ref.read(favoritesProvider).favoriteIds;
+      final currentMatchIds = ref
+          .read(matchProvider)
+          .matches
+          .map((m) => m.pet.id)
+          .toSet();
+
+      // Fetch a small pool and filter locally so size comparisons are robust
+      // (e.g. "Medium" vs "medium" vs "MEDIUM").
       final response = await supabase
           .from('pets')
-          .select('*, pets_images(*)')
+          .select('*, pets_images(*), pet_characteristics(*)')
           .eq('species', 'Dog')
-          .neq('size', preferredSize)
-          .limit(3);
+          .neq('status', 'adopted')
+          .limit(30);
 
-      final pets = (response as List)
+      final candidates = (response as List)
           .map((json) => Pet.fromJson(json))
+          .where((pet) {
+            final petSize = _normalizeSizeValue(pet.size);
+            if (petSize == null) return false;
+            if (petSize == normalizedPreferredSize) return false;
+            if (favoriteIds.contains(pet.id)) return false;
+            if (currentMatchIds.contains(pet.id)) return false;
+            return true;
+          })
           .toList();
+
+      final pets = candidates.take(3).toList();
       if (mounted) {
         setState(() {
           _sizeMismatchedDogs = pets;
@@ -520,7 +591,9 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Personality matches great, but size is different',
+                    dog.sheddingLevel != null
+                        ? 'Personality matches great, but size is different • ${dog.getSheddingDescription()}'
+                        : 'Personality matches great, but size is different',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: Colors.grey[600],

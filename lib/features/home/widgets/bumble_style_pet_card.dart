@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
-import 'package:petmatch/features/home/provider/favorites_provider.dart';
 
-class BumbleStylePetCard extends ConsumerStatefulWidget {
+class BumbleStylePetCard extends StatefulWidget {
   final PetMatch petMatch;
-  final VoidCallback onSkip;
-  final VoidCallback onLike;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onSkipPet;
+  final VoidCallback onLikePet;
   final VoidCallback? onLearnMore;
 
   const BumbleStylePetCard({
     Key? key,
     required this.petMatch,
-    required this.onSkip,
-    required this.onLike,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onSkipPet,
+    required this.onLikePet,
     this.onLearnMore,
   }) : super(key: key);
 
   @override
-  ConsumerState<BumbleStylePetCard> createState() => _BumbleStylePetCardState();
+  State<BumbleStylePetCard> createState() => _BumbleStylePetCardState();
 }
 
-class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
+class _BumbleStylePetCardState extends State<BumbleStylePetCard> {
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
   bool _swipeLocked = false;
@@ -44,10 +46,10 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
     try {
       if (velocity < 0) {
         // Swipe left = view next pet
-        widget.onLike();
+        widget.onNext();
       } else {
         // Swipe right = view previous pet
-        widget.onSkip();
+        widget.onPrevious();
       }
     } finally {
       if (mounted) {
@@ -268,6 +270,7 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                                       if (pet.goodWithChildren == true) _buildTraitChip('👶 Good with Kids'),
                                       if ((pet.goodWithDogs == true) || (pet.goodWithCats == true)) _buildTraitChip('🐾 Good with other pets'),
                                       if (pet.affectionLevel != null) _buildTraitChip('💞 ${pet.getAffectionLevelDescription()}'),
+                                      if (pet.sheddingLevel != null) _buildTraitChip('🧥 ${pet.getSheddingDescription()}'),
                                       if (pet.houseTrained == true) _buildTraitChip('🏠 House Trained'),
                                       if (pet.isVaccinated) _buildTraitChip('💉 Vaccinated${pet.vaccinationUpdateMonthsSuffix}'),
                                       if (pet.spayedNeutered == true) _buildTraitChip('✂️ Spayed/Neutered'),
@@ -294,20 +297,12 @@ class _BumbleStylePetCardState extends ConsumerState<BumbleStylePetCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
-                        onPressed: widget.onSkip,
+                        onPressed: widget.onSkipPet,
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: Colors.black),
                         child: const Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), child: Icon(Icons.close)),
                       ),
                       ElevatedButton(
-                        onPressed: () async {
-                          final petId = pet.id;
-                          if (petId.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pet id unavailable')));
-                          } else {
-                            await ref.read(favoritesProvider.notifier).addFavorite(context, petId);
-                            widget.onLike();
-                          }
-                        },
+                        onPressed: widget.onLikePet,
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange, foregroundColor: Colors.white),
                         child: const Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12), child: Icon(Icons.favorite)),
                       ),

@@ -505,6 +505,29 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                   ],
                 ),
 
+                if (pet.isAdopted)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(
+                        'Adopted',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+
                 const SizedBox(height: 24),
 
                 Row(
@@ -834,6 +857,21 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                 pet.getTrainingDescription(),
                 Colors.blue,
                 Icons.school,
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+
+        // Hairiness / Shedding
+        if (pet.sheddingLevel != null)
+          Column(
+            children: [
+              _buildLevelIndicator(
+                'Hairiness',
+                pet.sheddingLevel!.clamp(0, 5),
+                pet.getSheddingDescription(),
+                Colors.deepOrange,
+                Icons.brush,
               ),
               const SizedBox(height: 16),
             ],
