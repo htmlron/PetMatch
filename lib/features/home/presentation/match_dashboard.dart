@@ -393,25 +393,121 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
           .toSet();
 
       // Fetch a small pool and filter locally so size comparisons are robust
-      // (e.g. "Medium" vs "medium" vs "MEDIUM").
       final response = await supabase
           .from('pets')
           .select('*, pets_images(*), pet_characteristics(*)')
           .eq('species', 'Dog')
           .neq('status', 'adopted')
-          .limit(30);
+          .limit(60);
 
-      final candidates = (response as List)
-          .map((json) => Pet.fromJson(json))
-          .where((pet) {
-            final petSize = _normalizeSizeValue(pet.size);
-            if (petSize == null) return false;
-            if (petSize == normalizedPreferredSize) return false;
-            if (favoriteIds.contains(pet.id)) return false;
-            if (currentMatchIds.contains(pet.id)) return false;
-            return true;
-          })
-          .toList();
+      final pool = (response as List).map((json) => Pet.fromJson(json)).toList();
+
+      // Determine and collect candidates based on user's preference
+      final candidates = <Pet>[];
+
+      if (normalizedPreferredSize == 'small') {
+        // From small users, suggest medium dogs
+        final matches = pool.where((pet) {
+          final petSize = _normalizeSizeValue(pet.size);
+          if (petSize == null) return false;
+          if (petSize != 'medium') return false;
+          if (favoriteIds.contains(pet.id)) return false;
+          if (currentMatchIds.contains(pet.id)) return false;
+          return true;
+        }).toList();
+        candidates.addAll(matches);
+      } else if (normalizedPreferredSize == 'medium') {
+        // From medium users: primary = large, secondary = small (include small only if available)
+        final largeMatches = pool.where((pet) {
+          final petSize = _normalizeSizeValue(pet.size);
+          if (petSize == null) return false;
+          if (petSize != 'large') return false;
+          if (favoriteIds.contains(pet.id)) return false;
+          if (currentMatchIds.contains(pet.id)) return false;
+          return true;
+        }).toList();
+
+        final smallMatches = pool.where((pet) {
+          final petSize = _normalizeSizeValue(pet.size);
+          if (petSize == null) return false;
+          if (petSize != 'small') return false;
+          if (favoriteIds.contains(pet.id)) return false;
+          if (currentMatchIds.contains(pet.id)) return false;
+          return true;
+        }).toList();
+
+        if (largeMatches.isNotEmpty) {
+          // Ensure we include at least one small below if available
+          final takeLarge = largeMatches.length >= 2 ? 2 : largeMatches.length;
+          candidates.addAll(largeMatches.take(takeLarge));
+          if (smallMatches.isNotEmpty) {
+            candidates.addAll(smallMatches.take(1));
+          }
+        } else {
+          // No large matches — fall back to any small matches
+          candidates.addAll(smallMatches);
+        }
+      } else if (normalizedPreferredSize == 'large') {
+        // From large users, prefer small first, then medium
+        final smallMatches = pool.where((pet) {
+          final petSize = _normalizeSizeValue(pet.size);
+          if (petSize == null) return false;
+          if (petSize != 'small') return false;
+          if (favoriteIds.contains(pet.id)) return false;
+          if (currentMatchIds.contains(pet.id)) return false;
+          return true;
+        }).toList();
+
+        final mediumMatches = pool.where((pet) {
+          final petSize = _normalizeSizeValue(pet.size);
+          if (petSize == null) return false;
+          if (petSize != 'medium') return false;
+          if (favoriteIds.contains(pet.id)) return false;
+          if (currentMatchIds.contains(pet.id)) return false;
+          return true;
+        }).toList();
+
+        if (smallMatches.isNotEmpty) {
+          candidates.addAll(smallMatches);
+        } else {
+          candidates.addAll(mediumMatches);
+        }
+      }
+
+      // If we still have no candidates, fallback to any other dogs (excluding preferred size)
+      if (candidates.isEmpty) {
+        candidates.addAll(pool.where((pet) {
+          final petSize = _normalizeSizeValue(pet.size);
+          if (petSize == null) return false;
+          if (petSize == normalizedPreferredSize) return false;
+          if (favoriteIds.contains(pet.id)) return false;
+          if (currentMatchIds.contains(pet.id)) return false;
+          return true;
+        }));
+      }
+
+      // Determine ordering priority so we can sort candidates predictably.
+      List<String> targetOrder = [];
+      if (normalizedPreferredSize == 'small') {
+        targetOrder = ['medium'];
+      } else if (normalizedPreferredSize == 'medium') {
+        targetOrder = ['large', 'small'];
+      } else if (normalizedPreferredSize == 'large') {
+        targetOrder = ['small', 'medium'];
+      }
+
+      final priority = <String, int>{};
+      for (var i = 0; i < targetOrder.length; i++) {
+        priority[targetOrder[i]] = i;
+      }
+
+      candidates.sort((a, b) {
+        final aSize = _normalizeSizeValue(a.size) ?? '';
+        final bSize = _normalizeSizeValue(b.size) ?? '';
+        final aPri = priority.containsKey(aSize) ? priority[aSize]! : targetOrder.length;
+        final bPri = priority.containsKey(bSize) ? priority[bSize]! : targetOrder.length;
+        return aPri.compareTo(bPri);
+      });
 
       final pets = candidates.take(3).toList();
       if (mounted) {

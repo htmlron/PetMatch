@@ -46,83 +46,32 @@ class GeminiService {
   }) {
     final pet = petMatch.pet;
 
-    String intOrUnknown(dynamic value) {
-      if (value == null) return 'Unknown';
-      if (value is int) return value.toString();
-      if (value is num) return value.toInt().toString();
-      if (value is String && int.tryParse(value) != null) return value;
-      return 'Unknown';
-    }
+    // Backward-compatible: this prompt is now lifestyle-focused.
+    // ignore: unused_local_variable
+    final unusedUserPersonality = userPersonality;
 
     String yesNoUnknown(dynamic value) {
       if (value is bool) return value ? 'Yes' : 'No';
       return 'Unknown';
     }
 
-    /// Bucket a 0-5 or 1-5 style level into a user-friendly range.
-    /// Example buckets: 0-2 vs 3-5, or 1-2 vs 3-5.
-    String levelBucketOrUnknown(
-      dynamic value, {
-      required int min,
-      required int max,
-      required int splitStart,
-    }) {
+    String stringOrUnknown(dynamic value) {
       if (value == null) return 'Unknown';
-
-      int? asInt;
-      if (value is int) {
-        asInt = value;
-      } else if (value is num) {
-        asInt = value.toInt();
-      } else if (value is String) {
-        final trimmed = value.trim();
-        if (trimmed.isEmpty) return 'Unknown';
-        // If already stored as a range like "3-5", keep it.
-        if (RegExp(r'^\d+\s*-\s*\d+$').hasMatch(trimmed)) {
-          return trimmed.replaceAll(RegExp(r'\s+'), '');
-        }
-        asInt = int.tryParse(trimmed);
-      }
-
-      if (asInt == null) return 'Unknown';
-      final clamped = asInt.clamp(min, max);
-      if (clamped < splitStart) return '$min-${splitStart - 1}';
-      return '$splitStart-$max';
+      final asString = value.toString().trim();
+      return asString.isEmpty ? 'Unknown' : asString;
     }
 
-    final userActivityBucket = levelBucketOrUnknown(
-      userPersonality?['activity_level'],
-      min: 1,
-      max: 5,
-      splitStart: 3,
-    );
-    final userGroomingBucket = levelBucketOrUnknown(
-      userPersonality?['grooming_tolerance'],
-      min: 1,
-      max: 5,
-      splitStart: 3,
-    );
-    final userHairinessBucket = levelBucketOrUnknown(
-      userPersonality?['hairiness_preference'],
-      min: 0,
-      max: 5,
-      splitStart: 3,
-    );
-    final userPetPreference = userLifestyle?['pet_preference'] ?? 'Unknown';
-    final userSizePreference = userLifestyle?['size_preference'] ?? 'Unknown';
-
-    final userTrainingBucket = levelBucketOrUnknown(
-      userPersonality?['training_patience'],
-      min: 1,
-      max: 5,
-      splitStart: 3,
-    );
-    final userSnugglyBucket = levelBucketOrUnknown(
-      userPersonality?['snuggly_preference'],
-      min: 1,
-      max: 5,
-      splitStart: 3,
-    );
+    final userLivingEnvironment =
+        stringOrUnknown(userLifestyle?['living_environment']);
+    final userDailyAvailability =
+        stringOrUnknown(userLifestyle?['daily_availability']);
+    final userPetOwnershipExperience =
+        stringOrUnknown(userLifestyle?['pet_ownership_experience']);
+    final userLifestylePace = stringOrUnknown(userLifestyle?['lifestyle_pace']);
+    final userBudgetForPetCare =
+        stringOrUnknown(userLifestyle?['budget_for_pet_care']);
+    final userPetPreference = stringOrUnknown(userLifestyle?['pet_preference']);
+    final userSizePreference = stringOrUnknown(userLifestyle?['size_preference']);
 
     final userHasChildren = userHousehold?['has_children'];
     final userHasOtherPets = userHousehold?['has_other_pets'];
@@ -248,22 +197,24 @@ class GeminiService {
         .toList();
 
     return '''
-You are a pet adoption expert AI helping users understand why a pet is a perfect match for THEM specifically.
+You are a pet adoption expert AI helping users understand why a pet is a great match for THEM specifically.
 
-Your task is to explain the compatibility between THIS USER and THIS PET by comparing their traits.
+Always consider these pet fields when explaining matches: `size`, `age`, `ageUnit`, `species`, `breed`, `energyLevel`, `playfulness`, `dailyExercise`, `temperamentTraits`, `quirks`, `goodWithChildren`, `goodWithDogs`, `goodWithCats`, `houseTrained`, `specialNeeds`, `vaccinationTypes`, `spayedNeutered`, `groomingNeeds`, `sheddingLevel`.
+
+Always consider these user profile fields: `living_environment`, `daily_availability`, `pet_ownership_experience`, `lifestyle_pace`, `budget_for_pet_care`, `pet_preference`, `size_preference`, and household flags (`has_children`, `has_other_pets`, `shy_pet_ok`, `had_pet_before`). Use the exact selected option strings from the user's profile when referring to their preferences (for example: "size preference (Subdivision)" or "Lifestyle Pace (Relaxed)"). If a user field is `Unknown`, omit it from the explanation.
+
+Your task is to explain clearly WHY THIS PET matches THIS USER by directly comparing the user's provided answers with the pet's characteristics.
 
 🧑 USER PROFILE (The person adopting):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Lifestyle Preferences:
-  • Activity Level Bucket: $userActivityBucket (low=1-2, high=3-5)
-  • Hairiness Bucket: $userHairinessBucket (0-2=low shedding preferred, 3-5=heavy shedding OK)
-  • Grooming Bucket: $userGroomingBucket (low=1-2, high=3-5)
+  • Living Environment: $userLivingEnvironment
+  • Daily Availability: $userDailyAvailability
+  • Pet Ownership Experience: $userPetOwnershipExperience
+  • Lifestyle Pace: $userLifestylePace
+  • Budget for Pet Care: $userBudgetForPetCare
   • Pet Type Preference: $userPetPreference
   • Size Preference: $userSizePreference
-
-Personality Traits:
-  • Training Patience Bucket: $userTrainingBucket (low=1-2, high=3-5)
-  • Snuggly Preference Bucket: $userSnugglyBucket (low=1-2=more independent OK, high=3-5=loves cuddles)
 
 Household Situation:
   • Has Children: ${yesNoUnknown(userHasChildren)}
@@ -309,8 +260,8 @@ Health Status:
 📊 MATCH SCORES (from SQL function):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   • Overall Match Label: ${petMatch.matchLabel}
-  • Lifestyle Compatibility: ${scoreStrengths['Lifestyle']} (Activity & Size alignment)
-  • Personality Compatibility: ${scoreStrengths['Personality']} (Affection, Independence, Training, Snuggliness)
+  • Lifestyle Compatibility: ${scoreStrengths['Lifestyle']} (Home, availability, pace, budget, type/size)
+  • Personality Compatibility: ${scoreStrengths['Personality']} (Temperament alignment)
   • Household Compatibility: ${scoreStrengths['Household']} (Children, Other pets, Shy pet comfort)
   • Health & Grooming: ${scoreStrengths['Health & Grooming']} (Grooming needs, Special needs)
   • Top Match Areas (to highlight): ${topAreas.isEmpty ? 'None stand out strongly' : topAreas.join(', ')}
@@ -319,32 +270,18 @@ Health Status:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Write a warm, friendly, personalized explanation (2-3 short paragraphs, max 150 words) that:
 
-1. **Starts with excitement** about ${pet.name} being a great match
-2. **Compares USER traits with PET traits** - Show specific alignments like:
-  - "Your activity level bucket (3-5) pairs nicely with ${pet.name}'s energy and daily routine"
-  - "With your hairiness bucket (3-5), you'll feel comfortable with a pet that sheds a bit"
-  - "Since your grooming bucket is (3-5), a more hands-on routine won't feel overwhelming"
-  - "Your training patience bucket (3-5) is great for supporting ${pet.name}'s learning style"
-  - "Your snuggly preference bucket (3-5) lines up well with an affectionate companion"
-3. **Highlight household compatibility** if relevant (children, other pets)
-4. **If a quirk exists (not "None"), weave it naturally into the explanation** - This is ${pet.name}'s unique personality trait that makes them special! Use it to add character and warmth to your explanation. Examples:
-   - "${pet.name} is sweet and easygoing, making her a perfect companion for your moderate activity lifestyle"
-   - "Known as the 'mayordoma' who greets everyone at the kennel doors, ${pet.name}'s friendly nature will bring joy to your home"
-5. **Mention 1-2 strongest score categories** using the "Top Match Areas" list above (do not mention numbers)
-6. **Explicitly connect affection** - compare the user's snuggly preference with the pet's affection level and say whether that comfort level matches well
-7. **Use a warm, conversational tone** - like a friend giving advice
-8. **Include the user's selected level BUCKETS as quick parenthetical refs when you mention each preference** (blend into sentences; do NOT add a separate list at the top or bottom). Do NOT put any numeric refs in the very first sentence. For each preference that is NOT "Unknown", you MUST include:
-  - Activity bucket (e.g., "activity level (3-5)")
-  - Hairiness bucket (e.g., "hairiness tolerance (3-5)")
-  - Grooming bucket (e.g., "grooming tolerance (1-2)")
-  - Snuggly / affection bucket (e.g., "snuggly preference (1-2)")
-  - Training patience bucket (e.g., "training patience (3-5)")
-  - Size preference (e.g., "size preference (Medium)")
-  - Household setup (work in children/other pets/shy-pet comfort/pet experience as "(Yes/No)" when relevant)
-9. **CRITICAL: DO NOT include match score percentages or ANY pet numeric ratings**. The ONLY numbers allowed are the user's bucket ranges in the form "1-2", "3-5", or "0-2".
-10. **If any user preference is listed as "Unknown", do not mention that trait**
-11. **Treat low buckets as "low" and high buckets as "high"** (e.g., 1-2 = low, 3-5 = high; for hairiness 0-2 = low shedding preferred, 3-5 = lots of shedding OK)
-12. **Treat hairiness preference as shedding tolerance** (0 = prefers low shedding, 5 = totally OK with lots of shedding)
+1. Starts with excitement about ${pet.name} being a great match (no numeric refs in the first sentence).
+2. Directly compares the user's provided answers (use their selected option strings in parentheses) with the pet's traits, explaining WHY each alignment matters for day-to-day life. For example:
+   - "Because your `daily_availability` is (Flexible Schedule), ${pet.name}'s moderate energy and daily exercise needs fit into your routine." 
+   - "Your `size_preference` (${userSizePreference}) aligns with ${pet.name}'s size (${pet.size ?? 'Unknown'}), meaning walks and home space are a good fit."
+3. Highlight household compatibility when relevant (children, other pets, shy-pet comfort) and explain the consequences in practical terms.
+4. If a quirk exists (not "None"), weave it naturally into the explanation to add warmth and character.
+5. Mention 1-2 strongest score categories from the Top Match Areas list above (do not mention numeric percentages).
+6. Explicitly connect the user's affection/snuggly preference to the pet's affection description and say whether that comfort level matches well. Use the user's selected string when available.
+7. Use a warm, conversational tone like a friend giving advice.
+8. Include the user's selected option strings in parentheses when you reference their preferences. If the user has numeric-style buckets for some settings, convert them to the user's chosen label or range and show that in parentheses (e.g., "activity level (3-5)" only if the user provided a bucket). Do NOT invent numeric buckets.
+9. CRITICAL: DO NOT include match score percentages or ANY pet numeric ratings in the explanation — only the user's selected preference strings or explicitly provided buckets may include numbers.
+10. If any user preference is listed as "Unknown", do not mention that trait.
 
 Generate the explanation now:
 ''';

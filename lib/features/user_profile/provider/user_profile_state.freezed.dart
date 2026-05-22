@@ -22,21 +22,12 @@ UserProfileState _$UserProfileStateFromJson(Map<String, dynamic> json) {
 mixin _$UserProfileState {
 // Pet preference
   String? get petPreference =>
-      throw _privateConstructorUsedError; // Activity level (Step 1)
-  int? get activityLevel => throw _privateConstructorUsedError; // 0-5
-  String? get activityLabel =>
-      throw _privateConstructorUsedError; // Affection level (Step 2)
-  int? get affectionLevel => throw _privateConstructorUsedError; // 0-5
-  String? get affectionLabel =>
-      throw _privateConstructorUsedError; // Patience level (Step 3)
-  int? get patienceLevel => throw _privateConstructorUsedError; // 0-5
-  String? get patienceLabel =>
-      throw _privateConstructorUsedError; // Hairiness preference (new, 0-5)
-  int? get hairinessLevel => throw _privateConstructorUsedError; // 0-5
-  String? get hairinessLabel =>
-      throw _privateConstructorUsedError; // Grooming level (Step 4)
-  int? get groomingLevel => throw _privateConstructorUsedError; // 0-5
-  String? get groomingLabel =>
+      throw _privateConstructorUsedError; // Lifestyle compatibility preferences (tap-to-select)
+  String? get livingEnvironment => throw _privateConstructorUsedError;
+  String? get dailyAvailability => throw _privateConstructorUsedError;
+  String? get petOwnershipExperience => throw _privateConstructorUsedError;
+  String? get lifestylePace => throw _privateConstructorUsedError;
+  String? get budgetForPetCare =>
       throw _privateConstructorUsedError; // Household fields
   bool? get hasChildren => throw _privateConstructorUsedError;
   bool? get hasOtherPets => throw _privateConstructorUsedError;
@@ -46,10 +37,6 @@ mixin _$UserProfileState {
   bool? get hadPetBefore => throw _privateConstructorUsedError;
   bool? get okayWithSpecialNeeds =>
       throw _privateConstructorUsedError; // Additional fields for future steps
-  String? get livingSpace =>
-      throw _privateConstructorUsedError; // e.g., 'Apartment', 'House', etc.
-  String? get experience =>
-      throw _privateConstructorUsedError; // e.g., 'First-time', 'Experienced', etc.
   List<String>? get preferredBreeds => throw _privateConstructorUsedError;
   String? get agePreference =>
       throw _privateConstructorUsedError; // e.g., 'Puppy', 'Adult', 'Senior'
@@ -78,16 +65,11 @@ abstract class $UserProfileStateCopyWith<$Res> {
   @useResult
   $Res call(
       {String? petPreference,
-      int? activityLevel,
-      String? activityLabel,
-      int? affectionLevel,
-      String? affectionLabel,
-      int? patienceLevel,
-      String? patienceLabel,
-      int? hairinessLevel,
-      String? hairinessLabel,
-      int? groomingLevel,
-      String? groomingLabel,
+      String? livingEnvironment,
+      String? dailyAvailability,
+      String? petOwnershipExperience,
+      String? lifestylePace,
+      String? budgetForPetCare,
       bool? hasChildren,
       bool? hasOtherPets,
       String? existingPetsDescription,
@@ -95,8 +77,6 @@ abstract class $UserProfileStateCopyWith<$Res> {
       bool? financialReady,
       bool? hadPetBefore,
       bool? okayWithSpecialNeeds,
-      String? livingSpace,
-      String? experience,
       List<String>? preferredBreeds,
       String? agePreference,
       String? sizePreference,
@@ -121,16 +101,11 @@ class _$UserProfileStateCopyWithImpl<$Res, $Val extends UserProfileState>
   @override
   $Res call({
     Object? petPreference = freezed,
-    Object? activityLevel = freezed,
-    Object? activityLabel = freezed,
-    Object? affectionLevel = freezed,
-    Object? affectionLabel = freezed,
-    Object? patienceLevel = freezed,
-    Object? patienceLabel = freezed,
-    Object? hairinessLevel = freezed,
-    Object? hairinessLabel = freezed,
-    Object? groomingLevel = freezed,
-    Object? groomingLabel = freezed,
+    Object? livingEnvironment = freezed,
+    Object? dailyAvailability = freezed,
+    Object? petOwnershipExperience = freezed,
+    Object? lifestylePace = freezed,
+    Object? budgetForPetCare = freezed,
     Object? hasChildren = freezed,
     Object? hasOtherPets = freezed,
     Object? existingPetsDescription = freezed,
@@ -138,8 +113,6 @@ class _$UserProfileStateCopyWithImpl<$Res, $Val extends UserProfileState>
     Object? financialReady = freezed,
     Object? hadPetBefore = freezed,
     Object? okayWithSpecialNeeds = freezed,
-    Object? livingSpace = freezed,
-    Object? experience = freezed,
     Object? preferredBreeds = freezed,
     Object? agePreference = freezed,
     Object? sizePreference = freezed,
@@ -152,45 +125,25 @@ class _$UserProfileStateCopyWithImpl<$Res, $Val extends UserProfileState>
           ? _value.petPreference
           : petPreference // ignore: cast_nullable_to_non_nullable
               as String?,
-      activityLevel: freezed == activityLevel
-          ? _value.activityLevel
-          : activityLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      activityLabel: freezed == activityLabel
-          ? _value.activityLabel
-          : activityLabel // ignore: cast_nullable_to_non_nullable
+      livingEnvironment: freezed == livingEnvironment
+          ? _value.livingEnvironment
+          : livingEnvironment // ignore: cast_nullable_to_non_nullable
               as String?,
-      affectionLevel: freezed == affectionLevel
-          ? _value.affectionLevel
-          : affectionLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      affectionLabel: freezed == affectionLabel
-          ? _value.affectionLabel
-          : affectionLabel // ignore: cast_nullable_to_non_nullable
+      dailyAvailability: freezed == dailyAvailability
+          ? _value.dailyAvailability
+          : dailyAvailability // ignore: cast_nullable_to_non_nullable
               as String?,
-      patienceLevel: freezed == patienceLevel
-          ? _value.patienceLevel
-          : patienceLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      patienceLabel: freezed == patienceLabel
-          ? _value.patienceLabel
-          : patienceLabel // ignore: cast_nullable_to_non_nullable
+      petOwnershipExperience: freezed == petOwnershipExperience
+          ? _value.petOwnershipExperience
+          : petOwnershipExperience // ignore: cast_nullable_to_non_nullable
               as String?,
-      hairinessLevel: freezed == hairinessLevel
-          ? _value.hairinessLevel
-          : hairinessLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      hairinessLabel: freezed == hairinessLabel
-          ? _value.hairinessLabel
-          : hairinessLabel // ignore: cast_nullable_to_non_nullable
+      lifestylePace: freezed == lifestylePace
+          ? _value.lifestylePace
+          : lifestylePace // ignore: cast_nullable_to_non_nullable
               as String?,
-      groomingLevel: freezed == groomingLevel
-          ? _value.groomingLevel
-          : groomingLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      groomingLabel: freezed == groomingLabel
-          ? _value.groomingLabel
-          : groomingLabel // ignore: cast_nullable_to_non_nullable
+      budgetForPetCare: freezed == budgetForPetCare
+          ? _value.budgetForPetCare
+          : budgetForPetCare // ignore: cast_nullable_to_non_nullable
               as String?,
       hasChildren: freezed == hasChildren
           ? _value.hasChildren
@@ -220,14 +173,6 @@ class _$UserProfileStateCopyWithImpl<$Res, $Val extends UserProfileState>
           ? _value.okayWithSpecialNeeds
           : okayWithSpecialNeeds // ignore: cast_nullable_to_non_nullable
               as bool?,
-      livingSpace: freezed == livingSpace
-          ? _value.livingSpace
-          : livingSpace // ignore: cast_nullable_to_non_nullable
-              as String?,
-      experience: freezed == experience
-          ? _value.experience
-          : experience // ignore: cast_nullable_to_non_nullable
-              as String?,
       preferredBreeds: freezed == preferredBreeds
           ? _value.preferredBreeds
           : preferredBreeds // ignore: cast_nullable_to_non_nullable
@@ -266,16 +211,11 @@ abstract class _$$UserProfileStateImplCopyWith<$Res>
   @useResult
   $Res call(
       {String? petPreference,
-      int? activityLevel,
-      String? activityLabel,
-      int? affectionLevel,
-      String? affectionLabel,
-      int? patienceLevel,
-      String? patienceLabel,
-      int? hairinessLevel,
-      String? hairinessLabel,
-      int? groomingLevel,
-      String? groomingLabel,
+      String? livingEnvironment,
+      String? dailyAvailability,
+      String? petOwnershipExperience,
+      String? lifestylePace,
+      String? budgetForPetCare,
       bool? hasChildren,
       bool? hasOtherPets,
       String? existingPetsDescription,
@@ -283,8 +223,6 @@ abstract class _$$UserProfileStateImplCopyWith<$Res>
       bool? financialReady,
       bool? hadPetBefore,
       bool? okayWithSpecialNeeds,
-      String? livingSpace,
-      String? experience,
       List<String>? preferredBreeds,
       String? agePreference,
       String? sizePreference,
@@ -307,16 +245,11 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? petPreference = freezed,
-    Object? activityLevel = freezed,
-    Object? activityLabel = freezed,
-    Object? affectionLevel = freezed,
-    Object? affectionLabel = freezed,
-    Object? patienceLevel = freezed,
-    Object? patienceLabel = freezed,
-    Object? hairinessLevel = freezed,
-    Object? hairinessLabel = freezed,
-    Object? groomingLevel = freezed,
-    Object? groomingLabel = freezed,
+    Object? livingEnvironment = freezed,
+    Object? dailyAvailability = freezed,
+    Object? petOwnershipExperience = freezed,
+    Object? lifestylePace = freezed,
+    Object? budgetForPetCare = freezed,
     Object? hasChildren = freezed,
     Object? hasOtherPets = freezed,
     Object? existingPetsDescription = freezed,
@@ -324,8 +257,6 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
     Object? financialReady = freezed,
     Object? hadPetBefore = freezed,
     Object? okayWithSpecialNeeds = freezed,
-    Object? livingSpace = freezed,
-    Object? experience = freezed,
     Object? preferredBreeds = freezed,
     Object? agePreference = freezed,
     Object? sizePreference = freezed,
@@ -338,45 +269,25 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
           ? _value.petPreference
           : petPreference // ignore: cast_nullable_to_non_nullable
               as String?,
-      activityLevel: freezed == activityLevel
-          ? _value.activityLevel
-          : activityLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      activityLabel: freezed == activityLabel
-          ? _value.activityLabel
-          : activityLabel // ignore: cast_nullable_to_non_nullable
+      livingEnvironment: freezed == livingEnvironment
+          ? _value.livingEnvironment
+          : livingEnvironment // ignore: cast_nullable_to_non_nullable
               as String?,
-      affectionLevel: freezed == affectionLevel
-          ? _value.affectionLevel
-          : affectionLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      affectionLabel: freezed == affectionLabel
-          ? _value.affectionLabel
-          : affectionLabel // ignore: cast_nullable_to_non_nullable
+      dailyAvailability: freezed == dailyAvailability
+          ? _value.dailyAvailability
+          : dailyAvailability // ignore: cast_nullable_to_non_nullable
               as String?,
-      patienceLevel: freezed == patienceLevel
-          ? _value.patienceLevel
-          : patienceLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      patienceLabel: freezed == patienceLabel
-          ? _value.patienceLabel
-          : patienceLabel // ignore: cast_nullable_to_non_nullable
+      petOwnershipExperience: freezed == petOwnershipExperience
+          ? _value.petOwnershipExperience
+          : petOwnershipExperience // ignore: cast_nullable_to_non_nullable
               as String?,
-      hairinessLevel: freezed == hairinessLevel
-          ? _value.hairinessLevel
-          : hairinessLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      hairinessLabel: freezed == hairinessLabel
-          ? _value.hairinessLabel
-          : hairinessLabel // ignore: cast_nullable_to_non_nullable
+      lifestylePace: freezed == lifestylePace
+          ? _value.lifestylePace
+          : lifestylePace // ignore: cast_nullable_to_non_nullable
               as String?,
-      groomingLevel: freezed == groomingLevel
-          ? _value.groomingLevel
-          : groomingLevel // ignore: cast_nullable_to_non_nullable
-              as int?,
-      groomingLabel: freezed == groomingLabel
-          ? _value.groomingLabel
-          : groomingLabel // ignore: cast_nullable_to_non_nullable
+      budgetForPetCare: freezed == budgetForPetCare
+          ? _value.budgetForPetCare
+          : budgetForPetCare // ignore: cast_nullable_to_non_nullable
               as String?,
       hasChildren: freezed == hasChildren
           ? _value.hasChildren
@@ -406,14 +317,6 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
           ? _value.okayWithSpecialNeeds
           : okayWithSpecialNeeds // ignore: cast_nullable_to_non_nullable
               as bool?,
-      livingSpace: freezed == livingSpace
-          ? _value.livingSpace
-          : livingSpace // ignore: cast_nullable_to_non_nullable
-              as String?,
-      experience: freezed == experience
-          ? _value.experience
-          : experience // ignore: cast_nullable_to_non_nullable
-              as String?,
       preferredBreeds: freezed == preferredBreeds
           ? _value._preferredBreeds
           : preferredBreeds // ignore: cast_nullable_to_non_nullable
@@ -447,16 +350,11 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
 class _$UserProfileStateImpl extends _UserProfileState {
   const _$UserProfileStateImpl(
       {this.petPreference,
-      this.activityLevel,
-      this.activityLabel,
-      this.affectionLevel,
-      this.affectionLabel,
-      this.patienceLevel,
-      this.patienceLabel,
-      this.hairinessLevel,
-      this.hairinessLabel,
-      this.groomingLevel,
-      this.groomingLabel,
+      this.livingEnvironment,
+      this.dailyAvailability,
+      this.petOwnershipExperience,
+      this.lifestylePace,
+      this.budgetForPetCare,
       this.hasChildren,
       this.hasOtherPets,
       this.existingPetsDescription,
@@ -464,8 +362,6 @@ class _$UserProfileStateImpl extends _UserProfileState {
       this.financialReady,
       this.hadPetBefore,
       this.okayWithSpecialNeeds,
-      this.livingSpace,
-      this.experience,
       final List<String>? preferredBreeds,
       this.agePreference,
       this.sizePreference,
@@ -481,36 +377,17 @@ class _$UserProfileStateImpl extends _UserProfileState {
 // Pet preference
   @override
   final String? petPreference;
-// Activity level (Step 1)
+// Lifestyle compatibility preferences (tap-to-select)
   @override
-  final int? activityLevel;
-// 0-5
+  final String? livingEnvironment;
   @override
-  final String? activityLabel;
-// Affection level (Step 2)
+  final String? dailyAvailability;
   @override
-  final int? affectionLevel;
-// 0-5
+  final String? petOwnershipExperience;
   @override
-  final String? affectionLabel;
-// Patience level (Step 3)
+  final String? lifestylePace;
   @override
-  final int? patienceLevel;
-// 0-5
-  @override
-  final String? patienceLabel;
-// Hairiness preference (new, 0-5)
-  @override
-  final int? hairinessLevel;
-// 0-5
-  @override
-  final String? hairinessLabel;
-// Grooming level (Step 4)
-  @override
-  final int? groomingLevel;
-// 0-5
-  @override
-  final String? groomingLabel;
+  final String? budgetForPetCare;
 // Household fields
   @override
   final bool? hasChildren;
@@ -527,14 +404,8 @@ class _$UserProfileStateImpl extends _UserProfileState {
   @override
   final bool? okayWithSpecialNeeds;
 // Additional fields for future steps
-  @override
-  final String? livingSpace;
-// e.g., 'Apartment', 'House', etc.
-  @override
-  final String? experience;
-// e.g., 'First-time', 'Experienced', etc.
   final List<String>? _preferredBreeds;
-// e.g., 'First-time', 'Experienced', etc.
+// Additional fields for future steps
   @override
   List<String>? get preferredBreeds {
     final value = _preferredBreeds;
@@ -562,7 +433,7 @@ class _$UserProfileStateImpl extends _UserProfileState {
 
   @override
   String toString() {
-    return 'UserProfileState(petPreference: $petPreference, activityLevel: $activityLevel, activityLabel: $activityLabel, affectionLevel: $affectionLevel, affectionLabel: $affectionLabel, patienceLevel: $patienceLevel, patienceLabel: $patienceLabel, hairinessLevel: $hairinessLevel, hairinessLabel: $hairinessLabel, groomingLevel: $groomingLevel, groomingLabel: $groomingLabel, hasChildren: $hasChildren, hasOtherPets: $hasOtherPets, existingPetsDescription: $existingPetsDescription, comfortableWithShyPet: $comfortableWithShyPet, financialReady: $financialReady, hadPetBefore: $hadPetBefore, okayWithSpecialNeeds: $okayWithSpecialNeeds, livingSpace: $livingSpace, experience: $experience, preferredBreeds: $preferredBreeds, agePreference: $agePreference, sizePreference: $sizePreference, isComplete: $isComplete, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
+    return 'UserProfileState(petPreference: $petPreference, livingEnvironment: $livingEnvironment, dailyAvailability: $dailyAvailability, petOwnershipExperience: $petOwnershipExperience, lifestylePace: $lifestylePace, budgetForPetCare: $budgetForPetCare, hasChildren: $hasChildren, hasOtherPets: $hasOtherPets, existingPetsDescription: $existingPetsDescription, comfortableWithShyPet: $comfortableWithShyPet, financialReady: $financialReady, hadPetBefore: $hadPetBefore, okayWithSpecialNeeds: $okayWithSpecialNeeds, preferredBreeds: $preferredBreeds, agePreference: $agePreference, sizePreference: $sizePreference, isComplete: $isComplete, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
   }
 
   @override
@@ -572,26 +443,16 @@ class _$UserProfileStateImpl extends _UserProfileState {
             other is _$UserProfileStateImpl &&
             (identical(other.petPreference, petPreference) ||
                 other.petPreference == petPreference) &&
-            (identical(other.activityLevel, activityLevel) ||
-                other.activityLevel == activityLevel) &&
-            (identical(other.activityLabel, activityLabel) ||
-                other.activityLabel == activityLabel) &&
-            (identical(other.affectionLevel, affectionLevel) ||
-                other.affectionLevel == affectionLevel) &&
-            (identical(other.affectionLabel, affectionLabel) ||
-                other.affectionLabel == affectionLabel) &&
-            (identical(other.patienceLevel, patienceLevel) ||
-                other.patienceLevel == patienceLevel) &&
-            (identical(other.patienceLabel, patienceLabel) ||
-                other.patienceLabel == patienceLabel) &&
-            (identical(other.hairinessLevel, hairinessLevel) ||
-                other.hairinessLevel == hairinessLevel) &&
-            (identical(other.hairinessLabel, hairinessLabel) ||
-                other.hairinessLabel == hairinessLabel) &&
-            (identical(other.groomingLevel, groomingLevel) ||
-                other.groomingLevel == groomingLevel) &&
-            (identical(other.groomingLabel, groomingLabel) ||
-                other.groomingLabel == groomingLabel) &&
+            (identical(other.livingEnvironment, livingEnvironment) ||
+                other.livingEnvironment == livingEnvironment) &&
+            (identical(other.dailyAvailability, dailyAvailability) ||
+                other.dailyAvailability == dailyAvailability) &&
+            (identical(other.petOwnershipExperience, petOwnershipExperience) ||
+                other.petOwnershipExperience == petOwnershipExperience) &&
+            (identical(other.lifestylePace, lifestylePace) ||
+                other.lifestylePace == lifestylePace) &&
+            (identical(other.budgetForPetCare, budgetForPetCare) ||
+                other.budgetForPetCare == budgetForPetCare) &&
             (identical(other.hasChildren, hasChildren) ||
                 other.hasChildren == hasChildren) &&
             (identical(other.hasOtherPets, hasOtherPets) ||
@@ -607,10 +468,6 @@ class _$UserProfileStateImpl extends _UserProfileState {
                 other.hadPetBefore == hadPetBefore) &&
             (identical(other.okayWithSpecialNeeds, okayWithSpecialNeeds) ||
                 other.okayWithSpecialNeeds == okayWithSpecialNeeds) &&
-            (identical(other.livingSpace, livingSpace) ||
-                other.livingSpace == livingSpace) &&
-            (identical(other.experience, experience) ||
-                other.experience == experience) &&
             const DeepCollectionEquality()
                 .equals(other._preferredBreeds, _preferredBreeds) &&
             (identical(other.agePreference, agePreference) ||
@@ -630,16 +487,11 @@ class _$UserProfileStateImpl extends _UserProfileState {
   int get hashCode => Object.hashAll([
         runtimeType,
         petPreference,
-        activityLevel,
-        activityLabel,
-        affectionLevel,
-        affectionLabel,
-        patienceLevel,
-        patienceLabel,
-        hairinessLevel,
-        hairinessLabel,
-        groomingLevel,
-        groomingLabel,
+        livingEnvironment,
+        dailyAvailability,
+        petOwnershipExperience,
+        lifestylePace,
+        budgetForPetCare,
         hasChildren,
         hasOtherPets,
         existingPetsDescription,
@@ -647,8 +499,6 @@ class _$UserProfileStateImpl extends _UserProfileState {
         financialReady,
         hadPetBefore,
         okayWithSpecialNeeds,
-        livingSpace,
-        experience,
         const DeepCollectionEquality().hash(_preferredBreeds),
         agePreference,
         sizePreference,
@@ -677,16 +527,11 @@ class _$UserProfileStateImpl extends _UserProfileState {
 abstract class _UserProfileState extends UserProfileState {
   const factory _UserProfileState(
       {final String? petPreference,
-      final int? activityLevel,
-      final String? activityLabel,
-      final int? affectionLevel,
-      final String? affectionLabel,
-      final int? patienceLevel,
-      final String? patienceLabel,
-      final int? hairinessLevel,
-      final String? hairinessLabel,
-      final int? groomingLevel,
-      final String? groomingLabel,
+      final String? livingEnvironment,
+      final String? dailyAvailability,
+      final String? petOwnershipExperience,
+      final String? lifestylePace,
+      final String? budgetForPetCare,
       final bool? hasChildren,
       final bool? hasOtherPets,
       final String? existingPetsDescription,
@@ -694,8 +539,6 @@ abstract class _UserProfileState extends UserProfileState {
       final bool? financialReady,
       final bool? hadPetBefore,
       final bool? okayWithSpecialNeeds,
-      final String? livingSpace,
-      final String? experience,
       final List<String>? preferredBreeds,
       final String? agePreference,
       final String? sizePreference,
@@ -709,27 +552,18 @@ abstract class _UserProfileState extends UserProfileState {
 
 // Pet preference
   @override
-  String? get petPreference; // Activity level (Step 1)
+  String?
+      get petPreference; // Lifestyle compatibility preferences (tap-to-select)
   @override
-  int? get activityLevel; // 0-5
+  String? get livingEnvironment;
   @override
-  String? get activityLabel; // Affection level (Step 2)
+  String? get dailyAvailability;
   @override
-  int? get affectionLevel; // 0-5
+  String? get petOwnershipExperience;
   @override
-  String? get affectionLabel; // Patience level (Step 3)
+  String? get lifestylePace;
   @override
-  int? get patienceLevel; // 0-5
-  @override
-  String? get patienceLabel; // Hairiness preference (new, 0-5)
-  @override
-  int? get hairinessLevel; // 0-5
-  @override
-  String? get hairinessLabel; // Grooming level (Step 4)
-  @override
-  int? get groomingLevel; // 0-5
-  @override
-  String? get groomingLabel; // Household fields
+  String? get budgetForPetCare; // Household fields
   @override
   bool? get hasChildren;
   @override
@@ -744,10 +578,6 @@ abstract class _UserProfileState extends UserProfileState {
   bool? get hadPetBefore;
   @override
   bool? get okayWithSpecialNeeds; // Additional fields for future steps
-  @override
-  String? get livingSpace; // e.g., 'Apartment', 'House', etc.
-  @override
-  String? get experience; // e.g., 'First-time', 'Experienced', etc.
   @override
   List<String>? get preferredBreeds;
   @override

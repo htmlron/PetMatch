@@ -29,7 +29,7 @@ class PetPreferenceExample extends ConsumerWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EXAMPLE 2: Save Activity Level (in activity_level_setup.dart)
+// EXAMPLE 2: Save Living Environment (in activity_level_setup.dart)
 // ═══════════════════════════════════════════════════════════════════════════
 
 class ActivityLevelExample extends ConsumerStatefulWidget {
@@ -41,15 +41,13 @@ class ActivityLevelExample extends ConsumerStatefulWidget {
 }
 
 class _ActivityLevelExampleState extends ConsumerState<ActivityLevelExample> {
-  final double _activityLevel = 3.0;
+  String _livingEnvironment = 'Apartment';
 
   void _saveActivityLevel() {
-    // ✅ Save activity level with label
-    ref.read(userProfileProvider.notifier).setActivityLevel(
-          context,
-          _activityLevel.round(),
-          'Moderately Active', // Label corresponding to the level
-        );
+    // ✅ Save living environment
+    ref
+        .read(userProfileProvider.notifier)
+        .setLivingEnvironment(context, _livingEnvironment);
 
     // Navigate to next screen
     // context.push('/affection-level');
@@ -65,7 +63,7 @@ class _ActivityLevelExampleState extends ConsumerState<ActivityLevelExample> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EXAMPLE 3: Save Affection Level (in affection_level_setup.dart)
+// EXAMPLE 3: Save Lifestyle Pace (in affection_level_setup.dart)
 // ═══════════════════════════════════════════════════════════════════════════
 
 class AffectionLevelExample extends ConsumerStatefulWidget {
@@ -77,14 +75,13 @@ class AffectionLevelExample extends ConsumerStatefulWidget {
 }
 
 class _AffectionLevelExampleState extends ConsumerState<AffectionLevelExample> {
-  final double _affectionLevel = 3.0;
+  String _lifestylePace = 'Balanced';
 
   void _saveAffectionLevel() {
-    // ✅ Save affection level with label
-    ref.read(userProfileProvider.notifier).setAffectionLevel(
+    // ✅ Save lifestyle pace
+    ref.read(userProfileProvider.notifier).setLifestylePace(
           context,
-          _affectionLevel.round(),
-          'Balanced', // Label corresponding to the level
+          _lifestylePace,
         );
 
     // Navigate to next screen
@@ -101,7 +98,7 @@ class _AffectionLevelExampleState extends ConsumerState<AffectionLevelExample> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EXAMPLE 4: Save Patience Level (in patience_level_setup.dart)
+// EXAMPLE 4: Save Budget for Pet Care (in patience_level_setup.dart)
 // ═══════════════════════════════════════════════════════════════════════════
 
 class PatienceLevelExample extends ConsumerStatefulWidget {
@@ -113,14 +110,13 @@ class PatienceLevelExample extends ConsumerStatefulWidget {
 }
 
 class _PatienceLevelExampleState extends ConsumerState<PatienceLevelExample> {
-  final double _patienceLevel = 3.0;
+  String _budgetForPetCare = 'Moderate';
 
   void _savePatienceLevel() {
-    // ✅ Save patience level with label
-    ref.read(userProfileProvider.notifier).setPatienceLevel(
+    // ✅ Save budget for pet care
+    ref.read(userProfileProvider.notifier).setBudgetForPetCare(
           context,
-          _patienceLevel.round(),
-          'Moderate Patience', // Label corresponding to the level
+          _budgetForPetCare,
         );
 
     // Navigate to next screen or submit profile
@@ -151,9 +147,15 @@ class ProfileSummaryExample extends ConsumerWidget {
     return Column(
       children: [
         Text('Pet Preference: ${profile.petPreference ?? "Not selected"}'),
-        Text('Activity Level: ${profile.activityLevel ?? "Not selected"}'),
-        Text('Affection Level: ${profile.affectionLevel ?? "Not selected"}'),
-        Text('Patience Level: ${profile.patienceLevel ?? "Not selected"}'),
+        Text(
+            'Living Environment: ${profile.livingEnvironment ?? "Not selected"}'),
+        Text(
+            'Daily Availability: ${profile.dailyAvailability ?? "Not selected"}'),
+        Text(
+            'Pet Ownership Experience: ${profile.petOwnershipExperience ?? "Not selected"}'),
+        Text('Lifestyle Pace: ${profile.lifestylePace ?? "Not selected"}'),
+        Text(
+            'Budget for Pet Care: ${profile.budgetForPetCare ?? "Not selected"}'),
         Text('Completion: ${profile.completionPercentage}%'),
         LinearProgressIndicator(
           value: profile.completionPercentage / 100,

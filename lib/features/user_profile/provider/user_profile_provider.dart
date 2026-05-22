@@ -23,8 +23,6 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     return ref.watch(authProvider).userId!;
   }
 
-  String _numericLabel(int level) => '$level';
-
   String? _normalizeSizePreference(String? size) {
     if (size == null) return null;
     final normalized = size.trim().toLowerCase();
@@ -63,132 +61,70 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     }
   }
 
-  void setActivityLevel(BuildContext context, int level, String label) {
-    state = state.copyWith(
-      activityLevel: level,
-      activityLabel: _numericLabel(level),
-    );
-    _logState('Activity level saved: $level - ${_numericLabel(level)}');
+  // Lifestyle compatibility preference setters (onboarding flow)
+  void setLivingEnvironment(BuildContext context, String selection) {
+    state = state.copyWith(livingEnvironment: selection);
+    _logState('Living environment saved: $selection');
     context.push('/onboarding/patience-level');
   }
 
-  void setHairinessLevel(BuildContext context, int level, String label) {
-    state = state.copyWith(
-      hairinessLevel: level,
-      hairinessLabel: _numericLabel(level),
-    );
-    _logState('Hairiness preference saved: $level - ${_numericLabel(level)}');
-    context.push('/onboarding/grooming-level');
-  }
-
-  void updateUserProfile({
-    required int level,
-    required String label,
-    required String column, // EXAMPLE: user_lifestyle
-    required String key, // EXAMPLE: activity_level (IN THE JSON)
-  }) {
-    // The onboarding screens use JSON keys such as 'snuggly_preference'
-    // and 'grooming_tolerance' inside the `personality_traits` object.
-    // Switch on the JSON 'key' and update the corresponding local state.
-    switch (key) {
-      case 'activity_level':
-        state = state.copyWith(
-          activityLevel: level,
-          activityLabel: _numericLabel(level),
-        );
-        break;
-      case 'training_patience':
-        state = state.copyWith(
-          patienceLevel: level,
-          patienceLabel: _numericLabel(level),
-        );
-        break;
-      case 'snuggly_preference':
-        state = state.copyWith(
-          affectionLevel: level,
-          affectionLabel: _numericLabel(level),
-        );
-        break;
-      case 'hairiness_preference':
-        state = state.copyWith(
-          hairinessLevel: level,
-          hairinessLabel: _numericLabel(level),
-        );
-        break;
-      case 'grooming_tolerance':
-        state = state.copyWith(
-          groomingLevel: level,
-          groomingLabel: _numericLabel(level),
-        );
-        break;
-      default:
-        throw ArgumentError('Unsupported update key: $key for column: $column');
-    }
-
-    print(
-        '💾 Updating $column -> $key: $level - ${_numericLabel(level)} in state');
-    _repository.updatePersonalityTrait(
-      userId,
-      column,
-      key,
-      level,
-    );
-
-    _logState('$column updated: $level - ${_numericLabel(level)}');
-  }
-
-  void setPatienceLevel(BuildContext context, int level, String label) {
-    state = state.copyWith(
-      patienceLevel: level,
-      patienceLabel: _numericLabel(level),
-    );
-    _logState('Patience level saved: $level - ${_numericLabel(level)}');
+  void setBudgetForPetCare(BuildContext context, String selection) {
+    state = state.copyWith(budgetForPetCare: selection);
+    _logState('Budget for pet care saved: $selection');
     context.push('/onboarding/affection-level');
   }
 
-  /// Update patience level without navigation (for editing)
-  void updatePatienceLevel(int level, String label) {
-    state = state.copyWith(
-      patienceLevel: level,
-      patienceLabel: _numericLabel(level),
-    );
-
-    _logState('Patience level updated: $level - ${_numericLabel(level)}');
-  }
-
-  void setAffectionLevel(BuildContext context, int level, String label) {
-    state = state.copyWith(
-      affectionLevel: level,
-      affectionLabel: _numericLabel(level),
-    );
-    _logState('Affection level saved: $level - ${_numericLabel(level)}');
+  void setLifestylePace(BuildContext context, String selection) {
+    state = state.copyWith(lifestylePace: selection);
+    _logState('Lifestyle pace saved: $selection');
     context.push('/onboarding/hairiness-level');
   }
 
-  void updateAffectionLevel(int level, String label) {
-    state = state.copyWith(
-      affectionLevel: level,
-      affectionLabel: _numericLabel(level),
-    );
-    _logState('Affection level updated: $level - ${_numericLabel(level)}');
+  void setDailyAvailability(BuildContext context, String selection) {
+    state = state.copyWith(dailyAvailability: selection);
+    _logState('Daily availability saved: $selection');
+    context.push('/onboarding/grooming-level');
   }
 
-  void setGroomingLevel(BuildContext context, int level, String label) {
-    state = state.copyWith(
-      groomingLevel: level,
-      groomingLabel: _numericLabel(level),
-    );
-    _logState('Grooming level saved: $level - ${_numericLabel(level)}');
+  void setPetOwnershipExperience(BuildContext context, String selection) {
+    state = state.copyWith(petOwnershipExperience: selection);
+    _logState('Pet ownership experience saved: $selection');
     context.push('/onboarding/size-preference');
   }
 
-  /// Update grooming level without navigation (for editing)
-  void updateGroomingLevel(int level, String label) {
-    state = state.copyWith(
-      groomingLevel: level,
-      groomingLabel: _numericLabel(level),
+  /// Persist an edited lifestyle preference (profile edit flow)
+  void updateLifestylePreference({
+    required String key, // JSON key inside user_lifestyle
+    required String value,
+  }) {
+    switch (key) {
+      case 'living_environment':
+        state = state.copyWith(livingEnvironment: value);
+        break;
+      case 'daily_availability':
+        state = state.copyWith(dailyAvailability: value);
+        break;
+      case 'pet_ownership_experience':
+        state = state.copyWith(petOwnershipExperience: value);
+        break;
+      case 'lifestyle_pace':
+        state = state.copyWith(lifestylePace: value);
+        break;
+      case 'budget_for_pet_care':
+        state = state.copyWith(budgetForPetCare: value);
+        break;
+      default:
+        throw ArgumentError('Unsupported lifestyle update key: $key');
+    }
+
+    _repository.updatePersonalityTrait(
+      userId,
+      'user_lifestyle',
+      key,
+      value,
     );
-    _logState('Grooming level updated: $level - ${_numericLabel(level)}');
+
+    _logState('user_lifestyle updated: $key = $value');
   }
 
   void setSizePreference(BuildContext context, String size) {
@@ -248,11 +184,12 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       print('❌ Profile incomplete. Cannot submit.');
       print('Missing fields:');
       if (state.petPreference == null) print('  - Pet preference');
-      if (state.activityLevel == null) print('  - Activity level');
-      if (state.affectionLevel == null) print('  - Affection level');
-      if (state.patienceLevel == null) print('  - Patience level');
-      if (state.hairinessLevel == null) print('  - Hairiness preference');
-      if (state.groomingLevel == null) print('  - Grooming tolerance');
+      if (state.livingEnvironment == null) print('  - Living environment');
+      if (state.dailyAvailability == null) print('  - Daily availability');
+      if (state.petOwnershipExperience == null)
+        print('  - Pet ownership experience');
+      if (state.lifestylePace == null) print('  - Lifestyle pace');
+      if (state.budgetForPetCare == null) print('  - Budget for pet care');
       return false;
     }
 
@@ -269,14 +206,13 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         userLifestyle: {
           'pet_preference': state.petPreference,
           'size_preference': _normalizeSizePreference(state.sizePreference),
+          'living_environment': state.livingEnvironment,
+          'daily_availability': state.dailyAvailability,
+          'pet_ownership_experience': state.petOwnershipExperience,
+          'lifestyle_pace': state.lifestylePace,
+          'budget_for_pet_care': state.budgetForPetCare,
         },
-        personalityTraits: {
-          'activity_level': state.activityLevel,
-          'hairiness_preference': state.hairinessLevel,
-          'grooming_tolerance': state.groomingLevel,
-          'snuggly_preference': state.affectionLevel,
-          'training_patience': state.patienceLevel,
-        },
+        personalityTraits: const {},
         householdInfo: {
           'has_children': state.hasChildren,
           'has_other_pets': state.hasOtherPets,
@@ -340,30 +276,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       // Extract data from JSON fields
       final userLifestyle =
           profileData['user_lifestyle'] as Map<String, dynamic>?;
-      final personalityTraits =
-          profileData['personality_traits'] as Map<String, dynamic>?;
       final householdInfo =
           profileData['household_info'] as Map<String, dynamic>?;
 
       // Update state with loaded data
       state = state.copyWith(
         petPreference: userLifestyle?['pet_preference'] as String?,
-        activityLevel: personalityTraits?['activity_level'] as int?,
-        activityLabel:
-            _getActivityLabel(personalityTraits?['activity_level'] as int?),
-        hairinessLevel: personalityTraits?['hairiness_preference'] as int?,
-        hairinessLabel: _getHairinessLabel(
-            personalityTraits?['hairiness_preference'] as int?),
-        groomingLevel: personalityTraits?['grooming_tolerance'] as int?,
-        groomingLabel:
-            _getGroomingLabel(personalityTraits?['grooming_tolerance'] as int?),
+        livingEnvironment: userLifestyle?['living_environment'] as String?,
+        dailyAvailability: userLifestyle?['daily_availability'] as String?,
+        petOwnershipExperience:
+          userLifestyle?['pet_ownership_experience'] as String?,
+        lifestylePace: userLifestyle?['lifestyle_pace'] as String?,
+        budgetForPetCare: userLifestyle?['budget_for_pet_care'] as String?,
         sizePreference: userLifestyle?['size_preference'] as String?,
-        affectionLevel: personalityTraits?['snuggly_preference'] as int?,
-        affectionLabel: _getAffectionLabel(
-            personalityTraits?['snuggly_preference'] as int?),
-        patienceLevel: personalityTraits?['training_patience'] as int?,
-        patienceLabel:
-            _getPatienceLabel(personalityTraits?['training_patience'] as int?),
         hasChildren: householdInfo?['has_children'] as bool?,
         hasOtherPets: householdInfo?['has_other_pets'] as bool?,
         existingPetsDescription:
@@ -386,37 +311,6 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     }
   }
 
-  // Helper methods to convert levels to labels
-  String? _getActivityLabel(int? level) {
-    if (level == null) return null;
-    if (level < 0 || level > 5) return null;
-    return _numericLabel(level);
-  }
-
-  String? _getGroomingLabel(int? level) {
-    if (level == null) return null;
-    if (level < 0 || level > 5) return null;
-    return _numericLabel(level);
-  }
-
-  String? _getHairinessLabel(int? level) {
-    if (level == null) return null;
-    if (level < 0 || level > 5) return null;
-    return _numericLabel(level);
-  }
-
-  String? _getAffectionLabel(int? level) {
-    if (level == null) return null;
-    if (level < 0 || level > 5) return null;
-    return _numericLabel(level);
-  }
-
-  String? _getPatienceLabel(int? level) {
-    if (level == null) return null;
-    if (level < 0 || level > 5) return null;
-    return _numericLabel(level);
-  }
-
   void _logState(String message) {
     print('📝 $message');
     print('Current completion: ${state.completionPercentage}%');
@@ -429,13 +323,14 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     buffer.writeln('🐾 User Profile Summary:');
     buffer.writeln('Pet Preference: ${state.petPreference ?? "Not set"}');
     buffer.writeln(
-        'Activity Level: ${state.activityLevel ?? "Not set"} - ${state.activityLabel ?? ""}');
+      'Living Environment: ${state.livingEnvironment ?? "Not set"}');
     buffer.writeln(
-        'Affection Level: ${state.affectionLevel ?? "Not set"} - ${state.affectionLabel ?? ""}');
+      'Daily Availability: ${state.dailyAvailability ?? "Not set"}');
     buffer.writeln(
-        'Patience Level: ${state.patienceLevel ?? "Not set"} - ${state.patienceLabel ?? ""}');
-    buffer.writeln('Living Space: ${state.livingSpace ?? "Not set"}');
-    buffer.writeln('Experience: ${state.experience ?? "Not set"}');
+      'Pet Ownership Experience: ${state.petOwnershipExperience ?? "Not set"}');
+    buffer.writeln('Lifestyle Pace: ${state.lifestylePace ?? "Not set"}');
+    buffer.writeln(
+      'Budget for Pet Care: ${state.budgetForPetCare ?? "Not set"}');
     buffer.writeln('Age Preference: ${state.agePreference ?? "Not set"}');
     buffer.writeln('Size Preference: ${state.sizePreference ?? "Not set"}');
     buffer.writeln('Completion: ${state.completionPercentage}%');
