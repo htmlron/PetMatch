@@ -347,7 +347,7 @@ class _PetInformationScreenState extends ConsumerState<PetInformationScreen> {
         ),
       ),
       child: DropdownButtonFormField<String>(
-        value: _selectedGender,
+        initialValue: _selectedGender,
         decoration: InputDecoration(
           prefixIcon: Icon(
             Icons.wc,

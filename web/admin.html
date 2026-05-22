@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetMatch Admin</title>
+    <meta name="description" content="Admin dashboard for managing PetMatch pets in real time." />
+    <style>
+      :root {
+        --bg: #f5f7fa;
+        --surface: #ffffff;
+        --surface-strong: #ffffff;
+        --surface-alt: #f9fafb;
+        --text: #0f172a;
+        --text-secondary: #64748b;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --line: #e2e8f0;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --accent-2: #0d9488;
+        --danger: #dc2626;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      h1, h2, h3, h4, h5, h6, p { margin: 0; }
+      
+      /* TYPOGRAPHY SYSTEM */
+      h1 { font-size: 28px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+      h2 { font-size: 20px; font-weight: 600; line-height: 1.3; }
+      h3 { font-size: 16px; font-weight: 600; line-height: 1.4; }
+      
+      .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
+      .text-sm { font-size: 13px; }
+      .text-xs { font-size: 12px; }
+      
+      /* LAYOUT */
+      .shell {
+        margin-left: 260px;
+        min-height: 100vh;
+        padding: 24px;
+        max-width: 100%;
+      }
+      
+      /* SIDEBAR - PROFESSIONAL & COMPACT */
+      .panel {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        z-index: 1000;
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .sidebar-top {
+        padding: 16px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+      }
+      
+      .sidebar-logo-mark {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), #1e40af);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-user {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+      }
+      
+      .sidebar-user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, var(--accent), #1e40af);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-user-info {
+        min-width: 0;
+        flex: 1;
+      }
+      
+      .sidebar-user-label {
+        font-size: 10px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      
+      .sidebar-user-email {
+        font-size: 11px;
+        color: var(--text);
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .sidebar-nav {
+        flex: 1;
+        padding: 8px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      
+      .sidebar-nav-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        padding: 10px 8px 6px;
+      }
+      
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.15s ease;
+        user-select: none;
+      }
+      
+      .nav-item:hover {
+        background: var(--surface-alt);
+        color: var(--accent);
+      }
+      
+      .nav-item-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-cta {
+        padding: 12px;
+        border-top: 1px solid var(--border);
+      }
+      
+      .btn-add-pet {
+        width: 100%;
+        background: var(--accent);
+        color: white;
+        border: 0;
+        border-radius: 6px;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.15s ease;
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .btn-add-pet:hover {
+        background: var(--accent-hover);
+        box-shadow: var(--shadow-md);
+      }
+      
+      .sidebar-bottom {
+        padding: 8px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      
+      .sidebar-utility {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text-secondary);
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+        user-select: none;
+      }
+      
+      .sidebar-utility:hover {
+        background: var(--surface-alt);
+        color: var(--text);
+        border-color: var(--border);
+      }
+      
+      .sidebar-utility-icon {
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-utility-logout:hover {
+        color: var(--danger);
+        background: rgba(220, 38, 38, 0.05);
+      }
+      
+      /* CONTENT AREA */
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 16px;
+      }
+      
+      .brand {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+      
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #9ca3af;
+      }
+      
+      /* HERO SECTION - COMPACT */
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr 0.6fr;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .hero-banner {
+        border-radius: 10px;
+        padding: 16px;
+        color: white;
+        background: linear-gradient(135deg, #1e3a8a 0%, var(--accent) 100%);
+        min-height: 140px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-md);
+      }
+      
+      .hero-banner h2 {
+        font-size: 22px;
+        margin-top: 4px;
+      }
+      
+      .hero-banner .eyebrow {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      
+      .hero-banner .subtle {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 6px;
+      }
+      
+      .chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      
+      .chip {
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .hero-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      
+      .hero-mini {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .metric-label {
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin-top: 4px;
+        color: var(--text);
+      }
+      
+      /* MAIN CONTENT AREA */
+      .content {
+        display: grid;
+        gap: 20px;
+      }
+      
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      /* CARDS & PANELS */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+      }
+      
+      .card-header {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-alt);
+      }
+      
+      .card-content {
+        padding: 16px;
+      }
+      
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .card-header .toolbar {
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .toolbar .left,
+      .toolbar .right {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .card-header .toolbar .right {
+        margin-left: auto;
+        gap: 8px;
+        max-width: none;
+      }
+
+      .card-header h3 {
+        font-size: 15px;
+      }
+
+      .card-header .search,
+      .card-header #speciesFilter {
+        height: 40px;
+        padding: 8px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+
+      .card-header .search {
+        min-width: 180px;
+        width: 180px;
+        max-width: 180px;
+      }
+
+      .card-header #speciesFilter {
+        min-width: 140px;
+        width: 140px;
+      }
+
+      .card-header .message {
+        padding: 8px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      
+      /* FORM ELEMENTS */
+      input,
+      select,
+      textarea {
+        font-family: inherit;
+        font-size: 14px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        padding: 12px 18px;
+        transition: all 0.15s ease;
+        min-height: 44px;
+        box-shadow: none;
+      }
+
+      /* pill-style selects with custom arrow */
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12'><path d='M2 4l4 4 4-4' fill='none' stroke='%23222' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 12px 12px;
+        padding-right: 44px;
+        background-color: white;
+      }
+
+      /* ensure labels and fields align nicely */
+      .field label { margin-bottom: 8px; }
+      .field .vax-label { font-weight:500; }
+
+      /* Checkbox and vaccination label overrides so checkboxes remain small and inline */
+      input[type="checkbox"] {
+        width: auto;
+        height: auto;
+        padding: 0;
+        margin: 0 8px 0 0;
+        -webkit-appearance: checkbox;
+        appearance: checkbox;
+        background: transparent;
+        border: none;
+      }
+
+      .vax-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .vax-checkbox {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
+      
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+      
+      input::placeholder {
+        color: var(--text-secondary);
+      }
+      
+      label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        display: block;
+        margin-bottom: 4px;
+      }
+      
+      .field {
+        display: grid;
+        gap: 4px;
+      }
+      
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        align-items: start;
+      }
+
+      .field-grid > .field {
+        align-self: start;
+      }
+      
+      .field.full {
+        grid-column: 1 / -1;
+      }
+      
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+        border-radius: 12px;
+        padding: 12px 16px;
+      }
+      
+      input[type="file"] {
+        padding: 6px;
+      }
+      
+      /* BUTTONS - pill-style across admin UI */
+      button {
+        font: inherit;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 10px 22px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.15s ease;
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      }
+
+      .btn-primary {
+        background: linear-gradient(180deg, var(--accent), var(--accent-hover));
+        color: white;
+        border: 1px solid rgba(37, 99, 235, 0.12);
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+      }
+
+      .btn-primary:hover {
+        filter: brightness(0.98);
+      }
+
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: #fbfbfd;
+      }
+
+      .btn-danger {
+        background: rgba(220, 38, 38, 0.04);
+        color: var(--danger);
+        border: 1px solid rgba(220, 38, 38, 0.15);
+      }
+
+      .btn-danger:hover {
+        background: rgba(220, 38, 38, 0.08);
+      }
+      
+      /* MESSAGES */
+      .message {
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+      
+      .message.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.2);
+      }
+      
+      .message.error {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--danger);
+        border-color: rgba(220, 38, 38, 0.2);
+      }
+      
+      .hidden {
+        display: none !important;
+      }
+      
+      /* PET CARDS GRID */
+      .pet-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 14px;
+      }
+      
+      .pet-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.15s ease;
+      }
+      
+      .pet-card:hover {
+        box-shadow: var(--shadow-md);
+      }
+      
+      .pet-cover {
+        height: 160px;
+        background: #e5e7eb center/cover no-repeat;
+        position: relative;
+      }
+      
+      .pet-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.95);
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .pet-content {
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+      }
+      
+      .pet-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: start;
+      }
+      
+      .pet-title h3 {
+        font-size: 14px;
+      }
+      
+      .pet-meta {
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      /* Level controls and rubrics */
+      .level-field { position: relative; }
+      .level-rubric-toggle {
+        margin-top: 2px;
+        padding: 8px 10px;
+        font-weight: 600;
+        align-self: flex-start;
+      }
+      .level-rubric {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: calc(100% + 8px);
+        z-index: 40;
+        padding: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: var(--shadow-md);
+        width: min(340px, calc(100vw - 48px));
+        max-height: 320px;
+        overflow: auto;
+      }
+      .level-rubric ul { margin: 0; padding-left: 18px; }
+      .level-rubric li + li { margin-top: 6px; }
+      .level-rubric p { margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+      
+      .pet-description {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      
+      .chip {
+        padding: 3px 6px;
+        border-radius: 3px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+      
+      .image-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      
+      .pet-actions {
+        display: flex;
+        gap: 6px;
+      }
+      
+      .preview-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      
+      .preview-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 4px;
+        background: #e5e7eb center/cover no-repeat;
+        border: 1px solid var(--border);
+      }
+      
+      /* AUTH VIEW */
+      .auth-wrap {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      
+      .auth-card {
+        width: min(400px, 100%);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+      }
+      
+      .auth-panel {
+        padding: 32px;
+      }
+      
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+      
+      .search {
+        min-width: 180px;
+      }
+      
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      /* RESPONSIVE */
+      @media (max-width: 1200px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+        
+        .hero-stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      
+      @media (max-width: 768px) {
+        .shell {
+          margin-left: 0;
+          padding: 12px;
+        }
+        
+        .panel {
+          position: fixed;
+          left: 0;
+          top: auto;
+          bottom: 0;
+          width: 100%;
+          height: auto;
+          border-right: none;
+          border-top: 1px solid var(--border);
+          flex-direction: row;
+          align-items: center;
+          padding: 8px;
+          z-index: 1000;
+        }
+        
+        .sidebar-top {
+          flex: 1;
+          border-bottom: none;
+          border-right: 1px solid var(--border);
+          padding-right: 12px;
+          margin-right: 12px;
+        }
+        
+        .sidebar-nav {
+          flex-direction: row;
+          padding: 0;
+          gap: 4px;
+          flex: 2;
+          border-right: 1px solid var(--border);
+          padding-right: 12px;
+          margin-right: 12px;
+        }
+        
+        .sidebar-nav-label {
+          display: none;
+        }
+        
+        .sidebar-cta {
+          flex: 0 0 auto;
+          padding: 0 12px;
+          border: none;
+          border-right: 1px solid var(--border);
+          margin-right: 12px;
+        }
+        
+        .sidebar-bottom {
+          flex-direction: row;
+          padding: 0;
+          border: none;
+          gap: 4px;
+          margin-left: auto;
+        }
+        
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .hero-stats {
+          grid-template-columns: 1fr;
+        }
+        
+        .pet-grid {
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        
+        .pet-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .metric-value { font-size: 28px; font-weight: 800; margin-top: 4px; letter-spacing: -0.03em; }
+      .actions { display: grid; gap: 10px; margin-top: 16px; }
+      
+      /* Adjust main content for fixed sidebar */
+      main { margin-left: 300px; }
+      .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+      button, input, select, textarea { font: inherit; }
+      .btn { border: 0; border-radius: 16px; padding: 12px 16px; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease; will-change: auto; font-weight: 700; }
+      .btn:hover { transform: translateY(-1px); }
+      .btn-primary { background: linear-gradient(135deg, var(--accent), #4c7dff); color: white; box-shadow: 0 12px 24px rgba(31, 94, 255, 0.2); }
+      .btn-secondary { background: rgba(255,255,255,0.95); color: var(--text); border: 1px solid var(--line); box-shadow: 0 8px 18px rgba(16, 32, 51, 0.05); }
+      .btn-danger { background: rgba(191, 47, 77, 0.08); color: var(--danger); border: 1px solid rgba(191, 47, 77, 0.18); box-shadow: 0 8px 18px rgba(16, 32, 51, 0.04); }
+      .content { display: grid; gap: 16px; contain: layout; }
+      .hero { padding: 18px; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; overflow: hidden; position: relative; }
+      .hero-banner {
+        border-radius: 24px; padding: 20px; color: white;
+        background:
+          radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 28%),
+          linear-gradient(135deg, #0f1f3a 0%, #173a73 55%, #1f5eff 100%);
+        min-height: 196px; display: flex; flex-direction: column; justify-content: space-between; contain: layout;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+      }
+      .hero-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: stretch; }
+      .hero-mini { background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.9); border-radius: 22px; padding: 14px; box-shadow: 0 8px 20px rgba(16, 32, 51, 0.06); }
+      .hero-mini .metric-value { font-size: 24px; }
+      .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+      .auth-card { width: min(440px, 100%); overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.86)); }
+      .auth-panel { padding: 40px 28px; }
+      #editorCard {
+        width: min(100%, 920px);
+        margin-inline: auto;
+      }
+      #editorCard .card-content {
+        display: flex;
+        justify-content: center;
+      }
+      #petForm {
+        width: 100%;
+      }
+      .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      #editorCard .field-grid { grid-template-columns: repeat(2, minmax(0, 320px)); justify-content: center; }
+      .field { display: grid; gap: 8px; }
+      .field.full { grid-column: 1 / -1; }
+      label { font-size: 13px; font-weight: 700; color: var(--muted); }
+      input, select, textarea { width: 100%; border-radius: 16px; border: 1px solid var(--line); background: rgba(255,255,255,0.95); padding: 12px 14px; color: var(--text); transform: translateZ(0); box-shadow: inset 0 1px 0 rgba(255,255,255,0.8); transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease; }
+      input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: rgba(31, 94, 255, 0.4);
+        box-shadow: 0 0 0 4px rgba(31, 94, 255, 0.12);
+      }
+      textarea { min-height: 110px; resize: vertical; }
+      input[type="file"] { padding: 10px; }
+      .section-title { font-size: 18px; margin-bottom: 10px; letter-spacing: -0.02em; text-align: center; width: 100%; }
+      .stack { display: grid; gap: 16px; }
+      .card {
+        padding: 18px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 22px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      }
+      .toolbar { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+      .toolbar .left, .toolbar .right { display: flex; gap: 10px; flex-wrap: wrap; }
+      .search {
+        min-width: 220px;
+        width: 220px;
+        max-width: 220px;
+      }
+      .pet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; will-change: auto; }
+      .pet-card { overflow: hidden; display: grid; gap: 0; contain: layout paint; backface-visibility: hidden; transform: translateZ(0); border-radius: 22px; background: var(--surface-strong); border: 1px solid rgba(16, 32, 51, 0.08); box-shadow: 0 14px 34px rgba(16, 32, 51, 0.08); }
+      .pet-cover { height: 190px; background-color: #cbd5e1; background-position: center; background-size: cover; background-repeat: no-repeat; position: relative; }
+      .pet-badge { position: absolute; top: 14px; left: 14px; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.9); font-size: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 8px 18px rgba(16, 32, 51, 0.08); }
+      .pet-content { padding: 18px; display: grid; gap: 10px; }
+      .pet-title { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+      .pet-title h3 { font-size: 18px; }
+      .pet-meta { color: var(--muted); font-size: 13px; line-height: 1.55; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip { padding: 7px 10px; border-radius: 999px; background: rgba(31, 94, 255, 0.08); color: var(--accent); font-size: 12px; font-weight: 700; }
+      .image-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+      .image-pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.95); border-radius: 999px; padding: 8px 10px; font-size: 12px; box-shadow: 0 8px 18px rgba(16, 32, 51, 0.04); }
+      .message { padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.82); border: 1px solid var(--line); color: var(--muted); }
+      .message.success { color: var(--accent-2); }
+      .message.error { color: var(--danger); }
+      .hidden { display: none !important; }
+      .preview-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .preview-box { width: 88px; height: 88px; border-radius: 18px; background-color: #cbd5e1; background-position: center; background-size: cover; background-repeat: no-repeat; border: 1px solid var(--line); box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08); }
+      @media (max-width: 1100px) {
+        .grid, .hero { grid-template-columns: 1fr; }
+        .hero-stats, .field-grid { grid-template-columns: 1fr; }
+        .auth-card { width: 100%; }
+        .panel { position: fixed; left: 0; right: 0; top: auto; bottom: 0; width: auto; height: auto; border-radius: 24px 24px 0 0; max-width: none; }
+        main { margin-left: 0; margin-bottom: 420px; }
+      }
+      @media (max-width: 720px) {
+        .shell { padding: 14px; }
+        .topbar { flex-direction: column; align-items: flex-start; }
+        .hero, .card, .auth-panel { padding-left: 16px; padding-right: 16px; }
+        .hero-banner { min-height: 170px; }
+        .search { min-width: 0; }
+        #editorCard { width: 100%; }
+        #editorCard .card-content { display: block; }
+        #editorCard .field-grid { grid-template-columns: 1fr; }
+        .panel { padding: 16px 14px; bottom: 0; height: auto; flex-direction: row; flex-wrap: wrap; border-radius: 24px 24px 0 0; }
+        .sidebar-top { border-bottom: none; border-right: 1px solid rgba(16,32,51,0.06); padding: 0 16px 0 0; margin-bottom: 0; }
+        .sidebar-nav { padding: 0; flex-direction: row; gap: 0; border-left: 1px solid rgba(16,32,51,0.06); padding-left: 16px; }
+        .sidebar-nav-label { display: none; }
+        .nav-item { padding: 8px; font-size: 12px; }
+        .sidebar-cta { padding: 0; border: none; order: 5; width: 100%; }
+        .sidebar-bottom { padding: 0; border: none; order: 4; flex-direction: row; margin-left: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="authView" class="auth-wrap hidden">
+      <div class="auth-card">
+        <div class="auth-panel">
+          <div style="margin-bottom: 32px;">
+            <p class="eyebrow">Admin Dashboard</p>
+            <h1>PetMatch Admin</h1>
+            <p class="subtle">Manage and organize pets for your community</p>
+          </div>
+          <form id="loginForm" class="stack" style="margin-top: 32px;">
+            <div class="field"><label for="email">Email Address</label><input id="email" type="email" autocomplete="email" placeholder="your@email.com" required /></div>
+            <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required /></div>
+            <button class="btn btn-primary" type="submit" style="padding: 14px 16px; font-weight: 600;">Sign In</button>
+            <div id="authMessage" class="message hidden"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <main id="dashboardView" class="shell hidden">
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="panel">
+        <!-- Logo -->
+        <div class="sidebar-top">
+          <div class="sidebar-logo">
+            <div class="sidebar-logo-mark">🐾</div>
+            <span>PetMatch</span>
+          </div>
+          
+          <!-- User Profile -->
+          <div class="sidebar-user">
+            <div class="sidebar-user-avatar" id="adminAvatar">A</div>
+            <div class="sidebar-user-info">
+              <div class="sidebar-user-label">Logged in</div>
+              <div class="sidebar-user-email" id="adminEmail" title="Admin email">admin@petmatch.com</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="sidebar-nav">
+          <div class="sidebar-nav-label">Navigation</div>
+          <div class="nav-item" onclick="document.getElementById('petGrid').scrollIntoView({behavior:'smooth'});">
+            <span class="nav-item-icon">📊</span>
+            <span>Dashboard</span>
+          </div>
+        </nav>
+        
+        <!-- Add Pet Button -->
+        <div class="sidebar-cta">
+          <button id="newPetButton" class="btn-add-pet" type="button">+ Add Pet</button>
+        </div>
+        
+        <!-- Bottom Actions -->
+        <div class="sidebar-bottom">
+          <div class="sidebar-utility" id="refreshButton" title="Refresh data">
+            <span class="sidebar-utility-icon">🔄</span>
+            <span>Refresh</span>
+          </div>
+          <div class="sidebar-utility sidebar-utility-logout" id="logoutButton" title="Sign out">
+            <span class="sidebar-utility-icon">🚪</span>
+            <span>Sign Out</span>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- MAIN CONTENT -->
+      <div class="content">
+        <!-- Header -->
+        <div class="topbar">
+          <div class="brand">
+            <h1>Pet Management</h1>
+            <div class="eyebrow" style="margin: 0 0 0 12px;">Real-time admin panel</div>
+          </div>
+          <div class="status-pill">
+            <span class="dot" id="syncDot"></span>
+            <span id="syncLabel">Connecting...</span>
+          </div>
+        </div>
+        
+        <!-- Hero Section -->
+        <section class="hero">
+          <div class="hero-banner">
+            <div>
+              <p class="eyebrow">Pet Inventory</p>
+              <h2 id="heroTitle">Loading pets...</h2>
+              <p class="subtle" id="heroSubtitle">Manage all pets in your system</p>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-mini">
+              <div class="metric-label">Total Pets</div>
+              <div class="metric-value" id="statPets">0</div>
+            </div>
+            <div class="hero-mini">
+              <div class="metric-label">Dogs</div>
+              <div class="metric-value" id="statDogs">0</div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Pet Editor Card -->
+        <div id="editorCard" class="card hidden">
+          <div class="card-header">
+            <div class="toolbar">
+              <div>
+                <h3>Add or Edit Pet</h3>
+              </div>
+            </div>
+          </div>
+          <div class="card-content">
+            <form id="petForm" class="stack">
+              <input id="petId" type="hidden" />
+              
+              <!-- Basic Info -->
+              <div style="margin-bottom: 12px;">
+                <h4 class="section-title">Basic Information</h4>
+                <div class="field-grid">
+                  <div class="field">
+                    <label for="petName">Name *</label>
+                    <input id="petName" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  </div>
+                  <div class="field">
+                    <label for="species">Species *</label>
+                    <select id="species" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Select species</option><option value="Dog">Dog</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="breed">Breed</label>
+                    <input id="breed" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  </div>
+                  <div class="field">
+                    <label for="age">Age</label>
+                    <input id="age" type="number" min="0" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  </div>
+                  <div class="field">
+                    <label for="gender">Gender</label>
+                    <select id="gender" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="Male">Male</option><option value="Female">Female</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="size">Size</label>
+                    <select id="size" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="small">Small (about 5-10 kg, 20-35 cm)</option><option value="medium">Medium (about 11-20 kg, 36-55 cm)</option><option value="large">Large (about 21+ kg, 56+ cm)</option></select>
+                    <div class="text-xs" style="color: var(--muted);">Use the pet's approximate kilo and height to decide the size.</div>
+                  </div>
+                  <div class="field">
+                    <label for="status">Status</label>
+                    <select id="status" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Select status</option><option value="Available">Available</option><option value="Adopted">Adopted</option></select>
+                  </div>
+                  <div class="field level-field">
+                    <label for="groomingNeeds">Grooming Needs (0-5)</label>
+                    <select id="groomingNeeds" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - None</option>
+                      <option value="1">1 - Minimal</option>
+                      <option value="2">2 - Low</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="groomingRubricBtn" class="btn btn-secondary level-rubric-toggle">Show grooming rubric ▾</button>
+                    <div id="groomingRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - None:</strong> Naturally low-maintenance or no grooming routine needed.</li>
+                        <li><strong>1 - Minimal:</strong> Very light coat care; brushing or cleaning is rarely needed.</li>
+                        <li><strong>2 - Low:</strong> Occasional brushing and basic hygiene are enough.</li>
+                        <li><strong>3 - Moderate:</strong> Regular brushing and routine care keep the pet comfortable.</li>
+                        <li><strong>4 - High:</strong> Frequent brushing, baths, or coat maintenance are needed.</li>
+                        <li><strong>5 - Very High:</strong> Intensive grooming, trimming, or frequent maintenance is required.</li>
+                      </ul>
+                      <p>Use coat type, shedding, tangles, cleanliness, and maintenance needs as your guide.</p>
+                    </div>
+                  </div>
+                  <div class="field level-field">
+                    <label for="hairinessPreference">Hairiness / Shedding (0-5)</label>
+                    <select id="hairinessPreference" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Low shedding</option>
+                      <option value="1">1 - Light shedding</option>
+                      <option value="2">2 - Some fur</option>
+                      <option value="3">3 - Noticeable shedding</option>
+                      <option value="4">4 - Lots of fur</option>
+                      <option value="5">5 - Heavy shedding</option>
+                    </select>
+                    <button type="button" id="hairinessRubricBtn" class="btn btn-secondary level-rubric-toggle">Show hairiness rubric ▾</button>
+                    <div id="hairinessRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Low shedding:</strong> Minimal shedding; easy to keep floors and clothes clean.</li>
+                        <li><strong>1 - Light shedding:</strong> Occasional fur; quick brushing helps.</li>
+                        <li><strong>2 - Some fur:</strong> Moderate shedding; lint rollers and regular brushing recommended.</li>
+                        <li><strong>3 - Noticeable shedding:</strong> Fur is common around the home; frequent brushing helps a lot.</li>
+                        <li><strong>4 - Lots of fur:</strong> Heavy shedding or seasonal blowouts; expect regular cleanup.</li>
+                        <li><strong>5 - Heavy shedding:</strong> Very heavy shedding; fur on furniture/clothes is expected.</li>
+                      </ul>
+                      <p>Use coat length/density, seasonal shedding, and how quickly fur builds up in the home as your guide.</p>
+                    </div>
+                  </div>
+                  <div class="field full">
+                    <label for="description">Description</label>
+                    <textarea id="description" placeholder="Describe this pet..." required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Media -->
+              <div style="margin-bottom: 12px;">
+                <h4 class="section-title">Media</h4>
+                <div class="field-grid">
+                  <div class="field full">
+                    <label for="thumbnail">Thumbnail Image</label>
+                    <input id="thumbnail" type="file" accept="image/*" />
+                  </div>
+                  <div class="field full">
+                    <label for="gallery">Gallery Images</label>
+                    <input id="gallery" type="file" accept="image/*" multiple />
+                  </div>
+                  <div class="field full">
+                    <div class="preview-row" id="filePreviews"></div>
+                  </div>
+                  <div class="field full">
+                    <div class="preview-row" id="existingImages"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Health & Behavior -->
+              <div style="margin-bottom: 12px;">
+                <h4 class="section-title">Health & Behavior</h4>
+                <div class="field-grid">
+                  <div class="field" style="position:relative;">
+                      <label for="vaccinationToggleBtn">Vaccination</label>
+                      <button type="button" id="vaccinationToggleBtn" class="btn btn-secondary" style="padding:8px 10px;font-weight:600;">Show vaccination details ▾</button>
+                      <div id="vaccinationDetails" style="display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:40;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-md);width:320px;max-height:320px;overflow:auto;">
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="rabies" class="vax-checkbox"> Anti-rabies (Rabies)</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="distemper" class="vax-checkbox"> Distemper</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="parvo" class="vax-checkbox"> Parvo</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="bordetella" class="vax-checkbox"> Bordetella (Kennel cough)</label>
+                        <label class="vax-label" style="margin-bottom:6px;"><input type="checkbox" value="heartworm" class="vax-checkbox"> Heartworm prevention</label>
+                        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+                          <label style="margin:0;">Recommended checkup interval (consult vet)</label>
+                          <select id="vaccinationUpdate" style="width:220px;">
+                            <option value="6">Every 6 months</option>
+                            <option value="12">Every 12 months</option>
+                            <option value="24">Every 24 months</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  <div class="field">
+                    <label for="spayedNeutered">Spayed/Neutered</label>
+                    <select id="spayedNeutered" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="specialNeeds">Special Needs</label>
+                    <select id="specialNeeds" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="goodWithChildren">Good with Children</label>
+                    <select id="goodWithChildren" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="goodWithOtherPets">Good with other pets</label>
+                    <select id="goodWithOtherPets" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="houseTrained">House Trained</label>
+                    <select id="houseTrained" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"><option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select>
+                  </div>
+                  <div class="field full">
+                    <label for="healthNotes">Health Notes</label>
+                    <textarea id="healthNotes" placeholder="Any health concerns..."></textarea>
+                  </div>
+                  <div class="field full">
+                    <label for="behavioralNotes">Behavioral Notes</label>
+                    <textarea id="behavioralNotes" placeholder="Behavioral details..."></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Personality -->
+              <div style="margin-bottom: 12px;">
+                <h4 class="section-title">Personality</h4>
+                <div class="field-grid">
+                  <div class="field level-field">
+                    <label for="energyLevel">Energy Level (0-5)</label>
+                    <select id="energyLevel" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Very Calm</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Light</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="energyRubricBtn" class="btn btn-secondary level-rubric-toggle">Show energy rubric ▾</button>
+                    <div id="energyRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Very Calm:</strong> Sleeps or rests most of the day and rarely seeks activity.</li>
+                        <li><strong>1 - Low:</strong> Relaxed and steady; only short bursts of movement.</li>
+                        <li><strong>2 - Light:</strong> Enjoys short walks and mild play without much intensity.</li>
+                        <li><strong>3 - Moderate:</strong> Balanced energy; likes a normal amount of daily activity.</li>
+                        <li><strong>4 - High:</strong> Active and lively; needs regular exercise and engagement.</li>
+                        <li><strong>5 - Very High:</strong> Extremely energetic and needs strong daily outlets.</li>
+                      </ul>
+                      <p>Judge by movement, stamina, rest patterns, and how much activity the pet seeks.</p>
+                    </div>
+                  </div>
+                  <div class="field level-field">
+                    <label for="playfulness">Playfulness (0-5)</label>
+                    <select id="playfulness" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - None</option>
+                      <option value="1">1 - Very Low</option>
+                      <option value="2">2 - Low</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="playfulnessRubricBtn" class="btn btn-secondary level-rubric-toggle">Show playfulness rubric ▾</button>
+                    <div id="playfulnessRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - None:</strong> Shows little or no interest in toys or play.</li>
+                        <li><strong>1 - Very Low:</strong> Rarely initiates play, but may join briefly.</li>
+                        <li><strong>2 - Low:</strong> Enjoys occasional short play sessions.</li>
+                        <li><strong>3 - Moderate:</strong> Responds well to toys, games, and interaction.</li>
+                        <li><strong>4 - High:</strong> Actively seeks play and engagement.</li>
+                        <li><strong>5 - Very High:</strong> Loves frequent interactive play and stimulation.</li>
+                      </ul>
+                      <p>Look at toy interest, chase behavior, pouncing, and how often the pet asks to play.</p>
+                    </div>
+                  </div>
+                  <div class="field full">
+                    <label for="dailyExercise">Daily Exercise Needs</label>
+                    <input id="dailyExercise" placeholder="e.g., 2 hours of walking" />
+                  </div>
+                  <div class="field level-field">
+                    <label for="affectionLevel">Affection Level (0-5)</label>
+                    <select id="affectionLevel" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Minimal</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Mild</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="affectionRubricBtn" class="btn btn-secondary level-rubric-toggle">Show affection rubric ▾</button>
+                    <div id="affectionRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Minimal:</strong> Avoids contact and prefers to be left alone.</li>
+                        <li><strong>1 - Low:</strong> Accepts little contact and is cautious with affection.</li>
+                        <li><strong>2 - Mild:</strong> Tolerates gentle attention and light petting.</li>
+                        <li><strong>3 - Moderate:</strong> Enjoys interaction and responds well to affection.</li>
+                        <li><strong>4 - High:</strong> Frequently seeks cuddles and physical closeness.</li>
+                        <li><strong>5 - Very High:</strong> Loves constant contact and being held or petted.</li>
+                      </ul>
+                      <p>Use meet-and-greet behavior, approach response, body relaxation, and contact seeking.</p>
+                    </div>
+                  </div>
+                  <div class="field level-field">
+                    <label for="independence">Independence (0-5)</label>
+                    <select id="independence" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Dependent</option>
+                      <option value="1">1 - Very Low</option>
+                      <option value="2">2 - Low</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="independenceRubricBtn" class="btn btn-secondary level-rubric-toggle">Show independence rubric ▾</button>
+                    <div id="independenceRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Dependent:</strong> Needs constant company and reassurance.</li>
+                        <li><strong>1 - Very Low:</strong> Strongly attached and dislikes being alone.</li>
+                        <li><strong>2 - Low:</strong> Prefers presence and regular check-ins.</li>
+                        <li><strong>3 - Moderate:</strong> Handles some alone time comfortably.</li>
+                        <li><strong>4 - High:</strong> Comfortable with independence and routine alone time.</li>
+                        <li><strong>5 - Very High:</strong> Highly independent and relaxed when alone.</li>
+                      </ul>
+                      <p>Think about separation comfort, attachment level, and how often the pet seeks human presence.</p>
+                    </div>
+                  </div>
+                  <div class="field level-field">
+                    <label for="adaptability">Adaptability (0-5)</label>
+                    <select id="adaptability" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Very Low</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Mild</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - High</option>
+                      <option value="5">5 - Very High</option>
+                    </select>
+                    <button type="button" id="adaptabilityRubricBtn" class="btn btn-secondary level-rubric-toggle">Show adaptability rubric ▾</button>
+                    <div id="adaptabilityRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Very Low:</strong> Struggles with change and new environments.</li>
+                        <li><strong>1 - Low:</strong> Needs lots of time and support to adjust.</li>
+                        <li><strong>2 - Mild:</strong> Can adapt slowly when introduced carefully.</li>
+                        <li><strong>3 - Moderate:</strong> Adjusts to new routines with some help.</li>
+                        <li><strong>4 - High:</strong> Adapts well to new people, places, and routines.</li>
+                        <li><strong>5 - Very High:</strong> Extremely flexible and settles in quickly.</li>
+                      </ul>
+                      <p>Consider stress response, routine changes, travel, and how quickly the pet settles in.</p>
+                    </div>
+                  </div>
+                  <div class="field level-field">
+                    <label for="trainingDifficulty">Training Difficulty (0-5)</label>
+                    <select id="trainingDifficulty" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')">
+                      <option value="0">0 - Very Easy</option>
+                      <option value="1">1 - Easy</option>
+                      <option value="2">2 - Mild</option>
+                      <option value="3">3 - Moderate</option>
+                      <option value="4">4 - Challenging</option>
+                      <option value="5">5 - Very Challenging</option>
+                    </select>
+                    <button type="button" id="trainingRubricBtn" class="btn btn-secondary level-rubric-toggle">Show training rubric ▾</button>
+                    <div id="trainingRubric" class="level-rubric">
+                      <ul>
+                        <li><strong>0 - Very Easy:</strong> Learns quickly and responds well to training.</li>
+                        <li><strong>1 - Easy:</strong> Picks up commands with light guidance.</li>
+                        <li><strong>2 - Mild:</strong> Needs some repetition but learns steadily.</li>
+                        <li><strong>3 - Moderate:</strong> Requires consistent training and patience.</li>
+                        <li><strong>4 - Challenging:</strong> Takes longer to learn and may resist new commands.</li>
+                        <li><strong>5 - Very Challenging:</strong> Needs strong consistency and experienced handling.</li>
+                      </ul>
+                      <p>Use response to cues, consistency, obedience, and how much repetition the pet needs.</p>
+                    </div>
+                  </div>
+                  <div class="field full">
+                    <label for="traits">Temperament Traits</label>
+                    <textarea id="traits" placeholder="e.g., Friendly, playful, calm" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')"></textarea>
+                  </div>
+                  <div class="field full">
+                    <label for="quirk">Special Quirk</label>
+                    <input id="quirk" placeholder="e.g., Loves belly rubs" required oninvalid="this.setCustomValidity('Please fill out this field')" oninput="this.setCustomValidity('')" />
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Actions -->
+              <div class="toolbar" style="margin-top: 16px;">
+                <div class="message" id="formMessage">Ready to add a new pet.</div>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                  <button id="saveButton" class="btn btn-primary" type="submit">Save Pet</button>
+                  <button id="cancelEditButton" class="btn btn-secondary hidden" type="button">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <!-- Pets List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="toolbar">
+              <div>
+                <h3>All Pets</h3>
+              </div>
+              <div class="right">
+                <input id="searchInput" class="search" type="search" placeholder="Search pets..." />
+                <select id="speciesFilter" style="min-width: 120px;"><option value="All">All species</option><option value="Dog">Dogs</option></select>
+                <div class="message" id="lastSyncMessage">Waiting...</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-content" style="padding: 0;">
+            <div id="petGrid" class="pet-grid" style="padding: 16px;"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script type="module">
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+      const SUPABASE_URL = 'https://prpcsfkzxninfiyasacd.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycGNzZmt6eG5pbmZpeWFzYWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0ODYwNDAsImV4cCI6MjA3NTA2MjA0MH0.4IIRcQRtep_MjzG5E1lJaJ34sAYd1ywqQwidShIt5cM';
+      const baseSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const bucketName = 'pets';
+      const authView = document.getElementById('authView');
+      const dashboardView = document.getElementById('dashboardView');
+      const loginForm = document.getElementById('loginForm');
+      const authMessage = document.getElementById('authMessage');
+      const formMessage = document.getElementById('formMessage');
+      const syncDot = document.getElementById('syncDot');
+      const syncLabel = document.getElementById('syncLabel');
+      const petGrid = document.getElementById('petGrid');
+      const petForm = document.getElementById('petForm');
+      const cancelEditButton = document.getElementById('cancelEditButton');
+      const newPetButton = document.getElementById('newPetButton');
+      const refreshButton = document.getElementById('refreshButton');
+      const logoutButton = document.getElementById('logoutButton');
+      const searchInput = document.getElementById('searchInput');
+      const speciesFilter = document.getElementById('speciesFilter');
+      const adminEmail = document.getElementById('adminEmail');
+      const adminAvatar = document.getElementById('adminAvatar');
+      const heroTitle = document.getElementById('heroTitle');
+      const heroSubtitle = document.getElementById('heroSubtitle');
+      const statPets = document.getElementById('statPets');
+      const statDogs = document.getElementById('statDogs');
+      const filePreviews = document.getElementById('filePreviews');
+      const existingImages = document.getElementById('existingImages');
+      const lastSyncMessage = document.getElementById('lastSyncMessage');
+
+      const state = { session: null, profile: null, pets: [], editingPet: null, selectedThumbnail: null, selectedGallery: [], removedImages: new Set(), realtimeChannel: null, client: baseSupabase };
+
+      const editorCard = document.getElementById('editorCard');
+
+      function showEditor() { if (editorCard) { editorCard.classList.remove('hidden'); window.scrollTo({ top: editorCard.offsetTop - 20, behavior: 'smooth' }); } }
+      function hideEditor() { if (editorCard) { editorCard.classList.add('hidden'); } }
+
+      const $ = (id) => document.getElementById(id);
+      const normalizeBool = (value) => (value === '' || value === null || value === undefined ? null : value === 'true' || value === true);
+      const normalizeNumber = (value) => (value === '' || value === null || value === undefined ? null : Number.isFinite(Number(value)) ? Number(value) : null);
+      const sanitizeFilename = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'pet';
+      const fileExt = (file) => (file?.name?.includes('.') ? file.name.split('.').pop().toLowerCase() : 'png');
+      const setStatus = (dotColor, label) => { syncDot.style.background = dotColor; syncLabel.textContent = label; };
+      const setMessage = (el, text, kind = '') => { el.textContent = text; el.className = `message${kind ? ` ${kind}` : ''}`; };
+      const showAuth = (message = '', kind = '') => { authView.classList.remove('hidden'); dashboardView.classList.add('hidden'); if (message) setMessage(authMessage, message, kind); authMessage.classList.toggle('hidden', !message); };
+      const showDashboard = () => { authView.classList.add('hidden'); dashboardView.classList.remove('hidden'); };
+      const getCharacteristicBlock = (pet) => Array.isArray(pet.pet_characteristics) ? pet.pet_characteristics[0] || {} : pet.pet_characteristics || {};
+      const getImagePaths = (pet) => (pet.pets_images || []).map((img) => img.image_path).filter(Boolean);
+      const getClient = () => state.client || baseSupabase;
+      const makeStorageUrl = (petId, filename) => getClient().storage.from(bucketName).getPublicUrl(`${petId}/${filename}`).data.publicUrl;
+      const resolveText = (value) => (value === null || value === undefined || value === '' ? 'Unknown' : String(value));
+
+      // Wire vaccination toggle button for initial page load
+      try {
+        document.addEventListener('DOMContentLoaded', () => {
+          const btn = document.getElementById('vaccinationToggleBtn');
+          const details = document.getElementById('vaccinationDetails');
+          if (!btn || !details) return;
+          btn.addEventListener('click', () => {
+            const isHidden = details.style.display === 'none' || details.style.display === '';
+            details.style.display = isHidden ? 'block' : 'none';
+            btn.textContent = isHidden ? 'Hide vaccination details ▴' : 'Show vaccination details ▾';
+          });
+          const rubricPairs = [
+            ['groomingRubricBtn', 'groomingRubric'],
+            ['hairinessRubricBtn', 'hairinessRubric'],
+            ['energyRubricBtn', 'energyRubric'],
+            ['playfulnessRubricBtn', 'playfulnessRubric'],
+            ['affectionRubricBtn', 'affectionRubric'],
+            ['independenceRubricBtn', 'independenceRubric'],
+            ['adaptabilityRubricBtn', 'adaptabilityRubric'],
+            ['trainingRubricBtn', 'trainingRubric'],
+          ];
+
+          const rubricTargets = rubricPairs.map(([buttonId, panelId]) => ({
+            button: document.getElementById(buttonId),
+            panel: document.getElementById(panelId),
+          })).filter(({ button, panel }) => button && panel);
+
+          const setRubricButtonState = (button, isOpen) => {
+            const label = button.dataset.label || 'rubric';
+            button.textContent = `${isOpen ? 'Hide' : 'Show'} ${label} ${isOpen ? '▴' : '▾'}`;
+          };
+
+          const closeAllRubrics = () => {
+            rubricTargets.forEach(({ button, panel }) => {
+              panel.style.display = 'none';
+              setRubricButtonState(button, false);
+            });
+          };
+
+          rubricTargets.forEach(({ button, panel }) => {
+            const label = button.textContent.replace(/^Show\s+/, '').replace(/^Hide\s+/, '').replace(/\s+▾$/, '').replace(/\s+▴$/, '');
+            button.dataset.label = label;
+            button.addEventListener('click', (event) => {
+              event.preventDefault();
+              const isHidden = panel.style.display === 'none' || panel.style.display === '';
+              closeAllRubrics();
+              panel.style.display = isHidden ? 'block' : 'none';
+              setRubricButtonState(button, isHidden);
+              if (isHidden) {
+                rubricTargets.forEach(({ button: otherButton, panel: otherPanel }) => {
+                  if (otherPanel !== panel) {
+                    otherPanel.style.display = 'none';
+                    setRubricButtonState(otherButton, false);
+                  }
+                });
+              }
+            });
+          });
+
+          document.addEventListener('click', (event) => {
+            const clickedInsideRubric = rubricTargets.some(({ button, panel }) => button.contains(event.target) || panel.contains(event.target));
+            if (!clickedInsideRubric) {
+              rubricTargets.forEach(({ button, panel }) => {
+                panel.style.display = 'none';
+                setRubricButtonState(button, false);
+              });
+            }
+          });
+        });
+      } catch (e) {
+        console.warn('Failed to wire vaccination toggle', e);
+      }
+
+      async function signInWithPassword(email, password) {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error_description || payload.msg || payload.message || 'Unable to sign in');
+        }
+
+        return payload;
+      }
+
+      function renderPreviews() {
+        filePreviews.innerHTML = '';
+        const files = [state.selectedThumbnail, ...state.selectedGallery].filter(Boolean);
+        files.forEach((file) => {
+          const box = document.createElement('div');
+          box.className = 'preview-box';
+          box.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+          filePreviews.appendChild(box);
+        });
+      }
+
+      function resetForm() {
+        state.editingPet = null;
+        state.selectedThumbnail = null;
+        state.selectedGallery = [];
+        state.removedImages = new Set();
+        petForm.reset();
+        $('petId').value = '';
+        $('species').value = 'Dog';
+        $('status').value = 'Available';
+        $('energyLevel').value = '0'; $('playfulness').value = '0'; $('affectionLevel').value = '0'; $('independence').value = '0'; $('adaptability').value = '0'; $('trainingDifficulty').value = '0'; $('groomingNeeds').value = '0'; $('hairinessPreference').value = '0';
+        $('dailyExercise').value = ''; $('traits').value = ''; $('quirk').value = ''; $('healthNotes').value = ''; $('behavioralNotes').value = ''; filePreviews.innerHTML = ''; existingImages.innerHTML = '';
+        cancelEditButton.classList.add('hidden');
+        setMessage(formMessage, 'Ready to add a new pet.');
+        // ensure vaccination details are hidden and button reset
+        try {
+          const details = document.getElementById('vaccinationDetails');
+          const btn = document.getElementById('vaccinationToggleBtn');
+          if (details) details.style.display = 'none';
+          if (btn) btn.textContent = 'Show vaccination details ▾';
+          document.querySelectorAll('.vax-checkbox').forEach((cb) => cb.checked = false);
+          if ($('vaccinationUpdate')) $('vaccinationUpdate').value = '12';
+        } catch (e) { /* ignore */ }
+      }
+
+      function renderExistingImages(pet) {
+        existingImages.innerHTML = '';
+        const imagePaths = [];
+
+        if (pet.thumbnail_path) {
+          imagePaths.push({ label: 'Thumbnail', path: pet.thumbnail_path });
+        }
+
+        getImagePaths(pet).forEach((path, index) => {
+          imagePaths.push({ label: `Image ${index + 1}`, path });
+        });
+
+        if (!imagePaths.length) {
+          existingImages.innerHTML = '<span class="image-pill">No stored images yet.</span>';
+          return;
+        }
+
+        imagePaths.forEach(({ label, path }) => {
+          const pill = document.createElement('span');
+          pill.className = 'image-pill';
+          pill.innerHTML = `<span>${label}</span><strong>${path}</strong>`;
+
+          if (label !== 'Thumbnail') {
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.textContent = 'Remove';
+            remove.onclick = async () => {
+              const confirmed = window.confirm(`Remove ${path}?`);
+              if (!confirmed) return;
+              try {
+                await deletePetImage(pet.pet_id, path);
+                if (state.editingPet?.pet_id === pet.pet_id) state.removedImages.add(path);
+                await refreshPets();
+                fillForm(state.pets.find((item) => item.pet_id === pet.pet_id) || pet);
+              } catch (error) {
+                setMessage(formMessage, error.message || String(error), 'error');
+              }
+            };
+            pill.appendChild(remove);
+          }
+
+          existingImages.appendChild(pill);
+        });
+      }
+
+      function fillForm(pet) {
+        state.editingPet = pet;
+        $('petId').value = pet.pet_id; $('petName').value = pet.name ?? ''; $('species').value = pet.species ?? 'Dog'; $('breed').value = pet.breed ?? ''; $('age').value = pet.age ?? ''; $('gender').value = pet.gender ?? ''; $('size').value = pet.size ?? ''; $('status').value = pet.status ?? 'Available'; $('description').value = pet.description ?? ''; $('groomingNeeds').value = pet.groomingNeeds ?? getCharacteristicBlock(pet).temperament?.grooming_needs ?? ''; $('hairinessPreference').value = getCharacteristicBlock(pet).temperament?.shedding_level ?? 0;
+        const characteristics = getCharacteristicBlock(pet); const behavior = characteristics.behavior_tags || {}; const health = characteristics.health_notes || {}; const activity = characteristics.activity_level || {}; const temperament = characteristics.temperament || {};
+        // populate vaccination checkboxes and update frequency
+        document.querySelectorAll('.vax-checkbox').forEach((cb) => cb.checked = false);
+        if (Array.isArray(health.vaccination_types)) {
+          health.vaccination_types.forEach((type) => {
+            const el = Array.from(document.querySelectorAll('.vax-checkbox')).find((i) => i.value === String(type));
+            if (el) el.checked = true;
+          });
+        } else if (health.vaccinations === true) {
+          // legacy boolean - mark update frequency default
+          // no specific vaccines known
+        }
+        $('vaccinationUpdate').value = health.vaccination_update_months ?? 12;
+        // show/hide vaccination details depending on data
+        try {
+          const vaxTypes = Array.isArray(health.vaccination_types) ? health.vaccination_types : [];
+          const shouldShow = (vaxTypes && vaxTypes.length) || health.vaccinations === true;
+          const details = document.getElementById('vaccinationDetails');
+          const btn = document.getElementById('vaccinationToggleBtn');
+          if (details) details.style.display = shouldShow ? 'block' : 'none';
+          if (btn) btn.textContent = shouldShow ? 'Hide vaccination details ▴' : 'Show vaccination details ▾';
+        } catch (e) { console.warn('Vaccination UI toggle error', e); }
+        $('spayedNeutered').value = health.spayed_neutered === null || health.spayed_neutered === undefined ? '' : String(Boolean(health.spayed_neutered));
+        $('specialNeeds').value = health.special_needs === null || health.special_needs === undefined ? '' : String(Boolean(health.special_needs));
+        $('goodWithChildren').value = behavior.good_with_children === null || behavior.good_with_children === undefined ? '' : String(Boolean(behavior.good_with_children));
+        // Combine dogs/cats into single admin control
+        if (behavior.good_with_dogs === null && behavior.good_with_cats === null) {
+          $('goodWithOtherPets').value = '';
+        } else {
+          const any = Boolean(behavior.good_with_dogs) || Boolean(behavior.good_with_cats);
+          $('goodWithOtherPets').value = String(any);
+        }
+        $('houseTrained').value = behavior.house_trained === null || behavior.house_trained === undefined ? '' : String(Boolean(behavior.house_trained));
+        $('healthNotes').value = health.health_notes_text ?? health.health_notes ?? ''; $('behavioralNotes').value = characteristics.behavioral_notes ?? ''; $('energyLevel').value = activity.energy_level ?? pet.energyLevel ?? 0; $('playfulness').value = activity.playfulness ?? pet.playfulness ?? 0; $('dailyExercise').value = activity.daily_exercise ?? activity.daily_exercise_needs ?? pet.dailyExercise ?? ''; $('affectionLevel').value = temperament.affection_level ?? pet.affectionLevel ?? 0; $('independence').value = temperament.independence ?? pet.independence ?? 0; $('adaptability').value = temperament.adaptability ?? pet.adaptability ?? 0; $('trainingDifficulty').value = temperament.training_difficulty ?? pet.trainingDifficulty ?? 0; $('traits').value = Array.isArray(temperament.temperament_traits) ? temperament.temperament_traits.join(', ') : ''; $('quirk').value = characteristics.quirk ?? pet.quirks ?? '';
+        renderExistingImages(pet);
+        cancelEditButton.classList.remove('hidden');
+        setMessage(formMessage, `Editing ${pet.name}. Save to update the app instantly.`);
+        showEditor();
+      }
+
+      function renderPetCards() {
+        const query = searchInput.value.trim().toLowerCase(); const species = speciesFilter.value;
+        const filtered = state.pets.filter((pet) => (species === 'All' || (pet.species || '').toLowerCase() === species.toLowerCase()) && (!query || [pet.name, pet.breed, pet.description].filter(Boolean).join(' ').toLowerCase().includes(query)));
+        petGrid.innerHTML = '';
+        if (!filtered.length) { petGrid.innerHTML = '<div class="message">No pets found.</div>'; return; }
+        filtered.forEach((pet) => {
+          const card = document.createElement('article'); card.className = 'card pet-card';
+          const cover = document.createElement('div'); cover.className = 'pet-cover';
+          const imagePaths = getImagePaths(pet); const coverUrl = pet.thumbnail_path ? makeStorageUrl(pet.pet_id, pet.thumbnail_path) : (imagePaths[0] ? makeStorageUrl(pet.pet_id, imagePaths[0]) : '');
+          cover.style.backgroundImage = coverUrl ? `linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.34)), url(${coverUrl})` : 'linear-gradient(135deg, #eae3d8, #d8c6b3)';
+          const badge = document.createElement('div'); badge.className = 'pet-badge'; badge.textContent = `${resolveText(pet.status)} • ${resolveText(pet.size)}`; cover.appendChild(badge);
+          const content = document.createElement('div'); content.className = 'pet-content';
+          const title = document.createElement('div'); title.className = 'pet-title'; title.innerHTML = `<div><h3>${pet.name}</h3><div class="pet-meta">${resolveText(pet.breed)} • ${resolveText(pet.age)} • ${resolveText(pet.gender)}</div></div>`;
+          const chips = document.createElement('div'); chips.className = 'chips';
+          const behavior = getCharacteristicBlock(pet).behavior_tags || {}; const chipLabels = [behavior.good_with_children === true ? 'Kids' : null, (behavior.good_with_dogs === true || behavior.good_with_cats === true) ? 'Other pets' : null, behavior.house_trained === true ? 'House trained' : null].filter(Boolean);
+          chipLabels.slice(0, 3).forEach((label) => { const chip = document.createElement('span'); chip.className = 'chip'; chip.textContent = label; chips.appendChild(chip); });
+          const meta = document.createElement('div'); meta.className = 'pet-meta'; meta.textContent = pet.description || 'No description provided yet.';
+          const imageStrip = document.createElement('div'); imageStrip.className = 'image-strip'; imageStrip.innerHTML = `<span class="image-pill">${imagePaths.length + (pet.thumbnail_path ? 1 : 0)} images</span>`;
+          const footer = document.createElement('div'); footer.className = 'toolbar';
+          const editButton = document.createElement('button'); editButton.className = 'btn btn-secondary'; editButton.type = 'button'; editButton.textContent = 'Edit'; editButton.onclick = () => fillForm(pet);
+          const deleteButton = document.createElement('button'); deleteButton.className = 'btn btn-danger'; deleteButton.type = 'button'; deleteButton.textContent = 'Delete'; deleteButton.onclick = () => deletePet(pet);
+          footer.appendChild(editButton); footer.appendChild(deleteButton);
+          content.appendChild(title); content.appendChild(chips); content.appendChild(meta); content.appendChild(imageStrip); content.appendChild(footer);
+          card.appendChild(cover); card.appendChild(content); petGrid.appendChild(card);
+        });
+      }
+
+      async function fetchPets() {
+        setStatus('#bbb', 'Refreshing...'); setMessage(lastSyncMessage, 'Fetching pets from Supabase...');
+        const { data, error } = await getClient().from('pets').select('*, pets_images(*), pet_characteristics(*)').neq('status', 'adopted').order('created_at', { ascending: false });
+        if (error) { setStatus('var(--danger)', 'Sync failed'); setMessage(lastSyncMessage, error.message, 'error'); throw error; }
+        state.pets = data || []; statPets.textContent = state.pets.length; statDogs.textContent = state.pets.filter((pet) => (pet.species || '').toLowerCase() === 'dog').length;
+        const firstPet = state.pets[0]; heroTitle.textContent = state.pets.length ? `${state.pets.length} pets ready to match` : 'No pets yet'; heroSubtitle.textContent = firstPet ? `Latest update: ${firstPet.name} is now live in the app and visible to matching users.` : 'Add a pet to start populating the matching feed.';
+        renderPetCards(); setStatus('#1e6f5c', 'Live sync on'); setMessage(lastSyncMessage, `Last synced at ${new Date().toLocaleTimeString()}`, 'success');
+      }
+
+      async function refreshPets() { try { await fetchPets(); } catch (_) {} }
+
+      async function deletePetImage(petId, imagePath) {
+        await getClient().storage.from(bucketName).remove([`${petId}/${imagePath}`]);
+        await getClient().from('pets_images').delete().match({ pet_id: petId, image_path: imagePath });
+      }
+
+      async function deletePet(pet) {
+        if (!window.confirm(`Delete ${pet.name}? This cannot be undone.`)) return;
+        try {
+          setMessage(formMessage, `Deleting ${pet.name}...`);
+          for (const imagePath of getImagePaths(pet)) await getClient().storage.from(bucketName).remove([`${pet.pet_id}/${imagePath}`]);
+          if (pet.thumbnail_path) await getClient().storage.from(bucketName).remove([`${pet.pet_id}/${pet.thumbnail_path}`]);
+          await getClient().from('pets_images').delete().eq('pet_id', pet.pet_id);
+          await getClient().from('pet_characteristics').delete().eq('pet_id', pet.pet_id);
+          await getClient().from('favorites').delete().eq('pet_id', pet.pet_id);
+          await getClient().from('pets').delete().eq('pet_id', pet.pet_id);
+          setMessage(formMessage, `${pet.name} deleted.`, 'success'); if (state.editingPet?.pet_id === pet.pet_id) resetForm(); await refreshPets();
+        } catch (error) { setMessage(formMessage, error.message || String(error), 'error'); }
+      }
+
+      async function savePet(event) {
+        event.preventDefault();
+        const petId = $('petId').value || crypto.randomUUID();
+        const name = $('petName').value.trim();
+        const species = $('species').value; const breed = $('breed').value.trim(); const age = normalizeNumber($('age').value); const gender = $('gender').value || null; const size = $('size').value || null; const status = $('status').value || 'Available'; const description = $('description').value.trim(); const groomingNeeds = normalizeNumber($('groomingNeeds').value); const hairinessPreference = normalizeNumber($('hairinessPreference').value);
+        if (!name || !species) { setMessage(formMessage, 'Name and species are required.', 'error'); return; }
+        try {
+          setMessage(formMessage, 'Saving pet...');
+          const isEditing = Boolean($('petId').value);
+          const petRecord = { pet_id: petId, name, species, breed: breed || null, age: age ?? 0, gender, size, status, description: description || null, is_adopted: String(status).toLowerCase() === 'adopted', created_at: new Date().toISOString() };
+          console.log('Saving pet record payload:', petRecord);
+
+          if (state.selectedThumbnail) {
+            const thumbName = `${sanitizeFilename(name)}-thumbnail.${fileExt(state.selectedThumbnail)}`;
+            const { error: thumbError } = await getClient().storage.from(bucketName).upload(`${petId}/${thumbName}`, state.selectedThumbnail, { upsert: true });
+            if (thumbError) { console.error('Thumbnail upload error:', thumbError); setMessage(formMessage, `Thumbnail upload failed: ${thumbError.message || thumbError}`, 'error'); return; }
+            petRecord.thumbnail_path = thumbName;
+          } else if (state.editingPet?.thumbnail_path) {
+            petRecord.thumbnail_path = state.editingPet.thumbnail_path;
+          }
+
+          if (isEditing) {
+            const { data: updated, error: updateError } = await getClient().from('pets').update(petRecord).eq('pet_id', petId).select();
+            if (updateError) { console.error('Pets update error:', updateError); setMessage(formMessage, `Update failed: ${updateError.message || updateError}`, 'error'); return; }
+            console.log('Pets updated:', updated);
+          } else {
+            const { data: inserted, error: insertError } = await getClient().from('pets').insert(petRecord).select();
+            if (insertError) { console.error('Pets insert error:', insertError); setMessage(formMessage, `Insert failed: ${insertError.message || insertError}`, 'error'); return; }
+            console.log('Pets inserted:', inserted);
+          }
+
+          if (state.selectedGallery.length) {
+            const rows = [];
+            for (let index = 0; index < state.selectedGallery.length; index += 1) {
+              const file = state.selectedGallery[index];
+              const imageName = `${sanitizeFilename(name)}-${Date.now()}-${index}.${fileExt(file)}`;
+              const { error: uploadError } = await getClient().storage.from(bucketName).upload(`${petId}/${imageName}`, file, { upsert: true });
+              if (uploadError) { console.error('Gallery upload error:', uploadError); setMessage(formMessage, `Gallery upload failed: ${uploadError.message || uploadError}`, 'error'); return; }
+              rows.push({ pet_id: petId, image_path: imageName, created_at: new Date().toISOString() });
+            }
+            const { error: imagesError } = await getClient().from('pets_images').insert(rows);
+            if (imagesError) { console.error('pets_images insert error:', imagesError); setMessage(formMessage, `Images insert failed: ${imagesError.message || imagesError}`, 'error'); return; }
+          }
+
+          const vaxChecked = Array.from(document.querySelectorAll('.vax-checkbox')).filter((i) => i.checked).map((i) => i.value);
+          const characteristicsPayload = {
+            pet_id: petId,
+            behavior_tags: { good_with_children: normalizeBool($('goodWithChildren').value), good_with_dogs: normalizeBool($('goodWithOtherPets').value), good_with_cats: normalizeBool($('goodWithOtherPets').value), house_trained: normalizeBool($('houseTrained').value) },
+            health_notes: { vaccinations: vaxChecked.length > 0 ? true : false, vaccination_types: vaxChecked.length ? vaxChecked : null, vaccination_update_months: (function(){ const n = parseInt($('vaccinationUpdate').value, 10); return Number.isFinite(n) ? n : null; })(), spayed_neutered: normalizeBool($('spayedNeutered').value), special_needs: normalizeBool($('specialNeeds').value), health_notes_text: $('healthNotes').value.trim() || null, special_needs_description: null },
+            activity_level: { energy_level: normalizeNumber($('energyLevel').value), playfulness: normalizeNumber($('playfulness').value), daily_exercise_needs: $('dailyExercise').value.trim() || null },
+            temperament: { affection_level: normalizeNumber($('affectionLevel').value), independence: normalizeNumber($('independence').value), adaptability: normalizeNumber($('adaptability').value), training_difficulty: normalizeNumber($('trainingDifficulty').value), grooming_needs: groomingNeeds, shedding_level: hairinessPreference, temperament_traits: $('traits').value.split(',').map((value) => value.trim()).filter(Boolean) },
+            quirk: $('quirk').value.trim() || null,
+            updated_at: new Date().toISOString(),
+          };
+
+          console.log('Upserting characteristics:', characteristicsPayload);
+          const { data: charsData, error: charsError } = await getClient().from('pet_characteristics').upsert(characteristicsPayload, { onConflict: 'pet_id' }).select();
+          if (charsError) { console.error('pet_characteristics upsert error:', charsError); setMessage(formMessage, `Characteristics save failed: ${charsError.message || charsError}`, 'error'); return; }
+
+          setMessage(formMessage, isEditing ? 'Pet updated successfully.' : 'Pet added successfully.', 'success');
+          hideEditor();
+          resetForm(); await refreshPets();
+        } catch (error) { console.error('savePet caught error:', error); setMessage(formMessage, error.message || String(error), 'error'); }
+      }
+
+      async function openAdminSession(session) {
+        state.session = session; 
+        const email = session?.user?.email || '-';
+        adminEmail.textContent = email; 
+        adminAvatar.textContent = email[0]?.toUpperCase() || 'A';
+        showDashboard(); 
+        await refreshPets();
+        if (state.realtimeChannel) await getClient().removeChannel(state.realtimeChannel);
+        state.realtimeChannel = getClient().channel('admin-pet-feed')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, (payload) => {
+            console.log('🔔 Pets table change detected:', payload.eventType);
+            refreshPets();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pets_images' }, (payload) => {
+            console.log('🔔 Pets images table change detected:', payload.eventType);
+            refreshPets();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pet_characteristics' }, (payload) => {
+            console.log('🔔 Pet characteristics table change detected:', payload.eventType);
+            refreshPets();
+          })
+          .subscribe((status) => {
+            console.log('Realtime subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Realtime sync active');
+              setStatus('#1e6f5c', 'Live sync on');
+            }
+          });
+      }
+
+      async function handleSession(session, accessToken) {
+        if (!session || !accessToken) { state.session = null; state.profile = null; state.client = baseSupabase; showAuth(); setStatus('#bbb', 'Signed out'); return; }
+
+        state.client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        });
+
+        if (state.client.realtime?.setAuth) {
+          state.client.realtime.setAuth(accessToken);
+        }
+
+        let role = null;
+
+        const { data: userRecord, error: userError } = await getClient()
+          .from('users')
+          .select('user_role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (!userError && userRecord) {
+          role = userRecord.user_role || null;
+        }
+
+        if (!role) {
+          const { data: profileRecord, error: profileError } = await getClient()
+            .from('user_profile')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (!profileError && profileRecord) {
+            role = profileRecord.role || null;
+          }
+        }
+
+        if (!role) {
+          state.client = baseSupabase;
+          showAuth('No admin role was found for this account. Check the users table or user_profile record.', 'error');
+          return;
+        }
+
+        if (role !== 'admin') {
+          state.client = baseSupabase;
+          showAuth(`This account is signed in, but its role is "${role}" instead of "admin".`, 'error');
+          return;
+        }
+
+        state.profile = { role };
+        await openAdminSession(session);
+      }
+
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); setMessage(authMessage, 'Signing in...');
+
+        try {
+          const authResult = await signInWithPassword($('email').value.trim(), $('password').value);
+          // persist admin session to localStorage so refresh won't sign out
+          try {
+            localStorage.setItem('admin_session', JSON.stringify({ user: authResult.user, accessToken: authResult.access_token }));
+          } catch (e) { console.warn('Failed to persist admin session', e); }
+          await handleSession({ user: authResult.user }, authResult.access_token);
+        } catch (error) {
+          showAuth(error.message || String(error), 'error');
+        }
+      });
+      petForm.addEventListener('submit', savePet);
+      cancelEditButton.addEventListener('click', () => { resetForm(); hideEditor(); });
+      newPetButton.addEventListener('click', () => {
+        resetForm();
+        // When adding a new pet, show the cancel control so admin can abort
+        cancelEditButton.classList.remove('hidden');
+        setMessage(formMessage, 'Adding a new pet. Click Cancel to abort.');
+        showEditor();
+      });
+      refreshButton.addEventListener('click', refreshPets);
+      logoutButton.addEventListener('click', async () => {
+        try { localStorage.removeItem('admin_session'); } catch (e) { /* ignore */ }
+        if (state.realtimeChannel) {
+          try { await getClient().removeChannel(state.realtimeChannel); } catch (e) { console.warn('Failed to remove channel', e); }
+        }
+        state.client = baseSupabase; state.session = null; state.profile = null; showAuth(); setStatus('#bbb', 'Signed out');
+      });
+      $('thumbnail').addEventListener('change', (event) => { state.selectedThumbnail = event.target.files?.[0] || null; renderPreviews(); });
+      $('gallery').addEventListener('change', (event) => { state.selectedGallery = Array.from(event.target.files || []); renderPreviews(); });
+      searchInput.addEventListener('input', renderPetCards); speciesFilter.addEventListener('change', renderPetCards);
+      // Try to restore session from localStorage before showing auth
+      try {
+        const saved = localStorage.getItem('admin_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.user && parsed.accessToken) {
+            // Attempt to reuse saved session
+            await handleSession({ user: parsed.user }, parsed.accessToken);
+          } else {
+            showAuth(); setStatus('#bbb', 'Signed out');
+          }
+        } else {
+          showAuth(); setStatus('#bbb', 'Signed out');
+        }
+      } catch (e) {
+        console.warn('Session restore failed', e);
+        showAuth(); setStatus('#bbb', 'Signed out');
+      }
+    </script>
+  </body>
+</html>

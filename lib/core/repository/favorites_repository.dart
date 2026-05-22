@@ -13,8 +13,6 @@ class FavoritesRepository {
         params: {'limit_count': limit}).select();
     print('Response: $response');
 
-    if (response == null) return [];
-
     return (response as List)
         .map((json) => Pet.fromJson(json as Map<String, dynamic>))
         .toList();

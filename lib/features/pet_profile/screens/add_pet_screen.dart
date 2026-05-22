@@ -117,7 +117,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     _existingThumbnailUrl = pet.thumbnailUrl;
 
     // Health Information
-    _isVaccinationUpToDate = pet.vaccinations;
+    _isVaccinationUpToDate = pet.vaccinations ?? (pet.vaccinationTypes.isNotEmpty ? true : null);
     _isSpayedNeutered = pet.spayedNeutered;
     _hasSpecialNeeds = pet.specialNeeds;
     _groomingNeeds = pet.groomingNeeds;
@@ -142,6 +142,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     _trainingDifficulty = pet.trainingDifficulty?.toDouble() ?? 2.0;
   }
 
+  // ignore: unused_element
   String? _mapTrainingDifficultyToLevel(int difficulty) {
     if (difficulty <= 1) return 'beginner';
     if (difficulty == 2) return 'novice';
@@ -354,119 +355,124 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
         children: [
           _buildProgressIndicator(),
           Expanded(
-            child: Form(
-              key: _formKey,
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  BasicInfoStep(
-                    petId: _petId!,
-                    petNameController: _petNameController,
-                    breedController: _breedController,
-                    ageController: _ageController,
-                    descriptionController: _descriptionController,
-                    quirkController: _quirkController,
-                    selectedSpecies: _selectedSpecies,
-                    selectedGender: _selectedGender,
-                    selectedSize: _selectedSize,
-                    selectedStatus: _selectedStatus,
-                    onSpeciesChanged: (value) =>
-                        setState(() => _selectedSpecies = value),
-                    onGenderChanged: (value) =>
-                        setState(() => _selectedGender = value),
-                    onSizeChanged: (value) =>
-                        setState(() => _selectedSize = value),
-                    onStatusChanged: (value) =>
-                        setState(() => _selectedStatus = value),
-                    selectedImages: _selectedImages,
-                    thumbnailImage: _thumbnailImage,
-                    onImagesChanged: (images) => setState(() => _selectedImages
-                      ..clear()
-                      ..addAll(images)),
-                    onThumbnailChanged: (image) =>
-                        setState(() => _thumbnailImage = image),
-                    existingImageUrls: _existingImageUrls,
-                    existingThumbnailUrl: _existingThumbnailUrl,
-                    onExistingImagesChanged: (updatedUrls) {
-                      setState(() {
-                        final deleted = _existingImageUrls
-                            .where((url) => !updatedUrls.contains(url))
-                            .toList();
-
-                        _deletedImagePaths.addAll(deleted);
-                        _existingImageUrls = updatedUrls;
-                      });
-                    },
-                    onExistingThumbnailChanged: (url) {
-                      setState(() {
-                        _existingThumbnailUrl = url;
-                        _thumbnailImage = null;
-                      });
-                    },
-                  ),
-                  HealthInfoStep(
-                    healthNotesController: _healthNotesController,
-                    specialNeedsDescController: _specialNeedsDescController,
-                    groomingNeeds: _groomingNeeds,
-                    hasSpecialNeeds: _hasSpecialNeeds,
-                    isVaccinationUpToDate: _isVaccinationUpToDate,
-                    isSpayedNeutered: _isSpayedNeutered,
-                    onGroomingNeedsChanged: (value) =>
-                        setState(() => _groomingNeeds = value),
-                    onHasSpecialNeedsChanged: (value) =>
-                        setState(() => _hasSpecialNeeds = value),
-                    onVaccinationChanged: (value) =>
-                        setState(() => _isVaccinationUpToDate = value),
-                    onSpayedNeuteredChanged: (value) =>
-                        setState(() => _isSpayedNeutered = value),
-                  ),
-                  BehaviorInfoStep(
-                    behavioralNotesController: _behavioralNotesController,
-                    goodWithChildren: _goodWithChildren,
-                    goodWithDogs: _goodWithDogs,
-                    goodWithCats: _goodWithCats,
-                    houseTrained: _houseTrained,
-                    onGoodWithChildrenChanged: (value) =>
-                        setState(() => _goodWithChildren = value),
-                    onGoodWithDogsChanged: (value) =>
-                        setState(() => _goodWithDogs = value),
-                    onGoodWithCatsChanged: (value) =>
-                        setState(() => _goodWithCats = value),
-                    onHouseTrainedChanged: (value) =>
-                        setState(() => _houseTrained = value),
-                  ),
-                  ActivityInfoStep(
-                    energyLevel: _energyLevel,
-                    dailyExerciseNeeds: _dailyExerciseNeeds,
-                    playfulness: _playfulness,
-                    onEnergyLevelChanged: (value) =>
-                        setState(() => _energyLevel = value),
-                    onDailyExerciseNeedsChanged: (value) =>
-                        setState(() => _dailyExerciseNeeds = value),
-                    onPlayfulnessChanged: (value) =>
-                        setState(() => _playfulness = value),
-                  ),
-                  TemperamentInfoStep(
-                    selectedTraits: _selectedTraits,
-                    affectionLevel: _affectionLevel,
-                    independence: _independence,
-                    adaptability: _adaptability,
-                    trainingDifficulty: _trainingDifficulty,
-                    onSelectedTraitsChanged: (traits) =>
-                        setState(() => _selectedTraits
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: Form(
+                  key: _formKey,
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      BasicInfoStep(
+                        petId: _petId!,
+                        petNameController: _petNameController,
+                        breedController: _breedController,
+                        ageController: _ageController,
+                        descriptionController: _descriptionController,
+                        quirkController: _quirkController,
+                        selectedSpecies: _selectedSpecies,
+                        selectedGender: _selectedGender,
+                        selectedSize: _selectedSize,
+                        selectedStatus: _selectedStatus,
+                        onSpeciesChanged: (value) =>
+                            setState(() => _selectedSpecies = value),
+                        onGenderChanged: (value) =>
+                            setState(() => _selectedGender = value),
+                        onSizeChanged: (value) =>
+                            setState(() => _selectedSize = value),
+                        onStatusChanged: (value) =>
+                            setState(() => _selectedStatus = value),
+                        selectedImages: _selectedImages,
+                        thumbnailImage: _thumbnailImage,
+                        onImagesChanged: (images) => setState(() => _selectedImages
                           ..clear()
-                          ..addAll(traits)),
-                    onAffectionLevelChanged: (value) =>
-                        setState(() => _affectionLevel = value),
-                    onIndependenceChanged: (value) =>
-                        setState(() => _independence = value),
-                    onAdaptabilityChanged: (value) =>
-                        setState(() => _adaptability = value),
-                    onTrainingDifficultyChanged: (value) =>
-                        setState(() => _trainingDifficulty = value),
+                          ..addAll(images)),
+                        onThumbnailChanged: (image) =>
+                            setState(() => _thumbnailImage = image),
+                        existingImageUrls: _existingImageUrls,
+                        existingThumbnailUrl: _existingThumbnailUrl,
+                        onExistingImagesChanged: (updatedUrls) {
+                          setState(() {
+                            final deleted = _existingImageUrls
+                                .where((url) => !updatedUrls.contains(url))
+                                .toList();
+
+                            _deletedImagePaths.addAll(deleted);
+                            _existingImageUrls = updatedUrls;
+                          });
+                        },
+                        onExistingThumbnailChanged: (url) {
+                          setState(() {
+                            _existingThumbnailUrl = url;
+                            _thumbnailImage = null;
+                          });
+                        },
+                      ),
+                      HealthInfoStep(
+                        healthNotesController: _healthNotesController,
+                        specialNeedsDescController: _specialNeedsDescController,
+                        groomingNeeds: _groomingNeeds,
+                        hasSpecialNeeds: _hasSpecialNeeds,
+                        isVaccinationUpToDate: _isVaccinationUpToDate,
+                        isSpayedNeutered: _isSpayedNeutered,
+                        onGroomingNeedsChanged: (value) =>
+                            setState(() => _groomingNeeds = value),
+                        onHasSpecialNeedsChanged: (value) =>
+                            setState(() => _hasSpecialNeeds = value),
+                        onVaccinationChanged: (value) =>
+                            setState(() => _isVaccinationUpToDate = value),
+                        onSpayedNeuteredChanged: (value) =>
+                            setState(() => _isSpayedNeutered = value),
+                      ),
+                      BehaviorInfoStep(
+                        behavioralNotesController: _behavioralNotesController,
+                        goodWithChildren: _goodWithChildren,
+                        goodWithDogs: _goodWithDogs,
+                        goodWithCats: _goodWithCats,
+                        houseTrained: _houseTrained,
+                        onGoodWithChildrenChanged: (value) =>
+                            setState(() => _goodWithChildren = value),
+                        onGoodWithDogsChanged: (value) =>
+                            setState(() => _goodWithDogs = value),
+                        onGoodWithCatsChanged: (value) =>
+                            setState(() => _goodWithCats = value),
+                        onHouseTrainedChanged: (value) =>
+                            setState(() => _houseTrained = value),
+                      ),
+                      ActivityInfoStep(
+                        energyLevel: _energyLevel,
+                        dailyExerciseNeeds: _dailyExerciseNeeds,
+                        playfulness: _playfulness,
+                        onEnergyLevelChanged: (value) =>
+                            setState(() => _energyLevel = value),
+                        onDailyExerciseNeedsChanged: (value) =>
+                            setState(() => _dailyExerciseNeeds = value),
+                        onPlayfulnessChanged: (value) =>
+                            setState(() => _playfulness = value),
+                      ),
+                      TemperamentInfoStep(
+                        selectedTraits: _selectedTraits,
+                        affectionLevel: _affectionLevel,
+                        independence: _independence,
+                        adaptability: _adaptability,
+                        trainingDifficulty: _trainingDifficulty,
+                        onSelectedTraitsChanged: (traits) =>
+                            setState(() => _selectedTraits
+                              ..clear()
+                              ..addAll(traits)),
+                        onAffectionLevelChanged: (value) =>
+                            setState(() => _affectionLevel = value),
+                        onIndependenceChanged: (value) =>
+                            setState(() => _independence = value),
+                        onAdaptabilityChanged: (value) =>
+                            setState(() => _adaptability = value),
+                        onTrainingDifficultyChanged: (value) =>
+                            setState(() => _trainingDifficulty = value),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

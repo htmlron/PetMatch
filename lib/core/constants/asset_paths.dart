@@ -51,6 +51,21 @@ class UserProfileAssets {
   static const String groomingHighMaintenance =
       '$_basePath/grooming_faces/high_maintenance.png';
 
+    // Hairiness level faces (0-5)
+    // Note: level 0 and level 1 intentionally share the same image.
+    static const String hairinessLevel0 =
+        '$_basePath/hairiness_faces/Gemini_Generated_Image_6cuhpr6cuhpr6cuh-removebg-preview.png';
+    static const String hairinessLevel1 =
+        '$_basePath/hairiness_faces/Gemini_Generated_Image_6cuhpr6cuhpr6cuh-removebg-preview.png';
+    static const String hairinessLevel2 =
+        '$_basePath/hairiness_faces/Gemini_Generated_Image_jd0fc4jd0fc4jd0f-removebg-preview.png';
+    static const String hairinessLevel3 =
+        '$_basePath/hairiness_faces/Gemini_Generated_Image_lmthezlmthezlmth-removebg-preview.png';
+    static const String hairinessLevel4 =
+        '$_basePath/hairiness_faces/Gemini_Generated_Image_2ameoi2ameoi2ame-removebg-preview.png';
+    static const String hairinessLevel5 =
+        '$_basePath/hairiness_faces/Gemini_Generated_Image_om3rsjom3rsjom3r-removebg-preview.png';
+
   // Pet preference images
   static const String petPreferenceCat = '$_basePath/pet_preference/cat.png';
   static const String petPreferenceDog = '$_basePath/pet_preference/dog.png';
@@ -98,6 +113,14 @@ class UserProfileAssets {
       groomingRegularGrooming,
       groomingFrequentCare,
       groomingHighMaintenance,
+
+      // Hairiness faces
+      hairinessLevel0,
+      hairinessLevel1,
+      hairinessLevel2,
+      hairinessLevel3,
+      hairinessLevel4,
+      hairinessLevel5,
 
       // Pet preferences
       petPreferenceCat,
@@ -157,6 +180,17 @@ class UserProfileAssets {
       groomingRegularGrooming,
       groomingFrequentCare,
       groomingHighMaintenance,
+    ];
+  }
+
+  static List<String> getHairinessAssets() {
+    return [
+      hairinessLevel0,
+      hairinessLevel1,
+      hairinessLevel2,
+      hairinessLevel3,
+      hairinessLevel4,
+      hairinessLevel5,
     ];
   }
 

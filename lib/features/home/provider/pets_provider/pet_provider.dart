@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+ // ignore_for_file: avoid_print
 
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,9 +6,12 @@ import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/features/home/provider/pets_provider/pet_state.dart';
 import 'package:petmatch/core/repository/pet_repository.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:petmatch/core/config/supabase_config.dart';
 
 class PetNotifier extends Notifier<PetState> {
   final PetRepository _repository;
+  RealtimeChannel? _petsChannel;
 
   PetNotifier(this._repository);
 
@@ -16,7 +19,62 @@ class PetNotifier extends Notifier<PetState> {
 
   @override
   PetState build() {
+    print('BUILD: PetNotifier initializing...');
+    _setupRealtimeSync();
+    // Defer initial fetch to avoid reading uninitialized providers
+    Future.microtask(() => fetchInitialPets());
     return PetState();
+  }
+
+  void _setupRealtimeSync() {
+    if (_petsChannel != null) return;
+
+    try {
+      print('🔌 Setting up pets realtime sync...');
+      _petsChannel = supabase
+          .channel('pets-realtime-sync')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pets',
+            callback: (payload) {
+              print('🔔 Pets table changed: ${payload.eventType}');
+              fetchInitialPets();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pets_images',
+            callback: (payload) {
+              print('🔔 Pets images table changed: ${payload.eventType}');
+              fetchInitialPets();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'pet_characteristics',
+            callback: (payload) {
+              print('🔔 Pet characteristics changed: ${payload.eventType}');
+              fetchInitialPets();
+            },
+          )
+          .subscribe((status, error) {
+            print('✅ Pets realtime subscription status: $status');
+            if (error != null) print('❌ Subscription error: $error');
+          });
+    } catch (e) {
+      print('❌ Error setting up pets realtime: $e');
+    }
+
+    ref.onDispose(() {
+      if (_petsChannel != null) {
+        print('🧹 Disposing pets realtime channel');
+        supabase.removeChannel(_petsChannel!);
+        _petsChannel = null;
+      }
+    });
   }
 
   Future<void> fetchInitialPets() async {
@@ -126,7 +184,7 @@ class PetNotifier extends Notifier<PetState> {
       state = state.copyWith(isLoading: true, errorMessage: null);
       print('💾 Saving new pet: $petName');
 
-      const Uuid uuid = Uuid();
+      final Uuid uuid = Uuid();
       final petId = uuid.v4();
 
       await _repository.savePet(
@@ -375,6 +433,14 @@ class PetNotifier extends Notifier<PetState> {
       print('❌ Error deleting pet image: $e');
       rethrow;
     }
+  }
+
+  /// Add a pet to local lists if it's not already present
+  void addPetIfMissing(Pet pet) {
+    final existing = state.pets ?? [];
+    if (existing.any((p) => p.id == pet.id)) return;
+    final updated = [pet, ...existing];
+    state = state.copyWith(pets: updated, filteredPets: updated);
   }
 }
 

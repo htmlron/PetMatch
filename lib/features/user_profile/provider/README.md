@@ -20,36 +20,24 @@ import 'package:petmatch/features/user_profile/provider/user_profile_provider.da
 
 ## ✅ Available Methods
 
-### 1. **setPetPreference(String preference)**
+### 1. **setPetPreference(BuildContext context, String preference)**
 
 Save selected pet: 'Cat', 'Dog', or 'No Preference'
 
 ```dart
-ref.read(userProfileProvider.notifier).setPetPreference('Dog');
+ref.read(userProfileProvider.notifier).setPetPreference(context, 'Dog');
 ```
 
-### 2. **setActivityLevel(int level, String label)**
+### 2. **Lifestyle Preferences (string options)**
 
-Save activity level (1-5) with label
-
-```dart
-ref.read(userProfileProvider.notifier).setActivityLevel(3, 'Moderately Active');
-```
-
-### 3. **setAffectionLevel(int level, String label)**
-
-Save affection level (1-5) with label
+These replace the old numeric 0–5 ratings:
 
 ```dart
-ref.read(userProfileProvider.notifier).setAffectionLevel(4, 'Pretty Affectionate');
-```
-
-### 4. **setPatienceLevel(int level, String label)**
-
-Save patience level (1-5) with label
-
-```dart
-ref.read(userProfileProvider.notifier).setPatienceLevel(5, 'Very High Patience');
+ref.read(userProfileProvider.notifier).setLivingEnvironment(context, 'Apartment');
+ref.read(userProfileProvider.notifier).setDailyAvailability(context, 'Mostly Home');
+ref.read(userProfileProvider.notifier).setPetOwnershipExperience(context, 'First-time Owner');
+ref.read(userProfileProvider.notifier).setLifestylePace(context, 'Balanced');
+ref.read(userProfileProvider.notifier).setBudgetForPetCare(context, 'Moderate');
 ```
 
 ### 5. **submitProfile()**
@@ -80,7 +68,7 @@ ref.read(userProfileProvider.notifier).clearProfile();
 ```dart
 final profile = ref.watch(userProfileProvider);
 print(profile.petPreference); // 'Dog'
-print(profile.activityLevel); // 3
+print(profile.livingEnvironment); // 'Apartment'
 print(profile.completionPercentage); // 75%
 ```
 
@@ -195,12 +183,11 @@ Future<bool> submitProfile() async {
 ### Required Fields
 
 - `petPreference` - String? ('Cat', 'Dog', 'No Preference')
-- `activityLevel` - int? (1-5)
-- `activityLabel` - String?
-- `affectionLevel` - int? (1-5)
-- `affectionLabel` - String?
-- `patienceLevel` - int? (1-5)
-- `patienceLabel` - String?
+- `livingEnvironment` - String? (e.g. 'Apartment', 'Subdivision')
+- `dailyAvailability` - String? (e.g. 'Mostly Home', 'Out During Day')
+- `petOwnershipExperience` - String? (e.g. 'First-time Owner', 'Experienced')
+- `lifestylePace` - String? (e.g. 'Relaxed', 'Balanced', 'Active')
+- `budgetForPetCare` - String? (e.g. 'Low', 'Moderate', 'High')
 
 ### Optional Fields
 

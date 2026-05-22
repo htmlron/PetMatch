@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/core/repository/favorites_repository.dart';
+import 'package:petmatch/core/repository/pet_repository.dart';
+import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart';
+import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
 import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:petmatch/core/config/supabase_config.dart';
 
 class FavoritesState {
   final Set<String> favoriteIds;
@@ -38,6 +43,7 @@ class FavoritesState {
 /// 🧠 Notifier
 class FavoritesNotifier extends Notifier<FavoritesState> {
   final FavoritesRepository _favoritesRepository;
+  RealtimeChannel? _favoritesChannel;
 
   FavoritesNotifier(this._favoritesRepository);
 
@@ -45,7 +51,44 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
 
   @override
   FavoritesState build() {
+    print('BUILD: FavoritesNotifier initializing...');
+    _setupRealtimeSync();
+    // Defer initial fetch to avoid reading uninitialized providers
+    Future.microtask(() => fetchFavorites());
     return const FavoritesState();
+  }
+
+  void _setupRealtimeSync() {
+    if (_favoritesChannel != null) return;
+
+    try {
+      print('🔌 Setting up favorites realtime sync...');
+      _favoritesChannel = supabase
+          .channel('favorites-realtime-sync')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'favorites',
+            callback: (payload) {
+              print('🔔 Favorites table changed: ${payload.eventType}');
+              fetchFavorites();
+            },
+          )
+          .subscribe((status, error) {
+            print('✅ Favorites realtime subscription status: $status');
+            if (error != null) print('❌ Subscription error: $error');
+          });
+    } catch (e) {
+      print('❌ Error setting up favorites realtime: $e');
+    }
+
+    ref.onDispose(() {
+      if (_favoritesChannel != null) {
+        print('🧹 Disposing favorites realtime channel');
+        supabase.removeChannel(_favoritesChannel!);
+        _favoritesChannel = null;
+      }
+    });
   }
 
   Future<void> fetchFavorites() async {
@@ -56,9 +99,18 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
 
     try {
       final favoriteIds = await _favoritesRepository.getFavoritePetIds(userId!);
+      // Build favorite Pets list
+      final petRepo = PetRepository();
+      final favPets = <Pet>[];
+      for (final id in favoriteIds) {
+        final pet = await petRepo.getPetById(id);
+        if (pet != null) favPets.add(pet);
+      }
+
       state = state.copyWith(
         favoriteIds: favoriteIds.toSet(),
         isLoading: false,
+        favoritePets: favPets,
       );
       print('✅ Loaded ${favoriteIds.length} favorites');
     } catch (e) {
@@ -94,6 +146,27 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
         favoriteIds: {...state.favoriteIds, petId},
       );
 
+      // Fetch the pet details and add to favoritePets list so UI updates immediately
+      try {
+        final petRepo = PetRepository();
+        final pet = await petRepo.getPetById(petId);
+        if (pet != null) {
+          // Add to local favorites list
+          state = state.copyWith(
+            favoritePets: [...state.favoritePets, pet],
+          );
+
+          // Ensure petsProvider contains this pet so Favorite screen can display it
+          ref.read(petsProvider.notifier).addPetIfMissing(pet);
+
+          // Remove from current matches so it won't reappear
+          ref.read(matchProvider.notifier).removePetFromMatches(petId);
+        }
+      } catch (e) {
+        // Non-fatal: continue
+        print('⚠️ Warning: could not fetch pet after adding favorite: $e');
+      }
+
       NotifierHelper.showSuccessToast(context, 'Added to favorites!');
     } catch (e) {
       print('❌ Error adding favorite: $e');
@@ -110,6 +183,17 @@ class FavoritesNotifier extends Notifier<FavoritesState> {
       state = state.copyWith(
         favoriteIds: state.favoriteIds.where((id) => id != petId).toSet(),
       );
+      // Remove from local favoritePets list so UI updates immediately
+      state = state.copyWith(
+        favoritePets: state.favoritePets.where((p) => p.id != petId).toList(),
+      );
+
+      // Refresh matches so the pet can reappear in matching view
+      try {
+        await ref.read(matchProvider.notifier).fetchMatchedPets();
+      } catch (e) {
+        print('⚠️ Warning: failed to refresh matches after removing favorite: $e');
+      }
 
       NotifierHelper.showSuccessToast(context, 'Removed from favorites!');
     } catch (e) {

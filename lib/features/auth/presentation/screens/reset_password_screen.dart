@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/widgets/custom_button.dart';
-import 'package:petmatch/widgets/style/themed_textfield.dart';
 import 'package:petmatch/widgets/text_field.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -27,8 +26,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   bool _isSubmitting = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  
 
   @override
   void dispose() {

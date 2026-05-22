@@ -804,6 +804,7 @@ class _PetManagementPageState extends ConsumerState<PetManagementPage> {
     );
   }
 
+  // ignore: unused_element
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'available':

@@ -93,7 +93,7 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
   // Widget Builders for various sections
   // --------------------------------
   Widget _buildGroomingSlider() {
-    final labels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+    final labels = ['None', 'Very Low', 'Low', 'Moderate', 'High', 'Very High'];
     return Column(
       children: [
         SliderTheme(
@@ -106,15 +106,15 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
           ),
           child: Slider(
             value: (widget.groomingNeeds ?? 3).toDouble(),
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[(widget.groomingNeeds ?? 3) - 1],
+            divisions: 5,
+            label: labels[(widget.groomingNeeds ?? 3).clamp(0, 5).toInt()],
             onChanged: (value) => widget.onGroomingNeedsChanged(value.toInt()),
           ),
         ),
         Text(
-          labels[(widget.groomingNeeds ?? 3) - 1],
+          labels[(widget.groomingNeeds ?? 3).clamp(0, 5).toInt()],
           style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w600,

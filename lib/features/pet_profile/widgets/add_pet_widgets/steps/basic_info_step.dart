@@ -218,79 +218,94 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
   // --------------------------------
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image Upload Section
-          _buildImageUploadSection(),
-          const SizedBox(height: 24),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final compactFieldWidth = width >= 700 ? 150.0 : width;
+        final wideFieldWidth = width >= 700 ? 340.0 : width;
 
-          // Pet Name
-          _buildFieldLabel('Pet Name', '🏷️', isRequired: true),
-          const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.petNameController,
-            label: 'e.g., Max, Bella, Charlie',
-            prefixIcon: Icons.pets,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter pet name';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
+        Widget compactFieldBlock({
+          required String text,
+          required String emoji,
+          required Widget child,
+          bool isRequired = false,
+          String? subtitle,
+          required double blockWidth,
+        }) {
+          return SizedBox(
+            width: blockWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildFieldLabel(
+                  text,
+                  emoji,
+                  subtitle: subtitle,
+                  isRequired: isRequired,
+                ),
+                const SizedBox(height: 8),
+                child,
+              ],
+            ),
+          );
+        }
 
-          // Species
-          _buildFieldLabel('Species', '🦴', isRequired: true),
-          const SizedBox(height: 8),
-          _buildSpeciesCards(),
-          const SizedBox(height: 20),
-
-          // Breed
-          _buildFieldLabel('Breed', '📋'),
-          const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.breedController,
-            label: 'e.g., Golden Retriever, Persian Cat',
-            prefixIcon: Icons.assignment,
-          ),
-          const SizedBox(height: 20),
-
-          // Description
-          _buildFieldLabel('Description', '📝'),
-          const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.descriptionController,
-            label: 'A short description about the pet',
-            prefixIcon: Icons.description,
-            maxLines: 6,
-            keyboardType: TextInputType.multiline,
-          ),
-          const SizedBox(height: 12),
-          // Quirk input
-          _buildFieldLabel('Quirk', '✨'),
-          const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.quirkController,
-            label: 'e.g., Loves to hide socks, Very vocal at night',
-            prefixIcon: Icons.lightbulb,
-            maxLines: 1,
-          ),
-          const SizedBox(height: 20),
-
-          // Age and Gender Row
-          Row(
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              _buildImageUploadSection(),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: wideFieldWidth,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFieldLabel('Age (years)', '🎂', isRequired: true),
+                    _buildFieldLabel('Pet Name', '🏷️', isRequired: true),
                     const SizedBox(height: 8),
                     ThemedTextField(
+                      controller: widget.petNameController,
+                      label: 'e.g., Max, Bella, Charlie',
+                      prefixIcon: Icons.pets,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter pet name';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              _buildFieldLabel('Species', '🦴', isRequired: true),
+              const SizedBox(height: 8),
+              _buildSpeciesCards(),
+              const SizedBox(height: 20),
+
+              Wrap(
+                spacing: 10,
+                runSpacing: 14,
+                children: [
+                  compactFieldBlock(
+                    text: 'Breed',
+                    emoji: '📋',
+                    blockWidth: compactFieldWidth,
+                    child: ThemedTextField(
+                      controller: widget.breedController,
+                      label: 'e.g., Golden Retriever, Persian Cat',
+                      prefixIcon: Icons.assignment,
+                    ),
+                  ),
+                  compactFieldBlock(
+                    text: 'Age (years)',
+                    emoji: '🎂',
+                    isRequired: true,
+                    blockWidth: compactFieldWidth,
+                    child: ThemedTextField(
                       controller: widget.ageController,
                       label: 'e.g., 2',
                       prefixIcon: Icons.cake,
@@ -305,36 +320,57 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
                         return null;
                       },
                     ),
-                  ],
-                ),
+                  ),
+                  compactFieldBlock(
+                    text: 'Gender',
+                    emoji: '⚧️',
+                    isRequired: true,
+                    blockWidth: compactFieldWidth,
+                    child: _buildGenderDropdown(),
+                  ),
+                  compactFieldBlock(
+                    text: 'Size',
+                    emoji: '📏',
+                    isRequired: true,
+                    blockWidth: compactFieldWidth,
+                    child: _buildSizeChips(),
+                  ),
+                  compactFieldBlock(
+                    text: 'Status',
+                    emoji: '📣',
+                    blockWidth: compactFieldWidth,
+                    child: _buildStatusToggle(),
+                  ),
+                  compactFieldBlock(
+                    text: 'Description',
+                    emoji: '📝',
+                    blockWidth: wideFieldWidth,
+                    child: ThemedTextField(
+                      controller: widget.descriptionController,
+                      label: 'A short description about the pet',
+                      prefixIcon: Icons.description,
+                      maxLines: 6,
+                      keyboardType: TextInputType.multiline,
+                    ),
+                  ),
+                  compactFieldBlock(
+                    text: 'Quirk',
+                    emoji: '✨',
+                    blockWidth: wideFieldWidth,
+                    child: ThemedTextField(
+                      controller: widget.quirkController,
+                      label: 'e.g., Loves to hide socks, Very vocal at night',
+                      prefixIcon: Icons.lightbulb,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFieldLabel('Gender', '⚧️', isRequired: true),
-                    const SizedBox(height: 8),
-                    _buildGenderDropdown(),
-                  ],
-                ),
-              ),
+              const SizedBox(height: 20),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // Size
-          _buildFieldLabel('Size', '📏', isRequired: true),
-          const SizedBox(height: 8),
-          _buildSizeChips(),
-          const SizedBox(height: 16),
-          // Status toggle
-          _buildFieldLabel('Status', '📣'),
-          const SizedBox(height: 8),
-          _buildStatusToggle(),
-          const SizedBox(height: 20),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -407,7 +443,7 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
         border: Border.all(color: Colors.grey[300]!, width: 1.5),
       ),
       child: DropdownButtonFormField<String>(
-        value: displayed,
+        initialValue: displayed,
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.wc, color: Color(0xFFFF9800)),
           border: InputBorder.none,

@@ -26,20 +26,23 @@ class Pet {
 
   // Health information
   final bool? vaccinations;
+  final List<String> vaccinationTypes;
+  final int? vaccinationUpdateMonths;
   final bool? spayedNeutered;
   final bool? specialNeeds;
-  final int? groomingNeeds; // 1-5 scale
+  final int? groomingNeeds; // 0-5 scale
+  final int? sheddingLevel; // 0-5 scale (hairiness / shedding)
 
   // Activity & Personality
-  final int? energyLevel; // 1-10 scale
-  final int? playfulness; // 1-10 scale
+  final int? energyLevel; // 0-5 scale
+  final int? playfulness; // 0-5 scale
   final String? dailyExercise;
 
   // Temperament
-  final int? affectionLevel; // 1-10 scale
-  final int? independence; // 1-10 scale
-  final int? adaptability; // 1-10 scale
-  final int? trainingDifficulty; // 1-10 scale
+  final int? affectionLevel; // 0-5 scale
+  final int? independence; // 0-5 scale
+  final int? adaptability; // 0-5 scale
+  final int? trainingDifficulty; // 0-5 scale
   final List<String> temperamentTraits;
   final String? quirks;
 
@@ -65,9 +68,12 @@ class Pet {
     this.goodWithCats,
     this.houseTrained,
     this.vaccinations,
+    this.vaccinationTypes = const [],
+    this.vaccinationUpdateMonths,
     this.spayedNeutered,
     this.specialNeeds,
     this.groomingNeeds,
+    this.sheddingLevel,
     this.energyLevel,
     this.playfulness,
     this.dailyExercise,
@@ -132,9 +138,32 @@ class Pet {
       if (value == null) return null;
       if (value is int) return value;
       if (value is num) return value.toInt();
-      if (value is String) return int.tryParse(value);
+      if (value is String) {
+        final direct = int.tryParse(value.trim());
+        if (direct != null) return direct;
+        final match = RegExp(r'(\d+)').firstMatch(value);
+        if (match != null) return int.tryParse(match.group(1)!);
+        return null;
+      }
       return null;
     }
+
+    
+    // Post-process some fields that were easier to compute outside the constructor call
+    // (we couldn't reference local vars inline cleanly for complex parsing)
+    // Parse vaccination types (could be List or comma-separated String)
+    final vaxRaw = healthNotes?['vaccination_types'];
+    final List<String> parsedVaxTypes;
+    if (vaxRaw == null) {
+      parsedVaxTypes = <String>[];
+    } else if (vaxRaw is List) {
+      parsedVaxTypes = vaxRaw.map((e) => e.toString()).toList();
+    } else {
+      parsedVaxTypes = vaxRaw.toString().split(',').map((e) => e.trim()).where((s) => s.isNotEmpty).toList();
+    }
+
+    // Parse vaccination update months using helper
+    final vaxUpdateMonths = parseInt(healthNotes?['vaccination_update_months']);
 
     return Pet(
       id: json['pet_id'] as String,
@@ -150,24 +179,23 @@ class Pet {
       status: json['status'] as String?,
       isAdopted: (json['status'] as String?)?.toLowerCase() == 'adopted',
       availablity: json['status'] as String?,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
-          : null,
-      // Behavior traits from behavior_tags
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
       goodWithChildren: behaviorTags?['good_with_children'] as bool?,
       goodWithDogs: behaviorTags?['good_with_dogs'] as bool?,
       goodWithCats: behaviorTags?['good_with_cats'] as bool?,
       houseTrained: behaviorTags?['house_trained'] as bool?,
-      // Health information from health_notes
       vaccinations: healthNotes?['vaccinations'] as bool?,
+      vaccinationTypes: parsedVaxTypes,
+      vaccinationUpdateMonths: vaxUpdateMonths,
       spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
       specialNeeds: healthNotes?['special_needs'] as bool?,
       groomingNeeds: parseInt(temperament?['grooming_needs']),
-      // Activity & Personality from activity_level
+      sheddingLevel: parseInt(temperament?['shedding_level']),
       energyLevel: parseInt(activityLevel?['energy_level']),
       playfulness: parseInt(activityLevel?['playfulness']),
-      dailyExercise: activityLevel?['daily_exercise'] as String?,
-      // Temperament from temperament
+        dailyExercise: (activityLevel?['daily_exercise'] ??
+            activityLevel?['daily_exercise_needs'])
+          as String?,
       affectionLevel: parseInt(temperament?['affection_level']),
       independence: parseInt(temperament?['independence']),
       adaptability: parseInt(temperament?['adaptability']),
@@ -195,8 +223,7 @@ class Pet {
     }
 
     return imagesToUse
-        .map((filename) =>
-            supabase.storage.from(bucketName).getPublicUrl('$id/$filename'))
+        .map((filename) => supabase.storage.from(bucketName).getPublicUrl('$id/$filename').toString())
         .toList();
   }
 
@@ -205,7 +232,7 @@ class Pet {
       return null;
     }
     const bucketName = 'pets';
-    return supabase.storage.from(bucketName).getPublicUrl('$id/$thumbnailPath');
+    return supabase.storage.from(bucketName).getPublicUrl('$id/$thumbnailPath').toString();
   }
 
   // Display age in friendly format
@@ -264,11 +291,60 @@ class Pet {
     return 'High - Frequent grooming';
   }
 
+  // Get shedding / hairiness description
+  String getSheddingDescription() {
+    if (sheddingLevel == null) return 'Unknown';
+    switch (sheddingLevel!.clamp(0, 5)) {
+      case 0:
+        return 'Low shedding';
+      case 1:
+        return 'Light shedding';
+      case 2:
+        return 'Some fur';
+      case 3:
+        return 'Noticeable shedding';
+      case 4:
+        return 'Lots of fur';
+      case 5:
+        return 'Heavy shedding';
+      default:
+        return 'Unknown';
+    }
+  }
+
   // Get adaptability description
   String getAdaptabilityDescription() {
     if (adaptability == null) return 'Unknown';
     if (adaptability! <= 3) return 'Prefers routine';
     if (adaptability! <= 6) return 'Moderately flexible';
     return 'Highly adaptable';
+  }
+
+  // Whether pet is considered vaccinated (either boolean or types present)
+  bool get isVaccinated {
+    if (vaccinationTypes.isNotEmpty) return true;
+    return vaccinations == true;
+  }
+
+  /// Human friendly vaccination summary
+  String get vaccinationSummary {
+    if (vaccinationTypes.isNotEmpty) return vaccinationTypes.join(', ');
+    if (vaccinations == true) return 'Vaccinated (types not specified)';
+    return 'Unknown';
+  }
+
+  /// Returns formatted text like `6 months` or `1 month`.
+  String? get vaccinationUpdateMonthsText {
+    final months = vaccinationUpdateMonths;
+    if (months == null) return null;
+    final unit = months == 1 ? 'month' : 'months';
+    return '$months $unit';
+  }
+
+  /// Returns formatted suffix like ` (6 months)` for UI labels.
+  String get vaccinationUpdateMonthsSuffix {
+    final text = vaccinationUpdateMonthsText;
+    if (text == null) return '';
+    return ' ($text)';
   }
 }

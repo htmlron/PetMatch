@@ -243,7 +243,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         ),
       ),
       child: DropdownButtonFormField<String>(
-        value: _selectedGender ?? 'Prefer not to say',
+        initialValue: _selectedGender ?? 'Prefer not to say',
         decoration: InputDecoration(
           prefixIcon: Icon(
             Icons.wc,
@@ -278,7 +278,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Widget _buildLivingArrangementCards(bool isSmall) {
     final arrangements = [
       {'title': 'Apartment', 'icon': Icons.apartment},
-      {'title': 'House with Yard', 'icon': Icons.home},
+      {'title': 'Subdivision', 'icon': Icons.home},
       {'title': 'Farm', 'icon': Icons.agriculture},
       {'title': 'Shared Housing', 'icon': Icons.people},
     ];

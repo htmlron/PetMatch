@@ -1,5 +1,4 @@
 import 'package:petmatch/core/model/user_model.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'auth_state.freezed.dart';

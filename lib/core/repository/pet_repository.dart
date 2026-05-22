@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
+import 'dart:async';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
@@ -12,6 +13,19 @@ class PetRepository {
     if (value.trim().isEmpty) return value;
     final t = value.trim();
     return t[0].toUpperCase() + t.substring(1).toLowerCase();
+  }
+
+  String? _normalizeSize(String? value) {
+    if (value == null) return null;
+    final normalized = value.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    if (normalized.contains('small')) return 'small';
+    if (normalized.contains('medium')) return 'medium';
+    if (normalized.contains('large')) return 'large';
+    if (normalized.contains('no preference')) return 'no_preference';
+
+    return normalized;
   }
 
   Future<List<Pet>> getPets({
@@ -58,31 +72,188 @@ class PetRepository {
     try {
       print('🎯 Fetching matched pets for user: $userId');
 
-      // Call the PostgreSQL function
-      final response = await _supabase
-          .rpc('match_pets_for_user_weighted_detailed_v3', params: {
-        'user_uuid': userId,
-      });
+      // Validate user profile before attempting match
+      final userProfile = await _supabase
+          .from('user_profile')
+          .select('personality_traits, user_lifestyle, household_info')
+          .eq('user_id', userId)
+          .maybeSingle()
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception('User profile fetch timeout'),
+          );
 
-      print('📊 Received ${(response as List).length} matched pets');
+      if (userProfile == null) {
+        print('⚠️ User profile not found');
+        return [];
+      }
 
-      // Parse the results
-      final List<PetMatch> matches = [];
+      print('✅ User profile loaded successfully');
 
-      for (var matchData in response) {
-        final petId = matchData['pet_id'] as String;
-        final pet = await getPetById(petId);
+      // Call the PostgreSQL function with timeout
+      late dynamic response;
+      try {
+        response = await _supabase
+            .rpc('match_pets_for_user_weighted_detailed_v3', params: {
+          'user_uuid': userId,
+        }).timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            throw Exception('Database timeout - taking too long to fetch matches');
+          },
+        );
+      } catch (rpcError) {
+        print('❌ RPC Error: $rpcError');
+        print('   Stack trace: $rpcError');
+        // Return empty list as fallback instead of crashing
+        print('⚠️ Falling back to empty match list due to RPC error');
+        return [];
+      }
 
-        if (pet != null) {
-          matches.add(PetMatch.fromJson(matchData, pet));
+      final responseList = response as List?;
+      if (responseList == null || responseList.isEmpty) {
+        print('⚠️ No matched pets found for user $userId');
+        return [];
+      }
+
+      print('📊 Received ${responseList.length} matched pets');
+
+      // Parse the results - fetch all pet IDs first
+      final petIds = <String>{};
+      for (var matchData in responseList) {
+        final petId = matchData['pet_id'] as String?;
+        if (petId != null) {
+          petIds.add(petId);
         }
       }
 
+      if (petIds.isEmpty) {
+        print('⚠️ No valid pet IDs found in match results');
+        return [];
+      }
+
+      // Fetch all pets in one query using filter
+      final petsData = await _supabase
+          .from('pets')
+          .select('*, pets_images(*), pet_characteristics(*)')
+          .inFilter('pet_id', petIds.toList())
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw Exception('Database timeout - taking too long to fetch pet details');
+            },
+          );
+
+      // Build a map of pet_id -> Pet for quick lookup
+      final petMap = <String, Pet>{};
+      for (var petJson in petsData as List) {
+        try {
+          final pet = Pet.fromJson(petJson as Map<String, dynamic>);
+          petMap[pet.id] = pet;
+        } catch (e) {
+          print('⚠️ Error parsing pet data: $e');
+        }
+      }
+
+      // Parse the results using the pet map
+      final List<PetMatch> matches = [];
+      for (var matchData in responseList) {
+        try {
+          final petId = matchData['pet_id'] as String?;
+          if (petId != null && petMap.containsKey(petId)) {
+            final pet = petMap[petId]!;
+            matches.add(PetMatch.fromJson(matchData, pet));
+          }
+        } catch (e) {
+          print('⚠️ Error creating PetMatch: $e');
+        }
+      }
+
+        final profile = await _supabase
+          .from('user_profile')
+          .select('user_lifestyle')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        final userLifestyle = profile?['user_lifestyle'] as Map<String, dynamic>?;
+        final normalizedPreferredSize =
+          _normalizeSize(userLifestyle?['size_preference'] as String?);
+
+        if (normalizedPreferredSize != null &&
+          normalizedPreferredSize != 'no_preference') {
+        final filteredMatches = matches
+          .where((match) =>
+            _normalizeSize(match.pet.size) == normalizedPreferredSize)
+          .toList();
+
+        print(
+          '🔎 Applied size filter "$normalizedPreferredSize": ${filteredMatches.length}/${matches.length} matches');
+        return filteredMatches;
+        }
+
       print('✅ Successfully parsed ${matches.length} pet matches');
       return matches;
+    } on TimeoutException catch (e) {
+      print('❌ Timeout error fetching matched pets: $e');
+      print('⚠️ Falling back to basic pet list as fallback...');
+      return await _getFallbackMatches(userId);
     } catch (e) {
       print('❌ Error fetching matched pets: $e');
-      rethrow;
+      print('⚠️ Falling back to basic pet list...');
+      return await _getFallbackMatches(userId);
+    }
+  }
+
+  /// Fallback matching method when SQL function fails
+  /// Returns available pets with basic matching scores
+  Future<List<PetMatch>> _getFallbackMatches(String userId) async {
+    try {
+      print('🔄 Using fallback matching logic...');
+
+      // Fetch all available pets
+      final petsData = await _supabase
+          .from('pets')
+          .select('*, pets_images(*), pet_characteristics(*)')
+          .neq('status', 'adopted')
+          .order('created_at', ascending: false)
+          .limit(50)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () =>
+                throw Exception('Fallback: Failed to fetch pets'),
+          );
+
+      if ((petsData as List).isEmpty) {
+        print('⚠️ No pets available for fallback matching');
+        return [];
+      }
+
+      // Convert to Pet objects and create basic PetMatch with fallback scores
+      final matches = <PetMatch>[];
+      for (var petJson in petsData) {
+        try {
+          final pet = Pet.fromJson(petJson);
+          // Create basic match with default scores
+          final match = PetMatch(
+            pet: pet,
+            lifestyleScore: 60.0,
+            personalityScore: 60.0,
+            householdScore: 60.0,
+            healthScore: 60.0,
+            totalMatchPercent: 60.0,
+            matchLabel: 'Good Match',
+          );
+          matches.add(match);
+        } catch (e) {
+          print('⚠️ Error parsing fallback pet: $e');
+        }
+      }
+
+      print('✅ Fallback matching returned ${matches.length} pets');
+      return matches;
+    } catch (e) {
+      print('❌ Fallback matching also failed: $e');
+      return [];
     }
   }
 
@@ -239,7 +410,7 @@ class PetRepository {
         'activity_level': {
           'energy_level': energyLevel,
           'playfulness': playfulness,
-          'daily_exercise_needs': dailyExerciseNeeds,
+          'daily_exercise': dailyExerciseNeeds,
         },
         'temperament': {
           'affection_level': affectionLevel,

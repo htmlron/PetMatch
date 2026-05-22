@@ -1,13 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api, library_prefixes
 
-import 'package:flutter/services.dart';
 // location imports removed — location/region fields are not needed here
-import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:petmatch/core/utils/validators.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/widgets/custom_button.dart';
-import 'package:petmatch/widgets/outline_button.dart';
-import 'package:petmatch/widgets/text_gradient.dart';
 import 'package:petmatch/widgets/style/themed_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +16,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
+  
   final TextEditingController username = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();

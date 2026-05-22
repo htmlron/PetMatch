@@ -3,7 +3,6 @@
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/widgets/custom_button.dart';
 import 'package:petmatch/widgets/style/themed_textfield.dart';
-import 'package:petmatch/widgets/text_field.dart';
 import 'package:petmatch/widgets/text_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +40,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         ),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {
             Navigator.of(context).pop();
           },

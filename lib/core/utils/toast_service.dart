@@ -30,7 +30,6 @@ class ToastService {
         backgroundColor = Colors.orange.shade800;
         break;
       case ToastificationType.info:
-      default:
         backgroundColor = Colors.blue.shade700;
         break;
     }

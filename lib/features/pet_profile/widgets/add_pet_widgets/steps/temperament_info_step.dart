@@ -84,6 +84,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
   // ---------------------------
   // Widget Builders
   // ---------------------------
+  // ignore: unused_element
   Widget _buildTraitChips() {
     final traits = [
       {'label': 'Gentle', 'emoji': '🕊️'},
@@ -158,6 +159,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
 
   Widget _buildAffectionSlider() {
     final labels = [
+      'None',
       'Very Independent',
       'Somewhat Independent',
       'Balanced',
@@ -175,15 +177,15 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
           ),
           child: Slider(
             value: widget.affectionLevel,
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[widget.affectionLevel.toInt() - 1],
+            divisions: 5,
+            label: labels[widget.affectionLevel.round().clamp(0, 5).toInt()],
             onChanged: (value) => widget.onAffectionLevelChanged(value),
           ),
         ),
         Text(
-          labels[widget.affectionLevel.toInt() - 1],
+          labels[widget.affectionLevel.round().clamp(0, 5).toInt()],
           style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -195,6 +197,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
 
   Widget _buildIndependenceSlider() {
     final labels = [
+      'None',
       'Highly Dependent',
       'Dependent',
       'Moderate',
@@ -212,15 +215,15 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
           ),
           child: Slider(
             value: widget.independence,
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[widget.independence.toInt() - 1],
+            divisions: 5,
+            label: labels[widget.independence.round().clamp(0, 5).toInt()],
             onChanged: (value) => widget.onIndependenceChanged(value),
           ),
         ),
         Text(
-          labels[widget.independence.toInt() - 1],
+          labels[widget.independence.round().clamp(0, 5).toInt()],
           style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -232,6 +235,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
 
   Widget _buildAdaptabilitySlider() {
     final labels = [
+      'None',
       'Struggles with Change',
       'Difficult',
       'Moderate',
@@ -249,15 +253,15 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
           ),
           child: Slider(
             value: widget.adaptability,
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[widget.adaptability.toInt() - 1],
+            divisions: 5,
+            label: labels[widget.adaptability.round().clamp(0, 5).toInt()],
             onChanged: (value) => widget.onAdaptabilityChanged(value),
           ),
         ),
         Text(
-          labels[widget.adaptability.toInt() - 1],
+          labels[widget.adaptability.round().clamp(0, 5).toInt()],
           style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -269,6 +273,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
 
   Widget _buildTrainingSlider() {
     final labels = [
+      'None',
       'Beginner',
       'Novice',
       'Intermediate',
@@ -288,16 +293,16 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
           ),
           child: Slider(
             value: widget.trainingDifficulty,
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[widget.trainingDifficulty.toInt() - 1],
+            divisions: 5,
+            label: labels[widget.trainingDifficulty.round().clamp(0, 5).toInt()],
             onChanged: (value) => widget.onTrainingDifficultyChanged(value),
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          labels[widget.trainingDifficulty.toInt() - 1],
+          labels[widget.trainingDifficulty.round().clamp(0, 5).toInt()],
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,

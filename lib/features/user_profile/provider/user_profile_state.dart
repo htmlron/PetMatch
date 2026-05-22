@@ -12,21 +12,12 @@ class UserProfileState with _$UserProfileState {
     // Pet preference
     String? petPreference,
 
-    // Activity level (Step 1)
-    int? activityLevel, // 1-5
-    String? activityLabel,
-
-    // Affection level (Step 2)
-    int? affectionLevel, // 1-5
-    String? affectionLabel,
-
-    // Patience level (Step 3)
-    int? patienceLevel, // 1-5
-    String? patienceLabel,
-
-    // Grooming level (Step 4)
-    int? groomingLevel, // 1-5
-    String? groomingLabel,
+    // Lifestyle compatibility preferences (tap-to-select)
+    String? livingEnvironment,
+    String? dailyAvailability,
+    String? petOwnershipExperience,
+    String? lifestylePace,
+    String? budgetForPetCare,
 
     // Household fields
     bool? hasChildren,
@@ -38,8 +29,6 @@ class UserProfileState with _$UserProfileState {
     bool? okayWithSpecialNeeds,
 
     // Additional fields for future steps
-    String? livingSpace, // e.g., 'Apartment', 'House', etc.
-    String? experience, // e.g., 'First-time', 'Experienced', etc.
     List<String>? preferredBreeds,
     String? agePreference, // e.g., 'Puppy', 'Adult', 'Senior'
     String? sizePreference, // e.g., 'Small', 'Medium', 'Large'
@@ -55,20 +44,23 @@ class UserProfileState with _$UserProfileState {
 
   bool get isValid {
     return petPreference != null &&
-        activityLevel != null &&
-        affectionLevel != null &&
-        patienceLevel != null;
+        livingEnvironment != null &&
+        dailyAvailability != null &&
+        petOwnershipExperience != null &&
+        lifestylePace != null &&
+        budgetForPetCare != null;
   }
 
   int get completionPercentage {
     int filledFields = 0;
-    int totalFields = 5;
+    int totalFields = 6;
 
     if (petPreference != null) filledFields++;
-    if (activityLevel != null) filledFields++;
-    if (affectionLevel != null) filledFields++;
-    if (patienceLevel != null) filledFields++;
-    if (groomingLevel != null) filledFields++;
+    if (livingEnvironment != null) filledFields++;
+    if (dailyAvailability != null) filledFields++;
+    if (petOwnershipExperience != null) filledFields++;
+    if (lifestylePace != null) filledFields++;
+    if (budgetForPetCare != null) filledFields++;
 
     return ((filledFields / totalFields) * 100).round();
   }

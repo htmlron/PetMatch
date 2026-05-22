@@ -228,44 +228,40 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
                     const SizedBox(height: 10),
                     _buildEditCard(
                       icon: Icons.fitness_center_rounded,
-                      title: 'Activity Level',
-                      value: profile.activityLabel ?? 'Not set',
-                      subtitle: profile.activityLevel != null
-                          ? '${profile.activityLevel}/5'
-                          : null,
+                      title: 'Living Environment',
+                      value: profile.livingEnvironment ?? 'Not set',
                       color: const Color.fromARGB(255, 247, 127, 211),
                       onTap: () => context.push('/onboarding/activity-level'),
                     ),
                     const SizedBox(height: 10),
                     _buildEditCard(
+                      icon: Icons.brush_rounded,
+                      title: 'Daily Availability',
+                      value: profile.dailyAvailability ?? 'Not set',
+                      color: const Color.fromARGB(255, 68, 127, 236),
+                      onTap: () => context.push('/onboarding/hairiness-level'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
                       icon: Icons.spa_rounded,
-                      title: 'Grooming Tolerance',
-                      value: profile.groomingLabel ?? 'Not set',
-                      subtitle: profile.groomingLevel != null
-                          ? '${profile.groomingLevel}/5'
-                          : null,
+                      title: 'Pet Ownership Experience',
+                      value: profile.petOwnershipExperience ?? 'Not set',
                       color: const Color.fromARGB(255, 68, 127, 236),
                       onTap: () => context.push('/onboarding/grooming-level'),
                     ),
                     const SizedBox(height: 10),
                     _buildEditCard(
                       icon: Icons.favorite_border_rounded,
-                      title: 'Affection Preference',
-                      value: profile.affectionLabel ?? 'Not set',
-                      subtitle: profile.affectionLevel != null
-                          ? '${profile.affectionLevel}/5'
-                          : null,
+                      title: 'Lifestyle Pace',
+                      value: profile.lifestylePace ?? 'Not set',
                       color: const Color.fromARGB(255, 133, 54, 179),
                       onTap: () => context.push('/onboarding/affection-level'),
                     ),
                     const SizedBox(height: 10),
                     _buildEditCard(
                       icon: Icons.timelapse_rounded,
-                      title: 'Training Patience',
-                      value: profile.patienceLabel ?? 'Not set',
-                      subtitle: profile.patienceLevel != null
-                          ? '${profile.patienceLevel}/5'
-                          : null,
+                      title: 'Budget for Pet Care',
+                      value: profile.budgetForPetCare ?? 'Not set',
                       color: const Color.fromARGB(255, 63, 211, 154),
                       onTap: () => context.push('/onboarding/patience-level'),
                     ),

@@ -44,7 +44,7 @@ class DropdownButtonFormFieldWidget<T> extends StatelessWidget {
             ),
           ),
         ),
-        value: selectedValue,
+        initialValue: selectedValue,
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
               fontSize: 16.0,

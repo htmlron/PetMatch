@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/utils/notifier_helpers.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/widgets/custom_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -276,12 +277,21 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         final user = response.user!;
 
         if (user.emailConfirmedAt != null) {
+          await ref.read(authProvider.notifier).initializeAuth();
+          final authState = ref.read(authProvider);
+
           NotifierHelper.showSuccessToast(
             context,
             'Email verified successfully! 🎉',
           );
 
-          context.go('/onboarding');
+          if (authState.userProfile?.role == 'admin') {
+            context.go('/admin/pet-management');
+          } else if (!authState.onboardingComplete) {
+            context.go('/onboarding');
+          } else {
+            context.go('/home');
+          }
         } else {
           NotifierHelper.showErrorToast(
             context,
@@ -324,15 +334,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     try {
       NotifierHelper.showLoadingToast(context, 'Sending verification email...');
 
-      // Resend the verification email
-      if (widget.password != null && widget.password!.isNotEmpty) {
-        await supabase.auth.signUp(
-          email: widget.email,
-          password: widget.password!,
-        );
-      } else {
-        await supabase.auth.resetPasswordForEmail(widget.email);
-      }
+      await supabase.auth.resend(
+        type: OtpType.signup,
+        email: widget.email,
+        emailRedirectTo: 'https://petmatch-nine.vercel.app/verify-email',
+      );
 
       NotifierHelper.closeToast(context);
       NotifierHelper.showSuccessToast(

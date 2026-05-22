@@ -58,6 +58,7 @@ class _ActivityInfoStepState extends ConsumerState<ActivityInfoStep> {
   // ------------------------
   Widget _buildEnergySlider() {
     final labels = [
+      'None',
       'Very Calm',
       'Calm',
       'Moderate',
@@ -75,15 +76,15 @@ class _ActivityInfoStepState extends ConsumerState<ActivityInfoStep> {
           ),
           child: Slider(
             value: widget.energyLevel,
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[widget.energyLevel.toInt() - 1],
+            divisions: 5,
+            label: labels[widget.energyLevel.round().clamp(0, 5).toInt()],
             onChanged: (value) => widget.onEnergyLevelChanged(value),
           ),
         ),
         Text(
-          labels[widget.energyLevel.toInt() - 1],
+          labels[widget.energyLevel.round().clamp(0, 5).toInt()],
           style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -95,6 +96,7 @@ class _ActivityInfoStepState extends ConsumerState<ActivityInfoStep> {
 
   Widget _buildPlayfulnessSlider() {
     final labels = [
+      'None',
       'Not Playful',
       'Rarely Plays',
       'Sometimes',
@@ -112,15 +114,15 @@ class _ActivityInfoStepState extends ConsumerState<ActivityInfoStep> {
           ),
           child: Slider(
             value: widget.playfulness,
-            min: 1,
+            min: 0,
             max: 5,
-            divisions: 4,
-            label: labels[widget.playfulness.toInt() - 1],
+            divisions: 5,
+            label: labels[widget.playfulness.round().clamp(0, 5).toInt()],
             onChanged: (value) => widget.onPlayfulnessChanged(value),
           ),
         ),
         Text(
-          labels[widget.playfulness.toInt() - 1],
+          labels[widget.playfulness.round().clamp(0, 5).toInt()],
           style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
