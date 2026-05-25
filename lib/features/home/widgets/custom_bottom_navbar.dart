@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -47,6 +48,16 @@ class CustomBottomNav extends StatelessWidget {
     final isSelected = currentIndex == index;
     return GestureDetector(
       onTap: () {
+        auditTrailService.track(
+          action: 'nav_tab_clicked',
+          entityType: 'navigation',
+          entityId: route,
+          metadata: {
+            'route': route,
+            'tab_index': index,
+            'selected': isSelected,
+          },
+        );
         if (!isSelected) {
           context.go(route);
         }

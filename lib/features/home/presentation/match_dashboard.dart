@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 import 'package:petmatch/core/services/gemini_service.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
 import 'package:petmatch/features/home/provider/favorites_provider.dart';
@@ -84,6 +85,17 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
     try {
       final userId = supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
+
+      await auditTrailService.track(
+        action: 'match_explanation_requested',
+        entityType: 'pet_match',
+        entityId: petMatch.pet.id,
+        metadata: {
+          'pet_name': petMatch.pet.name,
+          'match_percent': petMatch.totalMatchPercent.toInt(),
+          'source': 'match_dashboard',
+        },
+      );
 
       final userProfileData = await supabase
           .from('user_profile')
@@ -493,7 +505,7 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       } else if (normalizedPreferredSize == 'medium') {
         targetOrder = ['large', 'small'];
       } else if (normalizedPreferredSize == 'large') {
-        targetOrder = ['small', 'medium'];
+        targetOrder = ['medium', 'small'];
       }
 
       final priority = <String, int>{};
@@ -509,7 +521,9 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
         return aPri.compareTo(bPri);
       });
 
-      final pets = candidates.take(3).toList();
+      // Keep a small ranked pool so preferred fallback sizes can appear first
+      // and the less preferred size still shows up near the end of the list.
+      final pets = candidates.take(6).toList();
       if (mounted) {
         setState(() {
           _sizeMismatchedDogs = pets;

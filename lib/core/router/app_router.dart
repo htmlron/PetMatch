@@ -4,12 +4,14 @@ import 'package:petmatch/core/router/admin_routes.dart';
 import 'package:petmatch/core/router/auth_routes.dart';
 import 'package:petmatch/core/router/home_routes.dart';
 import 'package:petmatch/core/router/onboarding_routes.dart';
+import 'package:petmatch/core/services/audit_navigation_observer.dart';
 import 'package:petmatch/get_started_screen.dart';
 import 'package:petmatch/splash_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
+    observers: [AuditNavigationObserver()],
     routes: [
       GoRoute(
         path: '/splash',
