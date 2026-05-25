@@ -18,11 +18,11 @@ class _PatienceLevelSetupScreenState
     extends ConsumerState<PatienceLevelSetupScreen> {
   static const Color _accent = Color.fromARGB(255, 255, 206, 43);
 
-  static const List<String> _options = <String>[
-    'Budget-Friendly',
-    'Moderate',
-    'Flexible',
-    'Premium Care',
+  static const List<Map<String, String>> _options = <Map<String, String>>[
+    {'value': 'Budget-Friendly', 'label': 'Budget-Friendly (₱1,000)'},
+    {'value': 'Moderate', 'label': 'Moderate (₱3,000)'},
+    {'value': 'Flexible', 'label': 'Flexible (₱5,000)'},
+    {'value': 'Premium Care', 'label': 'Premium Care (₱10,000+)'},
   ];
 
   String? _selected;
@@ -79,12 +79,14 @@ class _PatienceLevelSetupScreenState
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final option = _options[index];
-                    final isSelected = option == _selected;
+                    final value = option['value']!;
+                    final label = option['label']!;
+                    final isSelected = value == _selected;
                     return _OptionTile(
-                      label: option,
+                      label: label,
                       accent: _accent,
                       selected: isSelected,
-                      onTap: () => setState(() => _selected = option),
+                      onTap: () => setState(() => _selected = value),
                     );
                   },
                 ),

@@ -23,7 +23,7 @@ class _ActivityLevelSetupScreenState
     'Condo',
     'Small House',
     'Large House',
-    'Subdivision',
+    'TownHouse',
   ];
 
   String? _selected;

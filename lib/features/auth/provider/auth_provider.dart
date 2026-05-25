@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/user_model.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petmatch/features/auth/provider/auth_state.dart';
@@ -124,6 +125,18 @@ class AuthNotifier extends Notifier<UserAuthState> {
             context.go('/home');
           }
         }
+
+        await auditTrailService.track(
+          action: 'user_signed_in',
+          actorId: user.id,
+          actorEmail: user.email,
+          actorRole: state.userProfile?.role,
+          entityType: 'session',
+          entityId: user.id,
+          metadata: {
+            'email_verified': true,
+          },
+        );
       }
     } catch (e) {
       NotifierHelper.logError(e);
@@ -251,6 +264,19 @@ class AuthNotifier extends Notifier<UserAuthState> {
           userId: response.user!.id,
         );
 
+        await auditTrailService.track(
+          action: 'user_registered',
+          actorId: response.user!.id,
+          actorEmail: email,
+          actorRole: 'user',
+          entityType: 'user',
+          entityId: response.user!.id,
+          metadata: {
+            'username': username,
+            'verification_required': true,
+          },
+        );
+
         NotifierHelper.closeToast(context);
         NotifierHelper.showSuccessToast(
           context,
@@ -365,6 +391,16 @@ class AuthNotifier extends Notifier<UserAuthState> {
   Future<void> signOut(BuildContext context) async {
     try {
       await supabase.auth.signOut();
+
+      await auditTrailService.track(
+        action: 'user_signed_out',
+        actorId: state.userId ?? supabase.auth.currentUser?.id,
+        actorEmail: state.userEmail,
+        actorRole: state.userProfile?.role,
+        entityType: 'session',
+        entityId: state.userId ?? supabase.auth.currentUser?.id,
+      );
+
       state = UserAuthState();
       context.go('/login');
     } catch (e) {
@@ -446,6 +482,15 @@ class AuthNotifier extends Notifier<UserAuthState> {
 
       // Update state
       state = state.copyWith(onboardingComplete: true);
+
+      await auditTrailService.track(
+        action: 'onboarding_completed',
+        actorId: userId,
+        actorEmail: state.userEmail,
+        actorRole: state.userProfile?.role,
+        entityType: 'onboarding',
+        entityId: userId,
+      );
 
       NotifierHelper.closeToast(context);
       NotifierHelper.showSuccessToast(context, 'Profile setup complete! 🎉');

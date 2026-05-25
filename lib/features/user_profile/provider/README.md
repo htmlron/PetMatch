@@ -183,7 +183,7 @@ Future<bool> submitProfile() async {
 ### Required Fields
 
 - `petPreference` - String? ('Cat', 'Dog', 'No Preference')
-- `livingEnvironment` - String? (e.g. 'Apartment', 'Subdivision')
+- `livingEnvironment` - String? (e.g. 'Apartment', 'TownHouse')
 - `dailyAvailability` - String? (e.g. 'Mostly Home', 'Out During Day')
 - `petOwnershipExperience` - String? (e.g. 'First-time Owner', 'Experienced')
 - `lifestylePace` - String? (e.g. 'Relaxed', 'Balanced', 'Active')

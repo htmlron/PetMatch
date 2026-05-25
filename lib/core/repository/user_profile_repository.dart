@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:petmatch/core/config/supabase_config.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class UserProfileRepository {
   Future<void> saveUserProfile({
@@ -33,6 +34,18 @@ class UserProfileRepository {
     await supabase.from('users').update({
       'onboarding_completed': true,
     }).eq('user_id', userId);
+
+    await auditTrailService.track(
+      action: 'profile_setup_completed',
+      actorId: userId,
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {
+        'has_lifestyle': userLifestyle.isNotEmpty,
+        'has_traits': personalityTraits.isNotEmpty,
+        'has_household_info': householdInfo.isNotEmpty,
+      },
+    );
   }
 
   Future<void> updatePersonalityTrait(
@@ -49,6 +62,18 @@ class UserProfileRepository {
         'value': value,
       });
       print('✅ Activity level updated successfully for user $userId');
+
+      await auditTrailService.track(
+        action: 'profile_trait_updated',
+        actorId: userId,
+        entityType: 'user_profile',
+        entityId: userId,
+        metadata: {
+          'column': column,
+          'key': key,
+          'value': value,
+        },
+      );
     } catch (e) {
       print('❌ Error updating activity level: $e');
     }

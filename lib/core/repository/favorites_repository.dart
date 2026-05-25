@@ -1,5 +1,6 @@
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_model.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class FavoritesRepository {
   Future<List<String>> getFavoritePetIds(String userId) async {
@@ -23,6 +24,14 @@ class FavoritesRepository {
       'user_id': userId,
       'pet_id': petId,
     }, onConflict: 'user_id,pet_id');
+
+    await auditTrailService.track(
+      action: 'favorite_added',
+      actorId: userId,
+      entityType: 'favorite',
+      entityId: petId,
+      metadata: {'pet_id': petId},
+    );
   }
 
   Future<void> removeFavorite(String userId, String petId) async {
@@ -31,5 +40,13 @@ class FavoritesRepository {
         .delete()
         .eq('user_id', userId)
         .eq('pet_id', petId);
+
+    await auditTrailService.track(
+      action: 'favorite_removed',
+      actorId: userId,
+      entityType: 'favorite',
+      entityId: petId,
+      metadata: {'pet_id': petId},
+    );
   }
 }

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class PetRepository {
   final _supabase = supabase;
@@ -423,6 +424,18 @@ class PetRepository {
         'updated_at': DateTime.now().toIso8601String(),
       });
 
+      await auditTrailService.track(
+        action: 'pet_created',
+        entityType: 'pet',
+        entityId: petId,
+        metadata: {
+          'name': petName,
+          'species': species,
+          'status': _capitalize(status),
+          'image_count': imageInserts.length + (thumbnailPath != null ? 1 : 0),
+        },
+      );
+
       print('🎉 Pet saved successfully with ID: $petId');
     } catch (e) {
       print('❌ Error saving pet: $e');
@@ -623,6 +636,19 @@ class PetRepository {
       }).eq('pet_id', petId);
       print('✅ Pet characteristics updated');
 
+      await auditTrailService.track(
+        action: 'pet_updated',
+        entityType: 'pet',
+        entityId: petId,
+        metadata: {
+          'name': petName,
+          'species': species,
+          'status': _capitalize(status),
+          'deleted_image_count': deletedImagePaths.length,
+          'added_image_count': selectedImages.length,
+        },
+      );
+
       print('🎉 Pet updated successfully with ID: $petId');
     } catch (e) {
       print('❌ Error updating pet: $e');
@@ -681,6 +707,16 @@ class PetRepository {
       await _supabase.from('pets').delete().eq('pet_id', petId);
       print('✅ Deleted pet record');
 
+      await auditTrailService.track(
+        action: 'pet_deleted',
+        entityType: 'pet',
+        entityId: petId,
+        metadata: {
+          'pet_id': petId,
+          'pet_name': pet?.name,
+        },
+      );
+
       print('🎉 Pet deleted successfully!');
     } catch (e) {
       print('❌ Error deleting pet: $e');
@@ -728,6 +764,16 @@ class PetRepository {
             .eq('pet_id', petId)
             .eq('image_path', filename);
         print('✅ Deleted database record for: $filename');
+
+        await auditTrailService.track(
+          action: 'pet_image_deleted',
+          entityType: 'pet_image',
+          entityId: petId,
+          metadata: {
+            'pet_id': petId,
+            'image_path': filename,
+          },
+        );
       } catch (e) {
         print('⚠️ Could not delete DB record for $filename: $e');
       }

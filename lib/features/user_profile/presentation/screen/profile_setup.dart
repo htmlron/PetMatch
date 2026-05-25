@@ -278,7 +278,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   Widget _buildLivingArrangementCards(bool isSmall) {
     final arrangements = [
       {'title': 'Apartment', 'icon': Icons.apartment},
-      {'title': 'Subdivision', 'icon': Icons.home},
+      {'title': 'TownHouse', 'icon': Icons.home},
       {'title': 'Farm', 'icon': Icons.agriculture},
       {'title': 'Shared Housing', 'icon': Icons.people},
     ];

@@ -181,6 +181,11 @@
         background: var(--surface-alt);
         color: var(--accent);
       }
+
+      .nav-item.active {
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--accent);
+      }
       
       .nav-item-icon {
         font-size: 16px;
@@ -247,6 +252,70 @@
       .sidebar-utility-logout:hover {
         color: var(--danger);
         background: rgba(220, 38, 38, 0.05);
+      }
+
+      .sidebar-audit {
+        padding: 0 8px 8px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .sidebar-audit-toggle {
+        width: 100%;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 10px;
+      }
+
+      .sidebar-audit-panel {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface-alt);
+        max-height: 320px;
+        overflow: auto;
+      }
+
+      .sidebar-audit-panel .message {
+        padding: 10px 12px;
+        border-radius: 12px;
+      }
+
+      .sidebar-audit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sidebar-audit-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .sidebar-audit-status {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .sidebar-audit .audit-event {
+        padding: 10px 12px;
+        border-radius: 10px;
+      }
+
+      .sidebar-audit .audit-event-title {
+        font-size: 12px;
+      }
+
+      .sidebar-audit .audit-event-meta {
+        font-size: 11px;
+      }
+
+      .sidebar-audit .audit-event-badge {
+        font-size: 10px;
       }
       
       /* CONTENT AREA */
@@ -640,6 +709,58 @@
         background: rgba(220, 38, 38, 0.1);
         color: var(--danger);
         border-color: rgba(220, 38, 38, 0.2);
+      }
+
+      .audit-trail {
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-event {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(249,250,251,0.98));
+        display: grid;
+        gap: 8px;
+      }
+
+      .audit-event-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .audit-event-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .audit-event-meta {
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .audit-event-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .audit-event-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--accent);
+        border: 1px solid rgba(37, 99, 235, 0.12);
+        font-size: 11px;
+        font-weight: 600;
       }
       
       .hidden {
@@ -1072,6 +1193,22 @@
           <div class="nav-item" onclick="document.getElementById('petGrid').scrollIntoView({behavior:'smooth'});">
             <span class="nav-item-icon">📊</span>
             <span>Dashboard</span>
+          </div>
+          <div class="sidebar-audit hidden" id="sidebarAuditLogs">
+            <button id="auditLogsToggle" class="btn btn-secondary sidebar-audit-toggle" type="button" aria-expanded="false">
+              <span style="display:flex;align-items:center;gap:10px;">
+                <span class="nav-item-icon">📝</span>
+                <span>Audit Logs</span>
+              </span>
+              <span id="auditLogsChevron">▸</span>
+            </button>
+            <div id="sidebarAuditPanel" class="sidebar-audit-panel hidden">
+              <div class="sidebar-audit-header">
+                <div class="sidebar-audit-title">Realtime audit logs</div>
+                <div id="auditStatus" class="sidebar-audit-status">Waiting for activity...</div>
+              </div>
+              <div id="auditTrailList" class="audit-trail"></div>
+            </div>
           </div>
         </nav>
         
@@ -1520,11 +1657,17 @@
       const heroSubtitle = document.getElementById('heroSubtitle');
       const statPets = document.getElementById('statPets');
       const statDogs = document.getElementById('statDogs');
+      const auditTrailList = document.getElementById('auditTrailList');
+      const auditStatus = document.getElementById('auditStatus');
+      const sidebarAuditLogs = document.getElementById('sidebarAuditLogs');
+      const sidebarAuditPanel = document.getElementById('sidebarAuditPanel');
+      const auditLogsToggle = document.getElementById('auditLogsToggle');
+      const auditLogsChevron = document.getElementById('auditLogsChevron');
       const filePreviews = document.getElementById('filePreviews');
       const existingImages = document.getElementById('existingImages');
       const lastSyncMessage = document.getElementById('lastSyncMessage');
 
-      const state = { session: null, profile: null, pets: [], editingPet: null, selectedThumbnail: null, selectedGallery: [], removedImages: new Set(), realtimeChannel: null, client: baseSupabase };
+      const state = { session: null, profile: null, pets: [], auditTrail: [], auditLogsOpen: false, editingPet: null, selectedThumbnail: null, selectedGallery: [], removedImages: new Set(), realtimeChannel: null, client: baseSupabase };
 
       const editorCard = document.getElementById('editorCard');
 
@@ -1545,6 +1688,152 @@
       const getClient = () => state.client || baseSupabase;
       const makeStorageUrl = (petId, filename) => getClient().storage.from(bucketName).getPublicUrl(`${petId}/${filename}`).data.publicUrl;
       const resolveText = (value) => (value === null || value === undefined || value === '' ? 'Unknown' : String(value));
+      const auditActionLabels = {
+        user_registered: 'User registered',
+        user_signed_in: 'User signed in',
+        user_signed_out: 'User signed out',
+        onboarding_completed: 'Onboarding completed',
+        profile_setup_completed: 'Profile setup completed',
+        profile_trait_updated: 'Profile trait updated',
+        favorite_added: 'Favorite added',
+        favorite_removed: 'Favorite removed',
+        pet_created: 'Pet created',
+        pet_updated: 'Pet updated',
+        pet_deleted: 'Pet deleted',
+        pet_image_deleted: 'Pet image deleted',
+      };
+
+      const formatAuditAction = (action) => {
+        const value = action ? String(action) : 'activity';
+        return auditActionLabels[value] || value.replace(/_/g, ' ');
+      };
+      const formatAuditTime = (value) => {
+        try {
+          return new Date(value).toLocaleString();
+        } catch (_) {
+          return value || 'Just now';
+        }
+      };
+
+      function setAuditLogsOpen(isOpen) {
+        state.auditLogsOpen = Boolean(isOpen);
+        if (sidebarAuditPanel) {
+          sidebarAuditPanel.classList.toggle('hidden', !state.auditLogsOpen);
+        }
+        if (sidebarAuditLogs) {
+          sidebarAuditLogs.classList.toggle('hidden', false);
+        }
+        if (auditLogsToggle) {
+          auditLogsToggle.setAttribute('aria-expanded', String(state.auditLogsOpen));
+          auditLogsToggle.classList.toggle('active', state.auditLogsOpen);
+        }
+        if (auditLogsChevron) {
+          auditLogsChevron.textContent = state.auditLogsOpen ? '▾' : '▸';
+        }
+      }
+
+      function renderAuditTrail() {
+        if (!auditTrailList) return;
+
+        if (!state.auditTrail.length) {
+          auditTrailList.innerHTML = '<div class="message">No user actions yet. Realtime events will appear here.</div>';
+          return;
+        }
+
+        auditTrailList.innerHTML = '';
+        state.auditTrail.forEach((event) => {
+          const item = document.createElement('article');
+          item.className = 'audit-event';
+
+          const top = document.createElement('div');
+          top.className = 'audit-event-top';
+
+          const titleBlock = document.createElement('div');
+          const title = document.createElement('div');
+          title.className = 'audit-event-title';
+          title.textContent = formatAuditAction(event.action);
+
+          const meta = document.createElement('div');
+          meta.className = 'audit-event-meta';
+          const actor = event.actor_email || event.actor_id || 'Unknown user';
+          const entity = [event.entity_type, event.entity_id].filter(Boolean).join(' • ');
+          meta.textContent = entity ? `${actor} • ${entity}` : actor;
+
+          titleBlock.appendChild(title);
+          titleBlock.appendChild(meta);
+
+          const time = document.createElement('div');
+          time.className = 'audit-event-meta';
+          time.textContent = formatAuditTime(event.created_at);
+
+          top.appendChild(titleBlock);
+          top.appendChild(time);
+
+          const badges = document.createElement('div');
+          badges.className = 'audit-event-badges';
+
+          const role = event.actor_role || event.metadata?.role;
+          const type = event.entity_type || 'event';
+          [role ? `Role: ${role}` : null, `Type: ${type}`].filter(Boolean).forEach((label) => {
+            const badge = document.createElement('span');
+            badge.className = 'audit-event-badge';
+            badge.textContent = label;
+            badges.appendChild(badge);
+          });
+
+          item.appendChild(top);
+          item.appendChild(badges);
+
+          if (event.metadata && Object.keys(event.metadata).length) {
+            const detail = document.createElement('div');
+            detail.className = 'audit-event-meta';
+            const summary = Object.entries(event.metadata)
+              .slice(0, 3)
+              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`)
+              .join(' • ');
+            detail.textContent = summary;
+            item.appendChild(detail);
+          }
+
+          auditTrailList.appendChild(item);
+        });
+      }
+
+      function pushAuditEvent(event) {
+        if (!event || !event.id) return;
+        const normalized = {
+          ...event,
+          metadata: event.metadata && typeof event.metadata === 'object' ? event.metadata : {},
+        };
+        state.auditTrail = [normalized, ...state.auditTrail.filter((item) => item.id !== normalized.id)].slice(0, 25);
+        renderAuditTrail();
+      }
+
+      async function fetchAuditTrail() {
+        if (!auditStatus) return;
+        auditStatus.textContent = 'Loading logs...';
+
+        const { data, error } = await getClient()
+          .from('audit_events')
+          .select('id, action, entity_type, entity_id, actor_id, actor_email, actor_role, metadata, created_at')
+          .order('created_at', { ascending: false })
+          .limit(25);
+
+        if (error) {
+          console.warn('Audit trail fetch failed:', error);
+          auditStatus.textContent = 'Audit logs unavailable';
+          state.auditTrail = [];
+          renderAuditTrail();
+          return;
+        }
+
+        state.auditTrail = (data || []).map((event) => ({
+          ...event,
+          metadata: event.metadata && typeof event.metadata === 'object' ? event.metadata : {},
+        }));
+        renderAuditTrail();
+        auditStatus.textContent = state.auditTrail.length ? 'Live logs on' : 'Waiting for activity...';
+      }
 
       // Wire vaccination toggle button for initial page load
       try {
@@ -1888,8 +2177,13 @@
         const email = session?.user?.email || '-';
         adminEmail.textContent = email; 
         adminAvatar.textContent = email[0]?.toUpperCase() || 'A';
+        if (sidebarAuditLogs) {
+          sidebarAuditLogs.classList.remove('hidden');
+        }
+        setAuditLogsOpen(false);
         showDashboard(); 
         await refreshPets();
+        await fetchAuditTrail();
         if (state.realtimeChannel) await getClient().removeChannel(state.realtimeChannel);
         state.realtimeChannel = getClient().channel('admin-pet-feed')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, (payload) => {
@@ -1903,6 +2197,13 @@
           .on('postgres_changes', { event: '*', schema: 'public', table: 'pet_characteristics' }, (payload) => {
             console.log('🔔 Pet characteristics table change detected:', payload.eventType);
             refreshPets();
+          })
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_events' }, (payload) => {
+            console.log('🔔 Audit event detected:', payload.new?.action || payload.eventType);
+            pushAuditEvent(payload.new);
+            if (auditStatus) {
+              auditStatus.textContent = 'Live audit on';
+            }
           })
           .subscribe((status) => {
             console.log('Realtime subscription status:', status);
@@ -1997,8 +2298,25 @@
         if (state.realtimeChannel) {
           try { await getClient().removeChannel(state.realtimeChannel); } catch (e) { console.warn('Failed to remove channel', e); }
         }
-        state.client = baseSupabase; state.session = null; state.profile = null; showAuth(); setStatus('#bbb', 'Signed out');
+        state.client = baseSupabase; state.session = null; state.profile = null; state.auditTrail = []; state.auditLogsOpen = false; renderAuditTrail();
+        if (sidebarAuditLogs) sidebarAuditLogs.classList.add('hidden');
+        if (sidebarAuditPanel) sidebarAuditPanel.classList.add('hidden');
+        if (auditLogsToggle) auditLogsToggle.setAttribute('aria-expanded', 'false');
+        if (auditLogsChevron) auditLogsChevron.textContent = '▸';
+        showAuth(); setStatus('#bbb', 'Signed out');
       });
+      if (auditLogsToggle) {
+        auditLogsToggle.addEventListener('click', () => {
+          if (state.auditLogsOpen) {
+            setAuditLogsOpen(false);
+            return;
+          }
+          setAuditLogsOpen(true);
+          if (!state.auditTrail.length) {
+            fetchAuditTrail();
+          }
+        });
+      }
       $('thumbnail').addEventListener('change', (event) => { state.selectedThumbnail = event.target.files?.[0] || null; renderPreviews(); });
       $('gallery').addEventListener('change', (event) => { state.selectedGallery = Array.from(event.target.files || []); renderPreviews(); });
       searchInput.addEventListener('input', renderPetCards); speciesFilter.addEventListener('change', renderPetCards);

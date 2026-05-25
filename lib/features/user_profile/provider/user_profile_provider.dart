@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/core/repository/user_profile_repository.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
@@ -39,6 +40,12 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void setPetPreference(BuildContext context, String preference) {
     state = state.copyWith(petPreference: preference);
     _logState('Pet preference saved: $preference');
+    auditTrailService.track(
+      action: 'pet_preference_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'pet_preference': preference},
+    );
     context.push('/onboarding/activity-level');
   }
 
@@ -46,6 +53,12 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updatePetPreference(String preference) {
     state = state.copyWith(petPreference: preference);
     _logState('Pet preference updated: $preference');
+    auditTrailService.track(
+      action: 'pet_preference_updated',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'pet_preference': preference},
+    );
 
     // Persist change immediately for edit flows
     try {
@@ -65,30 +78,60 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void setLivingEnvironment(BuildContext context, String selection) {
     state = state.copyWith(livingEnvironment: selection);
     _logState('Living environment saved: $selection');
+    auditTrailService.track(
+      action: 'living_environment_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'living_environment': selection},
+    );
     context.push('/onboarding/patience-level');
   }
 
   void setBudgetForPetCare(BuildContext context, String selection) {
     state = state.copyWith(budgetForPetCare: selection);
     _logState('Budget for pet care saved: $selection');
+    auditTrailService.track(
+      action: 'budget_for_pet_care_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'budget_for_pet_care': selection},
+    );
     context.push('/onboarding/affection-level');
   }
 
   void setLifestylePace(BuildContext context, String selection) {
     state = state.copyWith(lifestylePace: selection);
     _logState('Lifestyle pace saved: $selection');
+    auditTrailService.track(
+      action: 'lifestyle_pace_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'lifestyle_pace': selection},
+    );
     context.push('/onboarding/hairiness-level');
   }
 
   void setDailyAvailability(BuildContext context, String selection) {
     state = state.copyWith(dailyAvailability: selection);
     _logState('Daily availability saved: $selection');
+    auditTrailService.track(
+      action: 'daily_availability_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'daily_availability': selection},
+    );
     context.push('/onboarding/grooming-level');
   }
 
   void setPetOwnershipExperience(BuildContext context, String selection) {
     state = state.copyWith(petOwnershipExperience: selection);
     _logState('Pet ownership experience saved: $selection');
+    auditTrailService.track(
+      action: 'pet_ownership_experience_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'pet_ownership_experience': selection},
+    );
     context.push('/onboarding/size-preference');
   }
 
@@ -125,11 +168,26 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     );
 
     _logState('user_lifestyle updated: $key = $value');
+    auditTrailService.track(
+      action: 'lifestyle_preference_updated',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {
+        'key': key,
+        'value': value,
+      },
+    );
   }
 
   void setSizePreference(BuildContext context, String size) {
     state = state.copyWith(sizePreference: size);
     _logState('Size preference saved: $size');
+    auditTrailService.track(
+      action: 'size_preference_selected',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'size_preference': size},
+    );
     context.push('/onboarding/household');
   }
 
@@ -137,6 +195,12 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updateSizePreference(String size) {
     state = state.copyWith(sizePreference: size);
     _logState('Size preference updated: $size');
+    auditTrailService.track(
+      action: 'size_preference_updated',
+      entityType: 'user_profile',
+      entityId: userId,
+      metadata: {'size_preference': size},
+    );
 
     try {
       _repository.updatePersonalityTrait(

@@ -23,13 +23,12 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
   // Cat size options
   final List<Map<String, dynamic>> _catSizeOptions = [
     {
-      'value': 1,
-      'label': 'Small',
-      'emoji': '🐱',
-      'image': UserProfileAssets.sizeSmallCat,
-      'color': const Color.fromARGB(255, 255, 145, 222),
-      'description':
-          'Small cats (5-10 lbs). Perfect for apartments and cozy spaces.'
+      'value': 3,
+      'label': 'Large',
+      'emoji': '🦁',
+      'image': UserProfileAssets.sizeLargeCat,
+      'color': const Color.fromARGB(255, 117, 154, 253),
+      'description': 'Large cats (15+ lbs). Majestic and gentle giants.'
     },
     {
       'value': 2,
@@ -41,25 +40,26 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
           'Medium cats (10-15 lbs). The most common and versatile size.'
     },
     {
-      'value': 3,
-      'label': 'Large',
-      'emoji': '🦁',
-      'image': UserProfileAssets.sizeLargeCat,
-      'color': const Color.fromARGB(255, 117, 154, 253),
-      'description': 'Large cats (15+ lbs). Majestic and gentle giants.'
+      'value': 1,
+      'label': 'Small',
+      'emoji': '🐱',
+      'image': UserProfileAssets.sizeSmallCat,
+      'color': const Color.fromARGB(255, 255, 145, 222),
+      'description':
+          'Small cats (5-10 lbs). Perfect for apartments and cozy spaces.'
     },
   ];
 
   // Dog size options
   final List<Map<String, dynamic>> _dogSizeOptions = [
     {
-      'value': 1,
-      'label': 'Small',
-      'emoji': '🐕',
-      'image': UserProfileAssets.sizeSmallDog,
-      'color': const Color.fromARGB(255, 255, 206, 43),
+      'value': 3,
+      'label': 'Large',
+      'emoji': '🐕‍🦺',
+      'image': UserProfileAssets.sizeLargeDog,
+      'color': const Color.fromARGB(255, 255, 127, 80),
       'description':
-          'Small dogs (under 20 lbs). Easy to carry and apartment-friendly.'
+          'Large dogs (50+ lbs) like Golden Retriever or German Shepherd. Loyal companions with big hearts.'
     },
     {
       'value': 2,
@@ -71,26 +71,26 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
           'Medium dogs (20-50 lbs). Great balance of energy and manageability.'
     },
     {
-      'value': 3,
-      'label': 'Large',
-      'emoji': '🐕‍🦺',
-      'image': UserProfileAssets.sizeLargeDog,
-      'color': const Color.fromARGB(255, 255, 127, 80),
+      'value': 1,
+      'label': 'Small',
+      'emoji': '🐕',
+      'image': UserProfileAssets.sizeSmallDog,
+      'color': const Color.fromARGB(255, 255, 206, 43),
       'description':
-          'Large dogs (50+ lbs) like Golden Retriever or German Shepherd. Loyal companions with big hearts.'
+          'Small dogs (under 20 lbs). Easy to carry and apartment-friendly.'
     },
   ];
 
   // No preference options (shows both cat and dog)
   final List<Map<String, dynamic>> _noPreferenceOptions = [
     {
-      'value': 1,
-      'label': 'Small Pet',
+      'value': 3,
+      'label': 'Large Pet',
       'emoji': '🐾',
       'image': UserProfileAssets.sizeNoCat,
-      'color': const Color.fromARGB(255, 255, 182, 193),
+      'color': const Color.fromARGB(255, 144, 238, 144),
       'description':
-          'Small pets are easier to handle and perfect for smaller living spaces.'
+          'Large pets are wonderful companions with plenty of love to give.'
     },
     {
       'value': 2,
@@ -102,13 +102,13 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
           'Medium-sized pets offer a great balance between manageability and presence.'
     },
     {
-      'value': 3,
-      'label': 'Large Pet',
+      'value': 1,
+      'label': 'Small Pet',
       'emoji': '🐾',
       'image': UserProfileAssets.sizeNoCat,
-      'color': const Color.fromARGB(255, 144, 238, 144),
+      'color': const Color.fromARGB(255, 255, 182, 193),
       'description':
-          'Large pets are wonderful companions with plenty of love to give.'
+          'Small pets are easier to handle and perfect for smaller living spaces.'
     },
   ];
 
@@ -163,6 +163,13 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
       (level) => level['value'] == roundedLevel,
       orElse: () => _currentSizeOptions[1], // Default to medium
     );
+  }
+
+  int get _currentSizeIndex {
+    final roundedLevel = _selectedSizeValue.round();
+    final matchIndex = _currentSizeOptions
+        .indexWhere((level) => level['value'] == roundedLevel);
+    return matchIndex >= 0 ? matchIndex : 1;
   }
 
   // Get title based on pet preference
@@ -403,11 +410,12 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
       child: PageView.builder(
         controller: PageController(
           viewportFraction: 0.85,
-          initialPage: _selectedSizeValue.round() - 1,
+          initialPage: _currentSizeIndex,
         ),
         onPageChanged: (index) {
+          final selectedLevel = _currentSizeOptions[index]['value'] as num;
           setState(() {
-            _selectedSizeValue = (index + 1).toDouble();
+            _selectedSizeValue = selectedLevel.toDouble();
           });
         },
         itemCount: _currentSizeOptions.length,
