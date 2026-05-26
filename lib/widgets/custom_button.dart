@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class CustomButton extends StatelessWidget {
   const CustomButton({
@@ -14,6 +15,7 @@ class CustomButton extends StatelessWidget {
     this.fontSize = 17,
     this.borderColor,
     this.textColor,
+    this.auditLabel,
   });
 
   final String label;
@@ -27,6 +29,7 @@ class CustomButton extends StatelessWidget {
   final double fontSize;
   final Color? borderColor; // NEW
   final Color? textColor; // NEW
+  final String? auditLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +49,14 @@ class CustomButton extends StatelessWidget {
 
   Widget _buildSolidButton(BuildContext context, Color buttonColor) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: onPressed == null
+          ? null
+          : () {
+              auditTrailService.trackButtonClick(
+                buttonLabel: auditLabel ?? label,
+              );
+              onPressed?.call();
+            },
       style: ElevatedButton.styleFrom(
         backgroundColor: buttonColor,
         shape: RoundedRectangleBorder(
@@ -67,7 +77,14 @@ class CustomButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onPressed,
+        onTap: onPressed == null
+            ? null
+            : () {
+                auditTrailService.trackButtonClick(
+                  buttonLabel: auditLabel ?? label,
+                );
+                onPressed?.call();
+              },
         borderRadius: BorderRadius.circular(borderRadius),
         child: Ink(
           decoration: BoxDecoration(

@@ -48,6 +48,10 @@ class CustomBottomNav extends StatelessWidget {
     final isSelected = currentIndex == index;
     return GestureDetector(
       onTap: () {
+        if (isSelected) {
+          return;
+        }
+
         String cleanTabName;
         switch (route) {
           case '/home':
@@ -66,19 +70,16 @@ class CustomBottomNav extends StatelessWidget {
             cleanTabName = route.replaceAll('/home/', '').replaceAll('-', ' ');
         }
 
-        auditTrailService.track(
-          action: 'nav_tab_clicked',
-          entityType: 'navigation',
-          entityId: cleanTabName,
+        auditTrailService.trackButtonClick(
+          buttonLabel: cleanTabName,
+          screen: 'Home shell',
           metadata: {
-            'route': cleanTabName,
+            'route': route,
             'tab_index': index,
-            'selected': isSelected,
+            'selected': false,
           },
         );
-        if (!isSelected) {
-          context.go(route);
-        }
+        context.go(route);
       },
       child: Container(
         padding: const EdgeInsets.all(15),

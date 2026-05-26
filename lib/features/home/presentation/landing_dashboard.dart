@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
@@ -110,7 +111,8 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
                       color: Colors.deepOrange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.help_outline, color: Colors.deepOrange),
+                    child: const Icon(Icons.help_outline,
+                        color: Colors.deepOrange),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -364,7 +366,13 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
         ),
         IconButton(
           icon: const Icon(Icons.help_outline, color: Colors.deepOrange),
-          onPressed: _showHomeTutorial,
+          onPressed: () {
+            auditTrailService.trackButtonClick(
+              buttonLabel: 'How to use PetMatch',
+              screen: 'Home dashboard',
+            );
+            _showHomeTutorial();
+          },
           tooltip: 'How to use PetMatch',
         ),
       ],
@@ -390,6 +398,10 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
+                auditTrailService.trackButtonClick(
+                  buttonLabel: 'Retry',
+                  screen: 'Home dashboard',
+                );
                 ref.read(petsProvider.notifier).refresh();
               },
               child: const Text('Retry'),
@@ -419,6 +431,13 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
           final isSelected = _selectedCategoryIndex == category['index'];
           return GestureDetector(
             onTap: () {
+              auditTrailService.trackButtonClick(
+                buttonLabel: category['title'] as String,
+                screen: 'Home dashboard',
+                metadata: {
+                  'category_index': category['index'],
+                },
+              );
               setState(() {
                 _selectedCategoryIndex = category['index'] as int;
               });

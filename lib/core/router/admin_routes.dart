@@ -5,8 +5,9 @@ final adminRoutes = [
   GoRoute(
     path: '/admin/pet-management',
     name: 'admin-pet-management',
-    pageBuilder: (context, state) => const NoTransitionPage(
-      child: PetManagementPage(),
+    pageBuilder: (context, state) => NoTransitionPage(
+      name: state.name ?? state.matchedLocation,
+      child: const PetManagementPage(),
     ),
   ),
 ];

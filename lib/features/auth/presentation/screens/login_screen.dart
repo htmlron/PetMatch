@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:petmatch/core/utils/validators.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 import 'package:petmatch/widgets/custom_button.dart';
@@ -216,6 +217,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
                                     onPressed: () {
+                                      auditTrailService.trackButtonClick(
+                                        buttonLabel: 'Forgot password?',
+                                        screen: 'Login screen',
+                                      );
                                       context.push('/forgot-password');
                                     },
                                     child: Text(
@@ -237,6 +242,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       : isLockedOut
                                           ? 'Locked (${remainingSeconds}s)'
                                           : 'Sign in',
+                                  auditLabel: 'Sign in',
                                   backgroundColor: isLockedOut
                                       ? Theme.of(context).colorScheme.primary
                                       : Theme.of(context).colorScheme.onPrimary,

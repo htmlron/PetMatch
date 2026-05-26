@@ -13,10 +13,12 @@ class AuditTrailService {
     final currentUser = supabase.auth.currentUser;
     final resolvedActorId = actorId ?? currentUser?.id;
 
-    print('📝 [AuditTrailService] Attempting to log action: "$action" | Actor: "$resolvedActorId" | Email: "${actorEmail ?? currentUser?.email}"');
+    print(
+        '📝 [AuditTrailService] Attempting to log action: "$action" | Actor: "$resolvedActorId" | Email: "${actorEmail ?? currentUser?.email}"');
 
     if (resolvedActorId == null) {
-      print('⚠️ [AuditTrailService] Logging skipped: resolvedActorId is null (user is not logged in / authenticated).');
+      print(
+          '⚠️ [AuditTrailService] Logging skipped: resolvedActorId is null (user is not logged in / authenticated).');
       return;
     }
 
@@ -29,12 +31,35 @@ class AuditTrailService {
         'entity_type': entityType,
         'entity_id': entityId,
         'metadata': metadata ?? <String, dynamic>{},
-        'created_at': DateTime.now().toIso8601String(),
       });
-      print('✅ [AuditTrailService] Successfully logged event: "$action" to database.');
+      print(
+          '✅ [AuditTrailService] Successfully logged event: "$action" to database.');
     } catch (e) {
       print('❌ [AuditTrailService] Failed to write audit event: $e');
     }
+  }
+
+  Future<void> trackButtonClick({
+    required String buttonLabel,
+    String? actorId,
+    String? actorEmail,
+    String? actorRole,
+    String? screen,
+    Map<String, dynamic>? metadata,
+  }) {
+    return track(
+      action: 'button_clicked',
+      actorId: actorId,
+      actorEmail: actorEmail,
+      actorRole: actorRole,
+      entityType: 'button',
+      entityId: buttonLabel,
+      metadata: {
+        ...?metadata,
+        'button_label': buttonLabel,
+        if (screen != null) 'screen': screen,
+      },
+    );
   }
 }
 

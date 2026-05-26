@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class BackButtonCircle extends StatelessWidget {
   final VoidCallback? onTap;
@@ -7,6 +8,7 @@ class BackButtonCircle extends StatelessWidget {
   final Color borderColor;
   final IconData icon;
   final Color iconColor;
+  final String auditLabel;
 
   const BackButtonCircle({
     super.key,
@@ -16,12 +18,20 @@ class BackButtonCircle extends StatelessWidget {
     this.borderColor = Colors.black54,
     this.icon = Icons.arrow_back_ios_new,
     this.iconColor = Colors.black,
+    this.auditLabel = 'Back',
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap ?? () => Navigator.of(context).pop(),
+      onTap: () {
+        auditTrailService.trackButtonClick(buttonLabel: auditLabel);
+        if (onTap != null) {
+          onTap!.call();
+        } else {
+          Navigator.of(context).pop();
+        }
+      },
       child: Container(
         padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(

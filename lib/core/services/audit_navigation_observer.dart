@@ -2,22 +2,41 @@ import 'package:flutter/widgets.dart';
 import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class AuditNavigationObserver extends NavigatorObserver {
+  String? _extractRouteToken(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+
+    final stripped = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+    final validRouteToken = RegExp(r'^[a-zA-Z0-9_\-/]+$');
+    if (validRouteToken.hasMatch(stripped)) {
+      return stripped;
+    }
+
+    // Fallback: pick the first path-like token from noisy framework strings.
+    final match = RegExp(r'/[a-zA-Z0-9_\-/]+').firstMatch(trimmed);
+    if (match != null) {
+      final token = match.group(0) ?? '';
+      return token.startsWith('/') ? token.substring(1) : token;
+    }
+
+    return null;
+  }
+
   String? _cleanRouteName(Route<dynamic>? route) {
-    final rawName = route?.settings.name ?? '';
-    
+    final rawName = (route?.settings.name ?? '').trim();
+
     // Filter out meaningless system transition names and uninitialized route names
-    if (rawName.isEmpty || 
-        rawName == 'null' || 
-        rawName.contains('RouteSettings') || 
+    if (rawName.isEmpty ||
+        rawName == 'null' ||
+        rawName.contains('RouteSettings') ||
         rawName.contains('TransitionPage') ||
         rawName == 'none') {
       return null;
     }
 
-    // Strip leading slash for clean checking
-    String name = rawName;
-    if (name.startsWith('/')) {
-      name = name.substring(1);
+    final name = _extractRouteToken(rawName);
+    if (name == null || name.isEmpty) {
+      return null;
     }
 
     // Direct mapping to beautiful, human-friendly screen names
@@ -28,9 +47,14 @@ class AuditNavigationObserver extends NavigatorObserver {
       'get-started': 'Get Started Screen',
       'login': 'Login Screen',
       'register': 'Registration Screen',
+      'forgot-password': 'Forgot Password Screen',
+      'reset-password': 'Reset Password Screen',
+      'verify-reset-otp': 'Verify Reset OTP Screen',
       'verify-email': 'Email Verification Screen',
       'setup': 'App Setup Screen',
       'onboarding': 'Onboarding Screen',
+      'onboarding-household-setup': 'Household Setup Onboarding',
+      'onboarding-profile-loading': 'Profile Loading Onboarding',
       'onboarding/profile-setup': 'Profile Setup Onboarding',
       'onboarding/household': 'Household Setup Onboarding',
       'onboarding/pet-preference': 'Pet Preference Onboarding',
@@ -52,20 +76,38 @@ class AuditNavigationObserver extends NavigatorObserver {
       'size-preference': 'Size Preference Screen',
       'household-setup': 'Household Setup Screen',
       'profile-setup': 'Profile Setup Screen',
+      'pet-information': 'Pet Information Screen',
+      'pet-health-information': 'Pet Health Screen',
+      'pet-activity-information': 'Pet Activity Screen',
+      'pet-temperament-information': 'Pet Temperament Screen',
+      'pet-behavior-information': 'Pet Behavior Screen',
+      'pet-preference-setup': 'Pet Preference Setup Screen',
+      'activity-level-setup': 'Activity Level Setup Screen',
+      'patience-level-setup': 'Patience Level Setup Screen',
+      'affection-level-setup': 'Affection Level Setup Screen',
+      'grooming-level-setup': 'Grooming Level Setup Screen',
+      'size-preference-setup': 'Size Preference Setup Screen',
+      'admin-pet-management': 'Admin Pet Management',
     };
 
     if (cleanNamesMapping.containsKey(name)) {
       return cleanNamesMapping[name];
     }
 
-    // Dynamic clean fallback (e.g. "size-preference-setup" -> "Size Preference Setup Onboarding")
-    return name.replaceAll('-', ' ').replaceAll('_', ' ').replaceAll('/', ' › ').split(' ').map((word) {
+    // Dynamic clean fallback for valid route-like tokens only.
+    return name
+        .replaceAll('-', ' ')
+        .replaceAll('_', ' ')
+        .replaceAll('/', ' › ')
+        .split(' ')
+        .map((word) {
       if (word.isEmpty) return '';
       return word[0].toUpperCase() + word.substring(1);
     }).join(' ');
   }
 
-  void _track(String action, Route<dynamic>? route, Route<dynamic>? previousRoute,
+  void _track(
+      String action, Route<dynamic>? route, Route<dynamic>? previousRoute,
       {String? eventType}) {
     final routeName = _cleanRouteName(route);
     final previousRouteName = _cleanRouteName(previousRoute);
@@ -77,7 +119,7 @@ class AuditNavigationObserver extends NavigatorObserver {
 
     auditTrailService.track(
       action: action,
-      entityType: 'navigation',
+      entityType: 'screen',
       entityId: routeName,
       metadata: {
         'route': routeName,

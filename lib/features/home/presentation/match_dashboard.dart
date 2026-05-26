@@ -182,6 +182,11 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                           color: Colors.deepOrange,
                         ),
                         onPressed: () {
+                          auditTrailService.trackButtonClick(
+                            buttonLabel:
+                                _showListView ? 'Swipe view' : 'List view',
+                            screen: 'Match dashboard',
+                          );
                           setState(() {
                             _showListView = !_showListView;
                             _currentCardIndex = 0;
@@ -386,6 +391,10 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
           const SizedBox(height: 30),
           ElevatedButton.icon(
             onPressed: () {
+              auditTrailService.trackButtonClick(
+                buttonLabel: 'Try Again',
+                screen: 'Match dashboard',
+              );
               ref.read(matchProvider.notifier).fetchMatchedPets();
             },
             icon: const Icon(Icons.refresh),
@@ -416,7 +425,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
           .eq('user_id', userId)
           .maybeSingle();
 
-      final userLifestyle = userProfileData?['user_lifestyle'] as Map<String, dynamic>?;
+      final userLifestyle =
+          userProfileData?['user_lifestyle'] as Map<String, dynamic>?;
       final preferredSize = userLifestyle?['size_preference'] as String?;
 
       final normalizedPreferredSize = _normalizeSizeValue(preferredSize);
@@ -426,11 +436,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       }
 
       final favoriteIds = ref.read(favoritesProvider).favoriteIds;
-      final currentMatchIds = ref
-          .read(matchProvider)
-          .matches
-          .map((m) => m.pet.id)
-          .toSet();
+      final currentMatchIds =
+          ref.read(matchProvider).matches.map((m) => m.pet.id).toSet();
 
       // Fetch a small pool and filter locally so size comparisons are robust
       final response = await supabase
@@ -440,7 +447,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
           .neq('status', 'adopted')
           .limit(60);
 
-      final pool = (response as List).map((json) => Pet.fromJson(json)).toList();
+      final pool =
+          (response as List).map((json) => Pet.fromJson(json)).toList();
 
       // Determine and collect candidates based on user's preference
       final candidates = <Pet>[];
@@ -544,8 +552,10 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       candidates.sort((a, b) {
         final aSize = _normalizeSizeValue(a.size) ?? '';
         final bSize = _normalizeSizeValue(b.size) ?? '';
-        final aPri = priority.containsKey(aSize) ? priority[aSize]! : targetOrder.length;
-        final bPri = priority.containsKey(bSize) ? priority[bSize]! : targetOrder.length;
+        final aPri =
+            priority.containsKey(aSize) ? priority[aSize]! : targetOrder.length;
+        final bPri =
+            priority.containsKey(bSize) ? priority[bSize]! : targetOrder.length;
         return aPri.compareTo(bPri);
       });
 
@@ -601,9 +611,11 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
-              if (_sizeMismatchedDogs != null && _sizeMismatchedDogs!.isNotEmpty)
+              if (_sizeMismatchedDogs != null &&
+                  _sizeMismatchedDogs!.isNotEmpty)
                 ..._buildSizeMismatchedCards()
-              else if (_sizeMismatchedDogs != null && _sizeMismatchedDogs!.isEmpty)
+              else if (_sizeMismatchedDogs != null &&
+                  _sizeMismatchedDogs!.isEmpty)
                 Text(
                   'Check back later for more dogs!',
                   style: GoogleFonts.poppins(
@@ -648,7 +660,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
 
   Widget _buildSizeMismatchCard(Pet dog) {
     return GestureDetector(
-      onTap: () => showPetDetailsModal(context, _sizeMismatchedDogs ?? [], _sizeMismatchedDogs?.indexOf(dog) ?? 0),
+      onTap: () => showPetDetailsModal(context, _sizeMismatchedDogs ?? [],
+          _sizeMismatchedDogs?.indexOf(dog) ?? 0),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
@@ -679,8 +692,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                       )
                     : Container(
                         color: Colors.grey[200],
-                        child: Icon(Icons.pets,
-                            size: 28, color: Colors.grey[400]),
+                        child:
+                            Icon(Icons.pets, size: 28, color: Colors.grey[400]),
                       ),
               ),
             ),
@@ -805,12 +818,14 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[200],
-                        child: Icon(Icons.pets, size: 40, color: Colors.grey[400]),
+                        child:
+                            Icon(Icons.pets, size: 40, color: Colors.grey[400]),
                       ),
                     )
                   : Container(
                       color: Colors.grey[200],
-                      child: Icon(Icons.pets, size: 40, color: Colors.grey[400]),
+                      child:
+                          Icon(Icons.pets, size: 40, color: Colors.grey[400]),
                     ),
             ),
           ),
@@ -834,16 +849,19 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: petMatch.matchColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: petMatch.matchColor, width: 1.5),
+                          border: Border.all(
+                              color: petMatch.matchColor, width: 1.5),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(petMatch.matchIcon, color: petMatch.matchColor, size: 14),
+                            Icon(petMatch.matchIcon,
+                                color: petMatch.matchColor, size: 14),
                             const SizedBox(width: 4),
                             Text(
                               '${petMatch.totalMatchPercent.toInt()}%',
@@ -884,7 +902,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.cake_outlined, size: 14, color: Colors.grey[600]),
+                      Icon(Icons.cake_outlined,
+                          size: 14, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -979,7 +998,8 @@ class _AppleIntelligenceModal extends StatefulWidget {
   });
 
   @override
-  State<_AppleIntelligenceModal> createState() => _AppleIntelligenceModalState();
+  State<_AppleIntelligenceModal> createState() =>
+      _AppleIntelligenceModalState();
 }
 
 class _AppleIntelligenceModalState extends State<_AppleIntelligenceModal>

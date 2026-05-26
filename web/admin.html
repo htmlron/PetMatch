@@ -1668,6 +1668,7 @@
       const lastSyncMessage = document.getElementById('lastSyncMessage');
 
       const state = { session: null, profile: null, pets: [], auditTrail: [], auditLogsOpen: false, editingPet: null, selectedThumbnail: null, selectedGallery: [], removedImages: new Set(), realtimeChannel: null, client: baseSupabase };
+      let auditRefreshTimer = null;
 
       const editorCard = document.getElementById('editorCard');
 
@@ -1696,6 +1697,7 @@
         screen_closed: 'Screen closed',
         screen_replaced: 'Screen replaced',
         nav_tab_clicked: 'Navigation clicked',
+        button_clicked: 'Button clicked',
         match_explanation_requested: 'Match explanation requested',
         onboarding_completed: 'Onboarding completed',
         profile_setup_completed: 'Profile setup completed',
@@ -1715,6 +1717,107 @@
         const value = action ? String(action) : 'activity';
         return auditActionLabels[value] || value.replace(/_/g, ' ');
       };
+
+      const formatAuditTitle = (event, entityName) => {
+        const safeName = entityName || 'activity';
+        switch (event?.action) {
+          case 'screen_opened':
+            return `Opened ${safeName}`;
+          case 'screen_closed':
+            return `Closed ${safeName}`;
+          case 'screen_replaced':
+            return `Switched to ${safeName}`;
+          case 'button_clicked':
+          case 'nav_tab_clicked':
+            return `Clicked ${safeName}`;
+          default:
+            return formatAuditAction(event?.action);
+        }
+      };
+
+      const auditEntityLabels = {
+        home: 'Home Dashboard',
+        '/home': 'Home Dashboard',
+        'home/match-dashboard': 'Pet Match Dashboard',
+        '/home/match-dashboard': 'Pet Match Dashboard',
+        'home/favorite-pets': 'Favorite Pets Screen',
+        '/home/favorite-pets': 'Favorite Pets Screen',
+        'home/profile-screen': 'User Profile Screen',
+        '/home/profile-screen': 'User Profile Screen',
+        splash: 'Splash Screen',
+        login: 'Login Screen',
+        register: 'Registration Screen',
+        'forgot-password': 'Forgot Password Screen',
+        'verify-email': 'Email Verification Screen',
+        onboarding: 'Onboarding Screen',
+        'admin-pet-management': 'Admin Pet Management',
+      };
+
+      const toTitleCase = (value) => String(value)
+        .replace(/[\/_-]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '')
+        .join(' ');
+
+      const formatAuditEntityName = (value) => {
+        if (value === null || value === undefined) return '';
+        const raw = String(value).trim();
+        if (!raw) return '';
+
+        const normalized = raw.toLowerCase();
+        if (
+          normalized.includes('notransitionpage') ||
+          normalized.includes('customtransitionpage') ||
+          normalized.includes('routesettings') ||
+          normalized === 'null' ||
+          normalized === 'none'
+        ) {
+          return '';
+        }
+
+        const withoutQuery = raw.split('?')[0];
+        const mapKey = withoutQuery.toLowerCase();
+        if (auditEntityLabels[mapKey]) {
+          return auditEntityLabels[mapKey];
+        }
+
+        const withoutLeadingSlash = withoutQuery.startsWith('/') ? withoutQuery.slice(1) : withoutQuery;
+        if (auditEntityLabels[withoutLeadingSlash.toLowerCase()]) {
+          return auditEntityLabels[withoutLeadingSlash.toLowerCase()];
+        }
+
+        return toTitleCase(withoutLeadingSlash || withoutQuery);
+      };
+
+      const inferEntityNameFromEvent = (event) => {
+        const tabIndex = Number(event?.metadata?.tab_index);
+        if (Number.isInteger(tabIndex)) {
+          if (tabIndex === 0) return 'Home Dashboard';
+          if (tabIndex === 1) return 'Pet Match Dashboard';
+          if (tabIndex === 2) return 'Favorite Pets Screen';
+          if (tabIndex === 3) return 'User Profile Screen';
+        }
+
+        const previousRoute = formatAuditEntityName(event?.metadata?.previous_route);
+        if (event?.action?.startsWith('screen_') && previousRoute === 'Splash Screen') {
+          return 'Home Dashboard';
+        }
+
+        if (event?.action === 'screen_opened') {
+          if (previousRoute === 'Pet Match Dashboard' || previousRoute === 'Favorite Pets Screen' || previousRoute === 'User Profile Screen') {
+            return 'Home Dashboard';
+          }
+          return '';
+        }
+
+        if (event?.action === 'button_clicked' || event?.action === 'nav_tab_clicked') {
+          return 'App Button';
+        }
+
+        return '';
+      };
+
       const formatAuditTime = (value) => {
         try {
           return new Date(value).toLocaleString();
@@ -1757,14 +1860,27 @@
           top.className = 'audit-event-top';
 
           const titleBlock = document.createElement('div');
+          const actionType = event.action ? String(event.action) : '';
+          const entityType =
+            (actionType === 'button_clicked' || actionType === 'nav_tab_clicked') ? 'button'
+              : (actionType.startsWith('screen_') ? 'screen'
+                : (event.entity_type || (event.metadata?.button_label ? 'button' : 'event')));
+          const entityId =
+            formatAuditEntityName(event.entity_id) ||
+            formatAuditEntityName(event.metadata?.button_label) ||
+            formatAuditEntityName(event.metadata?.button_name) ||
+            formatAuditEntityName(event.metadata?.route) ||
+            inferEntityNameFromEvent(event) ||
+            'Unknown';
+
           const title = document.createElement('div');
           title.className = 'audit-event-title';
-          title.textContent = formatAuditAction(event.action);
+          title.textContent = formatAuditTitle(event, entityId);
 
           const meta = document.createElement('div');
           meta.className = 'audit-event-meta';
           const actor = event.actor_email || event.actor_id || 'Unknown user';
-          const entity = [event.entity_type, event.entity_id].filter(Boolean).join(' • ');
+          const entity = [entityType, entityId].filter(Boolean).join(' • ');
           meta.textContent = entity ? `${actor} • ${entity}` : actor;
 
           titleBlock.appendChild(title);
@@ -1781,7 +1897,7 @@
           badges.className = 'audit-event-badges';
 
           const role = event.actor_role || event.metadata?.role;
-          const type = event.entity_type || 'event';
+          const type = entityType;
           [role ? `Role: ${role}` : null, `Type: ${type}`].filter(Boolean).forEach((label) => {
             const badge = document.createElement('span');
             badge.className = 'audit-event-badge';
@@ -1797,7 +1913,12 @@
             detail.className = 'audit-event-meta';
             const summary = Object.entries(event.metadata)
               .slice(0, 3)
-              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`)
+              .map(([key, value]) => {
+                const normalizedValue = ['route', 'previous_route', 'screen', 'button_label', 'button_name'].includes(key)
+                  ? (formatAuditEntityName(value) || 'Unknown')
+                  : (Array.isArray(value) ? value.join(', ') : String(value));
+                return `${key}: ${normalizedValue}`;
+              })
               .join(' • ');
             detail.textContent = summary;
             item.appendChild(detail);
@@ -1815,6 +1936,16 @@
         };
         state.auditTrail = [normalized, ...state.auditTrail.filter((item) => item.id !== normalized.id)].slice(0, 25);
         renderAuditTrail();
+      }
+
+      function scheduleAuditRefresh(delayMs = 900) {
+        if (auditRefreshTimer) {
+          clearTimeout(auditRefreshTimer);
+        }
+        auditRefreshTimer = setTimeout(() => {
+          auditRefreshTimer = null;
+          fetchAuditTrail();
+        }, delayMs);
       }
 
       async function fetchAuditTrail() {
@@ -2212,12 +2343,14 @@
             if (auditStatus) {
               auditStatus.textContent = 'Live audit on';
             }
+            scheduleAuditRefresh();
           })
           .subscribe((status) => {
             console.log('Realtime subscription status:', status);
             if (status === 'SUBSCRIBED') {
               console.log('✅ Realtime sync active');
               setStatus('#1e6f5c', 'Live sync on');
+              scheduleAuditRefresh(0);
             }
           });
       }
@@ -2303,6 +2436,10 @@
       refreshButton.addEventListener('click', refreshPets);
       logoutButton.addEventListener('click', async () => {
         try { localStorage.removeItem('admin_session'); } catch (e) { /* ignore */ }
+        if (auditRefreshTimer) {
+          clearTimeout(auditRefreshTimer);
+          auditRefreshTimer = null;
+        }
         if (state.realtimeChannel) {
           try { await getClient().removeChannel(state.realtimeChannel); } catch (e) { console.warn('Failed to remove channel', e); }
         }

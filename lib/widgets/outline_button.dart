@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:petmatch/core/services/audit_trail_service.dart';
 
 class OutlineCustomButton extends StatelessWidget {
   const OutlineCustomButton(
-      {super.key, required this.buttonText, this.onPressed, this.iconData});
+      {super.key,
+      required this.buttonText,
+      this.onPressed,
+      this.iconData,
+      this.auditLabel});
 
   final String buttonText;
   final Function()? onPressed;
   final IconData? iconData;
+  final String? auditLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +28,14 @@ class OutlineCustomButton extends StatelessWidget {
             ),
             side: BorderSide(color: Theme.of(context).colorScheme.onPrimary),
           ),
-          onPressed: onPressed,
+          onPressed: onPressed == null
+              ? null
+              : () {
+                  auditTrailService.trackButtonClick(
+                    buttonLabel: auditLabel ?? buttonText,
+                  );
+                  onPressed?.call();
+                },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

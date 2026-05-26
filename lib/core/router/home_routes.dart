@@ -22,9 +22,11 @@ import 'package:petmatch/features/user_profile/presentation/screen/size_preferen
 final homeRoutes = [
   GoRoute(
     path: '/home',
+    name: 'home',
     builder: (context, state) => const LandingDashboard(),
     pageBuilder: (context, state) {
       return CustomTransitionPage(
+        name: state.name ?? state.matchedLocation,
         child: const LandingDashboard(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return child;
@@ -35,36 +37,41 @@ final homeRoutes = [
       GoRoute(
         path: '/profile-screen',
         name: 'profile-screen',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: ProfileDashboard(),
+        pageBuilder: (context, state) => NoTransitionPage(
+          name: state.name ?? state.matchedLocation,
+          child: const ProfileDashboard(),
         ),
       ),
       GoRoute(
         path: '/match-dashboard',
         name: 'match-dashboard',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: MatchDashboard(),
+        pageBuilder: (context, state) => NoTransitionPage(
+          name: state.name ?? state.matchedLocation,
+          child: const MatchDashboard(),
         ),
       ),
       GoRoute(
         path: '/add-pet',
         name: 'add-pet',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: AddPetScreen(),
+        pageBuilder: (context, state) => NoTransitionPage(
+          name: state.name ?? state.matchedLocation,
+          child: const AddPetScreen(),
         ),
       ),
       GoRoute(
         path: '/edit-profile',
         name: 'edit-profile',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: EditProfileScreen(),
+        pageBuilder: (context, state) => NoTransitionPage(
+          name: state.name ?? state.matchedLocation,
+          child: const EditProfileScreen(),
         ),
       ),
       GoRoute(
         path: '/favorite-pets',
         name: 'favorite-pets',
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: FavoritePetsPage(),
+        pageBuilder: (context, state) => NoTransitionPage(
+          name: state.name ?? state.matchedLocation,
+          child: const FavoritePetsPage(),
         ),
       ),
 
