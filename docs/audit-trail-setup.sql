@@ -28,7 +28,7 @@ create policy "admins can read audit events"
     exists (
       select 1
       from public.users u
-      where u.user_id = auth.uid()
+      where u.user_id = auth.uid()::text
         and u.user_role = 'admin'
     )
   );

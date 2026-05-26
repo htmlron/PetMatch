@@ -234,11 +234,29 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
       key: ValueKey(petId),
       petMatch: currentMatch,
       onPrevious: () {
+        auditTrailService.track(
+          action: 'pet_card_previous',
+          entityType: 'pet_match',
+          entityId: petId,
+          metadata: {
+            'pet_name': currentMatch.pet.name,
+            'match_percent': currentMatch.totalMatchPercent.toInt(),
+          },
+        );
         setState(() {
           if (_currentCardIndex > 0) _currentCardIndex--;
         });
       },
       onNext: () {
+        auditTrailService.track(
+          action: 'pet_card_next',
+          entityType: 'pet_match',
+          entityId: petId,
+          metadata: {
+            'pet_name': currentMatch.pet.name,
+            'match_percent': currentMatch.totalMatchPercent.toInt(),
+          },
+        );
         setState(() {
           if (_currentCardIndex < petMatches.length - 1) {
             _currentCardIndex++;
@@ -252,6 +270,16 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard> {
           );
           return;
         }
+
+        auditTrailService.track(
+          action: 'pet_skipped',
+          entityType: 'pet_match',
+          entityId: petId,
+          metadata: {
+            'pet_name': currentMatch.pet.name,
+            'match_percent': currentMatch.totalMatchPercent.toInt(),
+          },
+        );
 
         // Remove current pet; keep index pointing at the next card if possible.
         final wasLast = clampedIndex >= petMatches.length - 1;

@@ -13,7 +13,10 @@ class AuditTrailService {
     final currentUser = supabase.auth.currentUser;
     final resolvedActorId = actorId ?? currentUser?.id;
 
+    print('📝 [AuditTrailService] Attempting to log action: "$action" | Actor: "$resolvedActorId" | Email: "${actorEmail ?? currentUser?.email}"');
+
     if (resolvedActorId == null) {
+      print('⚠️ [AuditTrailService] Logging skipped: resolvedActorId is null (user is not logged in / authenticated).');
       return;
     }
 
@@ -28,8 +31,9 @@ class AuditTrailService {
         'metadata': metadata ?? <String, dynamic>{},
         'created_at': DateTime.now().toIso8601String(),
       });
+      print('✅ [AuditTrailService] Successfully logged event: "$action" to database.');
     } catch (e) {
-      print('❌ Failed to write audit event: $e');
+      print('❌ [AuditTrailService] Failed to write audit event: $e');
     }
   }
 }
